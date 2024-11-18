@@ -48,20 +48,96 @@ bool CollisionDetection::RayIntersection(const Ray& r,GameObject& object, RayCol
 	return hasCollided;
 }
 
+// Check for a collision between a ray and a box
 bool CollisionDetection::RayBoxIntersection(const Ray&r, const Vector3& boxPos, const Vector3& boxSize, RayCollision& collision) {
-	return false;
+	Vector3 boxMin = boxPos - boxSize;
+	Vector3 boxMax = boxPos + boxSize;
+
+	Vector3 rayPos = r.GetPosition();
+	Vector3 rayDir = r.GetDirection();
+
+	// Determine which planes to check
+	Vector3 tVals(-1, -1, -1);
+	// Get the 3 best intersections based on which direction we're coming from
+	for (int i = 0; i < 3; i++) {
+		if (rayDir[i] > 0) {
+			tVals[i] = (boxMin[i] - rayPos[i]) / rayDir[i];
+		}
+		else if (rayDir[i] < 0) {
+			tVals[i] = (boxMax[i] - rayPos[i]) / rayDir[i];
+		}
+		// else tVals[i] remains -1 as the ray is parallel to the planes
+	}
+	// The distance to the first plane we hit
+	float bestT = Vector::GetMaxElement(tVals);
+	if (bestT < 0.0) {
+		return false; // All intersections are behind us
+	}
+
+	Vector3 intersection = rayPos + (rayDir * bestT);
+	const float epsilon = 0.0001f; // Tolerance in our intersection tests, allows for floating point errors
+	for (int i = 0; i < 3; i++) {
+		if (intersection[i] + epsilon < boxMin[i] || intersection[i] - epsilon > boxMax[i]) {
+			return false; // The best intersection doesn't touch one face of the box, so it's not a hit
+		}
+	}
+	collision.collidedAt = intersection;
+	collision.rayDistance = bestT;
+	return true;
 }
 
 bool CollisionDetection::RayAABBIntersection(const Ray&r, const Transform& worldTransform, const AABBVolume& volume, RayCollision& collision) {
-	return false;
+	// Nothing special here, let RayBoxIntersection do the work
+	return RayBoxIntersection(r, worldTransform.GetPosition(), volume.GetHalfDimensions(), collision);
 }
 
 bool CollisionDetection::RayOBBIntersection(const Ray&r, const Transform& worldTransform, const OBBVolume& volume, RayCollision& collision) {
-	return false;
+	Quaternion orientation = worldTransform.GetOrientation();
+	Vector3 position = worldTransform.GetPosition();
+
+	// Transform the ray such that it's in the space of an AABB represented by the OBB
+	Matrix3 transform = Quaternion::RotationMatrix<Matrix3>(orientation);
+	Matrix3 inverseTransform = Quaternion::RotationMatrix<Matrix3>(orientation.Conjugate());
+
+	Vector3 localRayPos = r.GetPosition() - position;
+	Ray transformedRay(inverseTransform * localRayPos, inverseTransform * r.GetDirection());
+	bool collided = RayBoxIntersection(transformedRay, Vector3(), volume.GetHalfDimensions(), collision);
+	if (collided) {
+		// Transform the collision point back into world space
+		collision.collidedAt = transform * collision.collidedAt + position;
+	}
+	return collided;
 }
 
 bool CollisionDetection::RaySphereIntersection(const Ray&r, const Transform& worldTransform, const SphereVolume& volume, RayCollision& collision) {
-	return false;
+	Vector3 spherePosition = worldTransform.GetPosition();
+	float sphereRadius = volume.GetRadius();
+	
+	Vector3 direction = (spherePosition - r.GetPosition());
+	
+	// Project the sphere's origin onto the ray
+	// This is the distance along the ray where the sphere's center is closest, if it's less than 0, the sphere is behind the ray
+	float sphereProj = Vector::Dot(direction, r.GetDirection());
+	if (sphereProj < 0) {
+		return false; // Origin is behind the ray, we will never hit the sphere
+	}
+
+	// At this closest point, find the distance to the sphere's center
+	Vector3 closest = r.GetPosition() + (r.GetDirection() * sphereProj);
+	float distance = Vector::Length(closest - spherePosition);
+	if (distance > sphereRadius) {
+		return false; // Ray is not close enough to hit the sphere
+	}
+
+	// Using the distance and pythagoras theorem, find the distance from the plane representing the center of the sphere facing the ray,
+	// to the point where the ray hits the sphere
+	// Use this to get the 3D point of collision
+	float offset = sqrt(
+		(sphereRadius * sphereRadius) - (distance * distance)
+	);
+	collision.rayDistance = sphereProj - offset;
+	collision.collidedAt = r.GetPosition() + (r.GetDirection() * collision.rayDistance);
+	return true;
 }
 
 bool CollisionDetection::RayCapsuleIntersection(const Ray& r, const Transform& worldTransform, const CapsuleVolume& volume, RayCollision& collision) {
