@@ -305,6 +305,7 @@ physics worlds. You'll probably need another function for the creation of OBB cu
 */
 GameObject* TutorialGame::AddSphereToWorld(const Vector3& position, float radius, float inverseMass) {
 	GameObject* sphere = new GameObject();
+	sphere->setLayer(LayerMask::Index::Spheres);
 
 	Vector3 sphereSize = Vector3(radius, radius, radius);
 	SphereVolume* volume = new SphereVolume(radius);
@@ -490,6 +491,7 @@ bool TutorialGame::SelectObject() {
 			}
 
 			Ray ray = CollisionDetection::BuildRayFromMouse(world->GetMainCamera());
+			ray.setMask(2);
 
 			RayCollision closestCollision;
 			if (world->Raycast(ray, closestCollision, true)) {

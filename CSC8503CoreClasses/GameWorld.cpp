@@ -89,6 +89,10 @@ bool GameWorld::Raycast(Ray& r, RayCollision& closestCollision, bool closestObje
 		if (i == ignoreThis) {
 			continue;
 		}
+		// Skip objects that are masked out
+		if (!r.getMask().matches(i->getLayer())) {
+			continue;
+		}
 		RayCollision thisCollision;
 		if (CollisionDetection::RayIntersection(r, *i, thisCollision)) {
 				

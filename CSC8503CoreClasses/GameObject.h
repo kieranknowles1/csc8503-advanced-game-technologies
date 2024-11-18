@@ -1,6 +1,7 @@
 #pragma once
 #include "Transform.h"
 #include "CollisionVolume.h"
+#include "LayerMask.h"
 
 using std::vector;
 
@@ -74,6 +75,12 @@ namespace NCL::CSC8503 {
 			return worldID;
 		}
 
+		void setLayer(LayerMask::Index layer) {
+			this->layer = layer;
+		}
+		LayerMask::Index getLayer() const {
+			return layer;
+		}
 	protected:
 		Transform			transform;
 
@@ -81,6 +88,8 @@ namespace NCL::CSC8503 {
 		PhysicsObject*		physicsObject;
 		RenderObject*		renderObject;
 		NetworkObject*		networkObject;
+
+		LayerMask::Index layer = LayerMask::Index::Default;
 
 		bool		isActive;
 		int			worldID;
