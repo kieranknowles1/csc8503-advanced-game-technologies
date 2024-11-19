@@ -235,7 +235,31 @@ based on any forces that have been accumulated in the objects during
 the course of the previous game frame.
 */
 void PhysicsSystem::IntegrateAccel(float dt) {
+	std::vector<GameObject*>::const_iterator first;
+	std::vector<GameObject*>::const_iterator last;
+	gameWorld.GetObjectIterators(first, last);
+	for (auto i = first; i != last; i++) {
+		PhysicsObject* object = (*i)->GetPhysicsObject();
+		if (object != nullptr) {
+			integrateObjectAccel(*object, dt);
+		}
+	}
+}
 
+void PhysicsSystem::integrateObjectAccel(PhysicsObject& object, float dt) {
+	float inverseMass = object.GetInverseMass();
+	Vector3 linearVelocity = object.GetLinearVelocity();
+	Vector3 force = object.GetForce();
+	// Newton's second law, F=ma, therefore a=Fm^-1
+	Vector3 acceleration = force * inverseMass;
+
+	// Gravity is a constant acceleration, unless the object has infinite mass
+	if (applyGravity && inverseMass > 0) {
+		acceleration += gravity;
+	}
+	// Integrate linear acceleration using implicit Euler
+	linearVelocity += acceleration * dt;
+	object.SetLinearVelocity(linearVelocity);
 }
 
 /*
@@ -245,7 +269,28 @@ throughout a physics update, to slowly move the objects through
 the world, looking for collisions.
 */
 void PhysicsSystem::IntegrateVelocity(float dt) {
+	std::vector<GameObject*>::const_iterator first;
+	std::vector<GameObject*>::const_iterator last;
+	gameWorld.GetObjectIterators(first, last);
+	float linearDampening = 1.0f - (globalDamping * dt);
 
+	for (auto i = first; i != last; i++) {
+		PhysicsObject* object = (*i)->GetPhysicsObject();
+		if (object != nullptr) {
+			integrateObjectVelocity((*i)->GetTransform(), *object, dt, linearDampening);
+		}
+	}
+}
+
+void PhysicsSystem::integrateObjectVelocity(Transform& transform, PhysicsObject& object, float dt, float dampenFactor) {
+	Vector3 position = transform.GetPosition();
+	Vector3 linearVelocity = object.GetLinearVelocity();
+	position += linearVelocity * dt;
+	transform.SetPosition(position);
+
+	// Dampen linear velocity
+	linearVelocity = linearVelocity * dampenFactor;
+	object.SetLinearVelocity(linearVelocity);
 }
 
 /*

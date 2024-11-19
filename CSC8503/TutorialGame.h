@@ -40,7 +40,7 @@ namespace NCL {
 			void InitDefaultFloor();
 
 			bool SelectObject();
-			void MoveSelectedObject();
+			void MoveSelectedObject(float dt);
 			void DebugObjectMovement();
 			void LockedObjectMovement();
 
@@ -65,6 +65,7 @@ namespace NCL {
 			bool useGravity;
 			bool inSelectionMode;
 
+			// Force to apply when right-clicking the selected object, in Newton seconds
 			float		forceMagnitude;
 
 			GameObject* selectionObject = nullptr;

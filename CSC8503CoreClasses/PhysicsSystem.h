@@ -3,6 +3,14 @@
 
 namespace NCL {
 	namespace CSC8503 {
+		namespace Gravity {
+			static const Vector3 Earth = Vector3(0.0f, -9.8f, 0.0f);
+			static const Vector3 Mars = Vector3(0.0f, -3.7f, 0.0f);
+			static const Vector3 Ceres = Vector3(0.0f, -0.3f, 0.0f);
+			// Very primitve approximation of coriolis effect!
+			static const Vector3 SpinCeres = (Earth / 3.0f) + Vector3(0.0f, 0.0f, 0.3f);
+		};
+
 		class PhysicsSystem	{
 		public:
 			PhysicsSystem(GameWorld& g);
@@ -29,7 +37,9 @@ namespace NCL {
 			void ClearForces();
 
 			void IntegrateAccel(float dt);
+			void integrateObjectAccel(PhysicsObject& object, float dt);
 			void IntegrateVelocity(float dt);
+			void integrateObjectVelocity(Transform& transform, PhysicsObject& object, float dt, float dampenFactor);
 
 			void UpdateConstraints(float dt);
 

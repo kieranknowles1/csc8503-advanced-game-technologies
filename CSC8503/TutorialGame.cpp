@@ -136,7 +136,7 @@ void TutorialGame::UpdateGame(float dt) {
 	Debug::DrawLine(Vector3(), Vector3(0, 100, 0), Vector4(1, 0, 0, 1));
 
 	SelectObject();
-	MoveSelectedObject();
+	MoveSelectedObject(dt);
 
 	world->UpdateWorld(dt);
 	renderer->Update(dt);
@@ -158,6 +158,7 @@ void TutorialGame::UpdateKeys() {
 
 	if (Window::GetKeyboard()->KeyPressed(KeyCodes::G)) {
 		useGravity = !useGravity; //Toggle gravity!
+		physics->SetGravity(Gravity::SpinCeres);
 		physics->UseGravity(useGravity);
 	}
 	//Running certain physics updates in a consistent order might cause some
@@ -536,7 +537,7 @@ added linear motion into our physics system. After the second tutorial, objects 
 line - after the third, they'll be able to twist under torque aswell.
 */
 
-void TutorialGame::MoveSelectedObject() {
+void TutorialGame::MoveSelectedObject(float dt) {
 	Debug::Print("Click Force:" + std::to_string(forceMagnitude), Vector2(5, 90));
 	forceMagnitude += Window::GetMouse()->GetWheelMovement() * 100.0f;
 
@@ -550,7 +551,9 @@ void TutorialGame::MoveSelectedObject() {
 		RayCollision closestCollision;
 		if (world->Raycast(ray, closestCollision, true)) {
 			if (closestCollision.node == selectionObject) {
-				selectionObject->GetPhysicsObject()->AddForceAtPosition(ray.GetDirection() * forceMagnitude, closestCollision.collidedAt);
+				// Push the object along the ray!
+				// Forces are applied for a single frame, so multiply by 1/dt to get apply forceMagnitude newton seconds
+				selectionObject->GetPhysicsObject()->AddForceAtPosition(ray.GetDirection() * forceMagnitude * (1.0f / dt), closestCollision.collidedAt);
 			}
 		}
 	}
