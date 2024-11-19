@@ -260,6 +260,16 @@ void PhysicsSystem::integrateObjectAccel(PhysicsObject& object, float dt) {
 	// Integrate linear acceleration using implicit Euler
 	linearVelocity += acceleration * dt;
 	object.SetLinearVelocity(linearVelocity);
+
+	// Apply angular acceleration
+	Vector3 torque = object.GetTorque();
+	Vector3 angularVelocity = object.GetAngularVelocity();
+
+	object.UpdateInertiaTensor(); // Rotate the inertia tensor to the object's local space
+	Vector3 angularAcceleration = object.GetInertiaTensor() * torque;
+	
+	angularVelocity += angularAcceleration * dt;
+	object.SetAngularVelocity(angularVelocity);
 }
 
 /*
@@ -291,6 +301,19 @@ void PhysicsSystem::integrateObjectVelocity(Transform& transform, PhysicsObject&
 	// Dampen linear velocity
 	linearVelocity = linearVelocity * dampenFactor;
 	object.SetLinearVelocity(linearVelocity);
+
+	Quaternion orientation = transform.GetOrientation();
+	Vector3 angularVelocity = object.GetAngularVelocity();
+
+	// Magic *0.5f due to how quaternions work. Leave it to mathemagicians to figure out why
+	// Then they can go outside and see the sun for the first time in years
+	orientation = orientation + (Quaternion(angularVelocity * dt * 0.5f, 0.0f) * orientation);
+	orientation.Normalise();
+	transform.SetOrientation(orientation);
+
+	// Dampen angular velocity
+	angularVelocity = angularVelocity * dampenFactor;
+	object.SetAngularVelocity(angularVelocity);
 }
 
 /*

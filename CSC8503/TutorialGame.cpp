@@ -158,7 +158,7 @@ void TutorialGame::UpdateKeys() {
 
 	if (Window::GetKeyboard()->KeyPressed(KeyCodes::G)) {
 		useGravity = !useGravity; //Toggle gravity!
-		physics->SetGravity(Gravity::SpinCeres);
+		physics->SetGravity(Gravity::Earth);
 		physics->UseGravity(useGravity);
 	}
 	//Running certain physics updates in a consistent order might cause some
@@ -493,7 +493,6 @@ bool TutorialGame::SelectObject() {
 			}
 
 			Ray ray = CollisionDetection::BuildRayFromMouse(world->GetMainCamera());
-			ray.setMask({ LayerMask::Index::Spheres });
 
 			RayCollision closestCollision;
 			if (world->Raycast(ray, closestCollision, true)) {
