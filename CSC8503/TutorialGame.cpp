@@ -266,9 +266,14 @@ void TutorialGame::InitWorld() {
 	world->ClearAndErase();
 	physics->Clear();
 
+	// Grid of random cubes and spheres, 10m above the origin
 	InitMixedGridWorld(15, 15, 3.5f, 3.5f);
 
+	// Add a non-uniform cube. This will be easier to spin around its long edge, and harder to spin around its short edge.
+	AddCubeToWorld(Vector3(0, 20, 0), Vector3(1, 1, 5), 0.5f);
+
 	InitGameExamples();
+	// Floor, 20m below the origin
 	InitDefaultFloor();
 }
 
@@ -331,7 +336,7 @@ GameObject* TutorialGame::AddSphereToWorld(const Vector3& position, float radius
 GameObject* TutorialGame::AddCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass) {
 	GameObject* cube = new GameObject();
 
-	AABBVolume* volume = new AABBVolume(dimensions);
+	OBBVolume* volume = new OBBVolume(dimensions);
 	cube->SetBoundingVolume((CollisionVolume*)volume);
 
 	cube->GetTransform()
