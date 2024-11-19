@@ -150,6 +150,7 @@ void TutorialGame::UpdateKeys() {
 	if (Window::GetKeyboard()->KeyPressed(KeyCodes::F1)) {
 		InitWorld(); //We can reset the simulation at any time with F1
 		selectionObject = nullptr;
+		selectionVisibleObject = nullptr;
 	}
 
 	if (Window::GetKeyboard()->KeyPressed(KeyCodes::F2)) {
@@ -488,8 +489,11 @@ bool TutorialGame::SelectObject() {
 		if (Window::GetMouse()->ButtonDown(NCL::MouseButtons::Left)) {
 			if (selectionObject) {	//set colour to deselected;
 				selectionObject->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1));
-				selectionVisibleObject->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1));
 				selectionObject = nullptr;
+			}
+			if (selectionVisibleObject) {
+				selectionVisibleObject->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1));
+				selectionVisibleObject = nullptr;
 			}
 
 			Ray ray = CollisionDetection::BuildRayFromMouse(world->GetMainCamera());
