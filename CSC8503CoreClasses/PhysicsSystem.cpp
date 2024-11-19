@@ -282,12 +282,16 @@ void PhysicsSystem::IntegrateVelocity(float dt) {
 	std::vector<GameObject*>::const_iterator first;
 	std::vector<GameObject*>::const_iterator last;
 	gameWorld.GetObjectIterators(first, last);
-	float linearDampening = 1.0f - (globalDamping * dt);
+	// Global dampening represents the fraction of velocity that remains after 1 second
+	// Taking globalDamping^dt gives the fraction that remains after dt seconds, which converges to 0 at dt=inf and 1 at dt=0
+	// https://www.desmos.com/calculator/a3sz0jbhpo
+	// Using 1-(d*x) was a poor choice, as it doesn't converge to 0, is heavily dependent on framerate, and if dt > d will actually increase the velocity
+	float dampening = pow(globalDamping, dt);
 
 	for (auto i = first; i != last; i++) {
 		PhysicsObject* object = (*i)->GetPhysicsObject();
 		if (object != nullptr) {
-			integrateObjectVelocity((*i)->GetTransform(), *object, dt, linearDampening);
+			integrateObjectVelocity((*i)->GetTransform(), *object, dt, dampening);
 		}
 	}
 }
