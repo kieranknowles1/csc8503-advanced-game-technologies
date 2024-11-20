@@ -4,6 +4,10 @@
 #include "Win32Window.h"
 #endif
 
+#ifdef __linux__
+#include "SDLWindow.h"
+#endif
+
 #ifdef __ORBIS__
 #include "../Plugins/PlayStation4/PS4Window.h"
 #endif
@@ -35,10 +39,9 @@ Window* Window::CreateGameWindow(const WindowInitialisation& init) {
 	}
 #ifdef _WIN32
 	return new Win32Code::Win32Window(init);
+#else
+	return new UnixCode::SDLWindow(init);
 #endif
-	// FIXME: Add support for other platforms
-	throw std::runtime_error("No window creation method for this platform!");
-	return nullptr;
 }
 
 bool	Window::UpdateWindow() {
