@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cfloat>
+
 #include "LayerMask.h"
 
 namespace NCL {
