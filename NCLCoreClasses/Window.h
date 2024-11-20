@@ -42,7 +42,7 @@ namespace NCL {
 	};
 
 	using WindowEventHandler = std::function<void(WindowEvent e, uint32_t w, uint32_t h)>;
-	
+
 	class Window {
 	public:
 		static Window* CreateGameWindow(const WindowInitialisation& init);
@@ -71,13 +71,13 @@ namespace NCL {
 			UpdateTitle();
 		};
 
-		virtual void	LockMouseToWindow(bool lock) {};
-		virtual void	ShowOSPointer(bool show) {};
+		virtual void	LockMouseToWindow(bool lock) = 0;
+		virtual void	ShowOSPointer(bool show) = 0;
 
-		virtual void	SetWindowPosition(int x, int y) {};
-		virtual void	SetFullScreen(bool state) {};
-		virtual void	SetConsolePosition(int x, int y) {};
-		virtual void	ShowConsole(bool state) {};
+		virtual void	SetWindowPosition(int x, int y) = 0;
+		virtual void	SetFullScreen(bool state) = 0;
+		virtual void	SetConsolePosition(int x, int y) = 0;
+		virtual void	ShowConsole(bool state) = 0;
 
 		static const Keyboard*	 GetKeyboard() { return keyboard; }
 		static const Mouse*		 GetMouse() { return mouse; }
@@ -92,7 +92,7 @@ namespace NCL {
 		Window();
 		virtual ~Window();
 
-		virtual void UpdateTitle() {}
+		virtual void UpdateTitle() = 0;
 
 		virtual bool InternalUpdate() = 0;
 

@@ -15,16 +15,20 @@ License: MIT (see LICENSE file at the top of the source tree)
 #include "TextureLoader.h"
 
 #include "Mesh.h"
-
 #ifdef _WIN32
 #include "Win32Window.h"
-
 #include "KHR\khrplatform.h"
 #include "glad/gl.h"
 #include "KHR/WGLext.h"
 
 PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
 #endif
+
+#ifndef _WIN32
+#include "SDLWindow.h"
+#endif
+
+#include <stdexcept>
 
 using namespace NCL;
 using namespace NCL::Rendering;
@@ -39,6 +43,8 @@ OGLRenderer::OGLRenderer(Window& w) : RendererBase(w)	{
 	initState = false;
 #ifdef _WIN32
 	InitWithWin32(w);
+#else
+	InitWithSDL2(w);
 #endif
 	boundMesh		= nullptr;
 	activeShader	= nullptr;
@@ -49,6 +55,8 @@ OGLRenderer::OGLRenderer(Window& w) : RendererBase(w)	{
 OGLRenderer::~OGLRenderer()	{
 #ifdef _WIN32
 	DestroyWithWin32();
+#else
+	DestroyWithSDL2();
 #endif
 }
 
@@ -350,4 +358,24 @@ static void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum
 
 	std::cout << "OpenGL Debug Output: " + sourceName + ", " + typeName + ", " + severityName + ", " + string(message) + "\n";
 }
+#endif
+
+#ifndef _WIN32
+	void OGLRenderer::InitWithSDL2(Window& w) {
+		// This will throw if the window is not an SDLWindow
+		// Shouldn't happen, but we need to handle it
+		// TODO: Could we skip win32 and use SDL2 for all platforms?
+		auto& sdlWindow = dynamic_cast<UnixCode::SDLWindow&>(w);
+		auto* handle = sdlWindow.getSdlWindow();
+
+		glContext = SDL_GL_CreateContext(handle);
+
+		if (!gladLoaderLoadGL()) {
+			throw std::runtime_error("Failed to initialise GLAD!");
+		}
+	}
+
+	void OGLRenderer::DestroyWithSDL2() {
+
+	}
 #endif

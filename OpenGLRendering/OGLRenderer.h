@@ -12,11 +12,18 @@ License: MIT (see LICENSE file at the top of the source tree)
 #include "windows.h"
 #endif
 
+#ifndef _WIN32
+// GLAD doesn't like to be included after SDL
+#include <glad/gl.h>
+#include <SDL2/SDL_video.h>
+#include <SDL2/SDL_opengl.h>
+#endif
+
 #ifdef _DEBUG
 #define OPENGL_DEBUGGING
 #endif
 
-namespace NCL::Rendering {	
+namespace NCL::Rendering {
 	class Mesh;
 	class Shader;
 	class Texture;
@@ -27,7 +34,7 @@ namespace NCL::Rendering {
 	class OGLBuffer;
 
 	class SimpleFont;
-		
+
 	class OGLRenderer : public RendererBase	{
 	public:
 		friend class OGLRenderer;
@@ -41,7 +48,7 @@ namespace NCL::Rendering {
 
 		virtual bool SetVerticalSync(VerticalSyncState s);
 
-	protected:			
+	protected:
 		void BeginFrame()	override;
 		void RenderFrame()	override;
 		void EndFrame()		override;
@@ -58,7 +65,11 @@ namespace NCL::Rendering {
 		void InitWithWin32(Window& w);
 		void DestroyWithWin32();
 		HDC		deviceContext;		//...Device context?
-		HGLRC	renderContext;		//Permanent Rendering Context		
+		HGLRC	renderContext;		//Permanent Rendering Context
+#else
+		void InitWithSDL2(Window& w);
+		void DestroyWithSDL2();
+		SDL_GLContext glContext;
 #endif
 
 		const OGLMesh*		boundMesh;
