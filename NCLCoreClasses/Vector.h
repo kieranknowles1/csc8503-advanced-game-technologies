@@ -7,7 +7,9 @@ Comments and queries to: richard-gordon.davison AT ncl.ac.uk
 https://research.ncl.ac.uk/game/
 */
 #pragma once
+
 #include <algorithm>
+#include <cmath>
 
 namespace NCL::Maths {
 

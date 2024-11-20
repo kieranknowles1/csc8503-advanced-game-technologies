@@ -7,6 +7,9 @@ Comments and queries to: richard-gordon.davison AT ncl.ac.uk
 https://research.ncl.ac.uk/game/
 */
 #pragma once
+
+#include <cmath>
+
 #include "Maths.h"
 #include "Vector.h"
 
@@ -117,7 +120,7 @@ namespace NCL::Maths {
     		v.x*mat.array[0][0] + v.y*mat.array[1][0] + v.z*mat.array[2][0]  + v.w * mat.array[3][0] ,
     		v.x*mat.array[0][1] + v.y*mat.array[1][1] + v.z*mat.array[2][1]  + v.w * mat.array[3][1] ,
     		v.x*mat.array[0][2] + v.y*mat.array[1][2] + v.z*mat.array[2][2]  + v.w * mat.array[3][2] ,
-    		v.x*mat.array[0][3] + v.y*mat.array[1][3] + v.z*mat.array[2][3]  + v.w * mat.array[3][3] 
+    		v.x*mat.array[0][3] + v.y*mat.array[1][3] + v.z*mat.array[2][3]  + v.w * mat.array[3][3]
     	);
     }
 

@@ -20,7 +20,7 @@ License: MIT (see LICENSE file at the top of the source tree)
 #include "Win32Window.h"
 
 #include "KHR\khrplatform.h"
-#include "glad\gl.h"
+#include "glad/gl.h"
 #include "KHR/WGLext.h"
 
 PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
@@ -73,7 +73,11 @@ void OGLRenderer::EndFrame()		{
 }
 
 void OGLRenderer::SwapBuffers()   {
+#ifdef _WIN32
 	::SwapBuffers(deviceContext);
+#else
+	// FIXME: Implement for other platforms
+#endif
 }
 
 void OGLRenderer::BindBufferAsUBO(const OGLBuffer& b, GLuint slotID) {
@@ -166,7 +170,7 @@ void OGLRenderer::BindTextureToShader(const OGLTexture& t, const std::string& un
 		std::cout << __FUNCTION__ << " has been called without a bound shader!\n";
 		return;//Debug message time!
 	}
-	
+
 	GLuint slot = glGetUniformLocation(activeShader->GetProgramID(), uniform.c_str());
 
 	if (slot < 0) {
@@ -251,7 +255,7 @@ void OGLRenderer::InitWithWin32(Window& w) {
 		WGL_CONTEXT_MAJOR_VERSION_ARB, major,
 		WGL_CONTEXT_MINOR_VERSION_ARB, minor,
 		WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
-#ifdef OPENGL_DEBUGGING 
+#ifdef OPENGL_DEBUGGING
 		| WGL_CONTEXT_DEBUG_BIT_ARB
 #endif		//No deprecated stuff!! DIE DIE DIE glBegin!!!!
 		,WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
@@ -284,7 +288,7 @@ void OGLRenderer::InitWithWin32(Window& w) {
 #endif
 
 	//If we get this far, everything's going well!
-	initState = true; 
+	initState = true;
 
 	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
 }
@@ -307,7 +311,12 @@ bool OGLRenderer::SetVerticalSync(VerticalSyncState s) {
 
 	return wglSwapIntervalEXT(state);
 }
-#endif
+#else // _WIN32
+// FIXME: Implement for other platfoI'm
+bool OGLRenderer::SetVerticalSync(VerticalSyncState s) {
+	return false;
+}
+#endif // _WIN32
 
 #ifdef OPENGL_DEBUGGING
 static void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam) {

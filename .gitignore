@@ -7,7 +7,7 @@
 *.db
 /.vs/CSC8503/FileContentIndex/read.lock
 /.vs
-/Build
+/build
 /out/build/x64-Debug
 
 x64/

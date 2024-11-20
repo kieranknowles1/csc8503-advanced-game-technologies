@@ -36,6 +36,8 @@ Window* Window::CreateGameWindow(const WindowInitialisation& init) {
 #ifdef _WIN32
 	return new Win32Code::Win32Window(init);
 #endif
+	// FIXME: Add support for other platforms
+	throw std::runtime_error("No window creation method for this platform!");
 	return nullptr;
 }
 
