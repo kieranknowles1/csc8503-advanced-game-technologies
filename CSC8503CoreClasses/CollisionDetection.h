@@ -19,6 +19,7 @@ namespace NCL {
 	{
 	public:
 		struct ContactPoint {
+			// Points of collision in the frame of each object
 			Vector3 localA;
 			Vector3 localB;
 			Vector3 normal;

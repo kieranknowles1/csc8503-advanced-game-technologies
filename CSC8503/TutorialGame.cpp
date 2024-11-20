@@ -336,7 +336,8 @@ GameObject* TutorialGame::AddSphereToWorld(const Vector3& position, float radius
 GameObject* TutorialGame::AddCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass) {
 	GameObject* cube = new GameObject();
 
-	OBBVolume* volume = new OBBVolume(dimensions);
+	//OBBVolume* volume = new OBBVolume(dimensions);
+	AABBVolume* volume = new AABBVolume(dimensions);
 	cube->SetBoundingVolume((CollisionVolume*)volume);
 
 	cube->GetTransform()

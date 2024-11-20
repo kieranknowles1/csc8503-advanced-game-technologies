@@ -192,6 +192,28 @@ a particular pair will only be added once, so objects colliding for
 multiple frames won't flood the set with duplicates.
 */
 void PhysicsSystem::BasicCollisionDetection() {
+	std::vector<GameObject*>::const_iterator first;
+	std::vector<GameObject*>::const_iterator last;
+	gameWorld.GetObjectIterators(first, last);
+
+	for (auto i = first; i != last; i++) {
+		if ((*i)->GetPhysicsObject() == nullptr) {
+			continue;
+		}
+		// Only check for collisions with objects that come after the current one,
+		// this ensures each pair is checked exactly once
+		for (auto j = i + 1; j != last; j++) {
+			if ((*j)->GetPhysicsObject() == nullptr) {
+				continue;
+			}
+			// TODO: Check masks
+			CollisionDetection::CollisionInfo info;
+			if (CollisionDetection::ObjectIntersection(*i, *j, info)) {
+				std::cout << "Collision detected between " << (*i)->GetWorldID() << " and " << (*j)->GetWorldID() << std::endl;
+				allCollisions.insert(info);
+			}
+		}
+	}
 }
 
 /*
@@ -285,7 +307,7 @@ void PhysicsSystem::IntegrateVelocity(float dt) {
 	// Global dampening represents the fraction of velocity that remains after 1 second
 	// Taking globalDamping^dt gives the fraction that remains after dt seconds, which converges to 0 at dt=inf and 1 at dt=0
 	// https://www.desmos.com/calculator/a3sz0jbhpo
-	// Using 1-(d*x) was a poor choice, as it doesn't converge to 0, is heavily dependent on framerate, and if dt > d will actually increase the velocity
+	// Using 1-(d*x) was a poor choice, as it doesn't converge to 0, is heavily dependent on framerate, and if dt > (1/d), the object will move backwards
 	float dampening = pow(globalDamping, dt);
 
 	for (auto i = first; i != last; i++) {
