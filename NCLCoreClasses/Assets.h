@@ -17,6 +17,6 @@ namespace NCL::Assets {
 	const std::string FONTSSDIR(ASSETROOT + "Fonts/");
 	const std::string DATADIR(ASSETROOT + "Data/");
 
-	extern bool ReadTextFile(const std::string& filepath, std::string& result);
+	extern void ReadTextFile(const std::string& filepath, std::string& result);
 	extern bool ReadBinaryFile(const std::string& filepath, char** into, size_t& size);
 }

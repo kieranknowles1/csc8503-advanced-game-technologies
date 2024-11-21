@@ -9,5 +9,7 @@ namespace NCL::UnixCode {
     public:
         void handleEvent(const SDL_KeyboardEvent& event);
     private:
+        // Convert a SDL key to a Windows key
+        KeyCodes::Type convertKey(SDL_Keycode key);
     };
 }
