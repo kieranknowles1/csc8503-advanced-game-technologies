@@ -42,8 +42,8 @@ namespace NCL::Rendering {
 		dByte,	//Translate from -128 to 127 to a float
 	};
 
-	public:		
-		static bool LoadMesh(const std::string& filename, Mesh& destinationMesh);
+	public:
+		static void LoadMesh(const std::string& filename, Mesh& destinationMesh);
 
 	protected:
 		static void* ReadVertexData(GeometryChunkData dataType, GeometryChunkTypes chunkType, int numVertices);

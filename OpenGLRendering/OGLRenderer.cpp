@@ -108,7 +108,9 @@ void OGLRenderer::UseShader(const OGLShader& oglShader) {
 
 void OGLRenderer::BindMesh(const OGLMesh& m) {
 	if (m.GetVAO() == 0) {
-		std::cout << __FUNCTION__ << ": Mesh has not been uploaded!\n";
+		// TODO: This doesn't fit in with RAII, it shouldn't be possible to have a mesh without a VAO
+		// This also doesn't go well with single-responsibility principle as mesh should bind itself
+		throw std::runtime_error("Mesh has not been uploaded!");
 	}
 	glBindVertexArray(m.GetVAO());
 	boundMesh = &m;

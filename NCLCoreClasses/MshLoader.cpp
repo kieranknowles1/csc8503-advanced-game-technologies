@@ -12,7 +12,7 @@ using namespace NCL;
 using namespace Rendering;
 using namespace Maths;
 
-bool MshLoader::LoadMesh(const std::string& filename, Mesh& destinationMesh) {
+void MshLoader::LoadMesh(const std::string& filename, Mesh& destinationMesh) {
 	std::ifstream file(Assets::MESHDIR + filename);
 
 	std::string filetype;
@@ -21,15 +21,13 @@ bool MshLoader::LoadMesh(const std::string& filename, Mesh& destinationMesh) {
 	file >> filetype;
 
 	if (filetype != "MeshGeometry") {
-		std::cout << __FUNCTION__ << " File is not a Mesh file!\n";
-		return false;
+		throw std::runtime_error("File " + filename + " is not a Mesh file!");
 	}
 
 	file >> fileVersion;
 
 	if (fileVersion != 1) {
-		std::cout << __FUNCTION__ << " Mesh file has incompatible version!\n";
-		return false;
+		throw std::runtime_error("Mesh file has incompatible version!");
 	}
 
 	int numMeshes = 0; //read
@@ -130,8 +128,6 @@ bool MshLoader::LoadMesh(const std::string& filename, Mesh& destinationMesh) {
 	}
 
 	destinationMesh.SetPrimitiveType(GeometryPrimitive::Triangles);
-
-	return true;
 }
 
 void MshLoader::ReadRigPose(std::ifstream& file, vector<Matrix4>& into) {
