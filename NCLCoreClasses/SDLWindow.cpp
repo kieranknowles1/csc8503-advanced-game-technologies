@@ -4,22 +4,27 @@
 
 namespace NCL::UnixCode {
     SDLWindow::SDLWindow(const WindowInitialisation& initData) : Window() {
+        // Use a borderless window. Most modern games do this
+        // for seamless alt-tabbing
+        int fullScreenFlag = initData.fullScreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0;
         sdlWindow = SDL_CreateWindow(
             initData.windowTitle.c_str(),
             initData.windowPositionX, initData.windowPositionY,
             initData.width, initData.height,
             // TODO: Vulkan support
-            SDL_WINDOW_OPENGL
+            SDL_WINDOW_OPENGL | fullScreenFlag
         );
 
         init = sdlWindow != nullptr;
+
+        // TODO: The base class should set this
+        size = Vector2i(initData.width, initData.height);
+        defaultSize = size;
 
         sdlKeyboard = new SDLKeyboard();
         sdlMouse = new SDLMouse();
         keyboard = sdlKeyboard;
         mouse = sdlMouse;
-        // mouse = new SDLMouse(sdlWindow);
-        // keyboard = new SDLKeyboard(sdlWindow);
     }
 
     void SDLWindow::LockMouseToWindow(bool lock)
