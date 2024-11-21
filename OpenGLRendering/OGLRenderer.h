@@ -23,7 +23,13 @@ License: MIT (see LICENSE file at the top of the source tree)
 #define OPENGL_DEBUGGING
 #endif
 
+#ifndef _WIN32
+namespace NCL::UnixCode {
+	class SDLWindow;
+}
+#endif
 namespace NCL::Rendering {
+
 	class Mesh;
 	class Shader;
 	class Texture;
@@ -70,6 +76,8 @@ namespace NCL::Rendering {
 		void InitWithSDL2(Window& w);
 		void DestroyWithSDL2();
 		SDL_GLContext glContext;
+
+		UnixCode::SDLWindow* window;
 #endif
 
 		const OGLMesh*		boundMesh;

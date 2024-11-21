@@ -44,6 +44,9 @@ OGLRenderer::OGLRenderer(Window& w) : RendererBase(w)	{
 #ifdef _WIN32
 	InitWithWin32(w);
 #else
+	// TODO: Platform specific code should probably be in its own files
+	// We could probably use SDL2 for Windows and save having to
+	// navigate the Windows API
 	InitWithSDL2(w);
 #endif
 	boundMesh		= nullptr;
@@ -85,6 +88,9 @@ void OGLRenderer::SwapBuffers()   {
 	::SwapBuffers(deviceContext);
 #else
 	// FIXME: Implement for other platforms
+	// TODO: The window should be responsible for this
+	auto sdlWindow = window->getSdlWindow();
+	SDL_GL_SwapWindow(sdlWindow);
 #endif
 }
 
@@ -368,6 +374,7 @@ static void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum
 		// Shouldn't happen, but we need to handle it
 		// TODO: Could we skip win32 and use SDL2 for all platforms?
 		auto& sdlWindow = dynamic_cast<UnixCode::SDLWindow&>(w);
+		this->window = &sdlWindow;
 		auto* handle = sdlWindow.getSdlWindow();
 
 		glContext = SDL_GL_CreateContext(handle);
