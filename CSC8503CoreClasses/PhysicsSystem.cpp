@@ -1,4 +1,7 @@
 #include "PhysicsSystem.h"
+
+#include <cassert>
+
 #include "PhysicsObject.h"
 #include "GameObject.h"
 #include "CollisionDetection.h"
@@ -209,10 +212,19 @@ void PhysicsSystem::BasicCollisionDetection() {
 			// TODO: Check masks
 			CollisionDetection::CollisionInfo info;
 			if (CollisionDetection::ObjectIntersection(*i, *j, info)) {
-				std::cout << "Collision detected between " << (*i)->GetWorldID() << " and " << (*j)->GetWorldID() << std::endl;
+				ResolveCollision(*info.a, *info.b, info.point); // Resolve the collision (separate the objects
+				info.framesLeft = numCollisionFrames;
 				allCollisions.insert(info);
 			}
 		}
+	}
+}
+
+void PhysicsSystem::ResolveCollision(GameObject& a, GameObject& b, CollisionDetection::ContactPoint& p) const {
+	switch (resolutionType) {
+	case CollisionResolution::Impulse:
+		return ImpulseResolveCollision(a, b, p);
+	default: assert(false); // Not implemented
 	}
 }
 
@@ -223,7 +235,51 @@ so that objects separate back out.
 
 */
 void PhysicsSystem::ImpulseResolveCollision(GameObject& a, GameObject& b, CollisionDetection::ContactPoint& p) const {
+	PhysicsObject* physA = a.GetPhysicsObject();
+	PhysicsObject* physB = b.GetPhysicsObject();
 
+	// These should have been filtered out by the broadphase
+	assert(physA && physB && "ImpulseResolveCollision objects have no physics object!");
+
+	Transform& transformA = a.GetTransform();
+	Transform& transformB = b.GetTransform();
+	float totalMass = physA->GetInverseMass() + physB->GetInverseMass();
+	if (totalMass == 0) {
+		return; // Two static objects, can't have any impulse
+	}
+
+	// Separate using projection
+	transformA.SetPosition(transformA.GetPosition() - (p.normal * p.penetration * (physA->GetInverseMass() / totalMass)));
+	transformB.SetPosition(transformB.GetPosition() + (p.normal * p.penetration * (physB->GetInverseMass() / totalMass)));
+
+	// Apply impulse
+	// See `Collision Response/Combined Impulse Calculation` in notes
+	Vector3 angularVelocityA = Vector::Cross(physA->GetAngularVelocity(), p.localA);
+	Vector3 angularVelocityB = Vector::Cross(physB->GetAngularVelocity(), p.localB);
+
+	Vector3 fullVelocityA = physA->GetLinearVelocity() + angularVelocityA;
+	Vector3 fullVelocityB = physB->GetLinearVelocity() + angularVelocityB;
+
+	Vector3 contactVelocity = fullVelocityB - fullVelocityA;
+
+	float impulseForce = Vector::Dot(contactVelocity, p.normal) / totalMass;
+	// Calculate inertia
+	Vector3 inertiaA = Vector::Cross(physA->GetInertiaTensor() * Vector::Cross(p.localA, p.normal), p.localA);
+	Vector3 inertiaB = Vector::Cross(physB->GetInertiaTensor() * Vector::Cross(p.localB, p.normal), p.localB);
+	float angularEffect = Vector::Dot(inertiaA + inertiaB, p.normal);
+
+	// TODO: Don't hardcode this
+	float restitution = 0.66f;
+	// Divisor of the impulse calculation
+	float j = ( -(1.0f + restitution) * impulseForce) / (totalMass + angularEffect);
+	Vector3 fullImpulse = p.normal * j;
+
+	// Apply the impulses in opposite directions
+	physA->ApplyLinearImpulse(-fullImpulse);
+	physB->ApplyLinearImpulse(fullImpulse);
+
+	physA->ApplyAngularImpulse(Vector::Cross(p.localA, -fullImpulse));
+	physB->ApplyAngularImpulse(Vector::Cross(p.localB, fullImpulse));
 }
 
 /*
