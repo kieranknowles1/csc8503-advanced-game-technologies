@@ -262,7 +262,7 @@ void PhysicsSystem::ImpulseResolveCollision(GameObject& a, GameObject& b, Collis
 
 	Vector3 contactVelocity = fullVelocityB - fullVelocityA;
 
-	float impulseForce = Vector::Dot(contactVelocity, p.normal) / totalMass;
+	float impulseForce = Vector::Dot(contactVelocity, p.normal);
 	// Calculate inertia
 	Vector3 inertiaA = Vector::Cross(physA->GetInertiaTensor() * Vector::Cross(p.localA, p.normal), p.localA);
 	Vector3 inertiaB = Vector::Cross(physB->GetInertiaTensor() * Vector::Cross(p.localB, p.normal), p.localB);
@@ -270,7 +270,7 @@ void PhysicsSystem::ImpulseResolveCollision(GameObject& a, GameObject& b, Collis
 
 	float restitution = physA->GetElasticity() * physB->GetElasticity();
 	// Divisor of the impulse calculation
-	float j = ( -(1.0f + restitution) * impulseForce) / (totalMass + angularEffect);
+	float j = ( -(1.0f + restitution) * impulseForce) / (totalMass - angularEffect);
 	Vector3 fullImpulse = p.normal * j;
 
 	// Apply the impulses in opposite directions

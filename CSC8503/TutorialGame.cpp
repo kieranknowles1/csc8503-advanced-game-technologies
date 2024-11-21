@@ -324,7 +324,7 @@ GameObject* TutorialGame::AddSphereToWorld(const Vector3& position, float radius
 
 	sphere->SetRenderObject(new RenderObject(&sphere->GetTransform(), sphereMesh, basicTex, basicShader));
 	auto physicsObj = new PhysicsObject(&sphere->GetTransform(), sphere->GetBoundingVolume());
-	physicsObj->SetElasticity(0.99);
+	physicsObj->SetElasticity(0.9);
 	sphere->SetPhysicsObject(physicsObj);
 
 	sphere->GetPhysicsObject()->SetInverseMass(inverseMass);
@@ -372,6 +372,7 @@ GameObject* TutorialGame::AddPlayerToWorld(const Vector3& position) {
 
 	character->SetRenderObject(new RenderObject(&character->GetTransform(), catMesh, nullptr, basicShader));
 	character->SetPhysicsObject(new PhysicsObject(&character->GetTransform(), character->GetBoundingVolume()));
+	character->GetPhysicsObject()->SetElasticity(0.1f);
 
 	character->GetPhysicsObject()->SetInverseMass(inverseMass);
 	character->GetPhysicsObject()->InitSphereInertia();
