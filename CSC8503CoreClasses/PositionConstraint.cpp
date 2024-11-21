@@ -2,7 +2,7 @@
 //#include "../../Common/Vector3.h"
 #include "GameObject.h"
 #include "PhysicsObject.h"
-//#include "Debug.h"
+#include "Debug.h"
 
 
 
@@ -25,4 +25,38 @@ PositionConstraint::~PositionConstraint()
 //a simple constraint that stops objects from being more than <distance> away
 //from each other...this would be all we need to simulate a rope, or a ragdoll
 void PositionConstraint::UpdateConstraint(float dt)	{
+	Vector3 relativePosition =
+		objectA->GetTransform().GetPosition() -
+		objectB->GetTransform().GetPosition();
+
+	float currentDistance = Vector::Length(relativePosition);
+
+	// How far are we from the correct distance?d
+	float offset = distance - currentDistance;
+
+	Debug::DrawLine(objectA->GetTransform().GetPosition(), objectB->GetTransform().GetPosition(), offset > 0 ? Vector4(0, 1, 0, 1) : Vector4(1, 0, 0, 1));
+
+	// TODO: Enum for type. Rope, rigid, or repulse
+	if (offset < 0.0f) {
+		Vector3 offsetDir = Vector::Normalise(relativePosition);
+		PhysicsObject* physA = objectA->GetPhysicsObject();
+		PhysicsObject* physB = objectB->GetPhysicsObject();
+
+		Vector3 relativeVelocity = physB->GetLinearVelocity() - physA->GetLinearVelocity();
+
+		float constraintMass = physA->GetInverseMass() + physB->GetInverseMass();
+		if (constraintMass > 0.0f) {
+			float velocityDot = Vector::Dot(relativeVelocity, offsetDir);
+			float bias = -(BiasFactor / dt) * offset;
+
+			float lambda = -bias / constraintMass;
+			// FIXME: velocityDot increases rapidly towards infinity? Why?
+			//float lambda = -(velocityDot + bias) / constraintMass;
+			Vector3 aImpulse = offsetDir * lambda;
+			Vector3 bImpulse = -offsetDir * lambda;
+
+			physA->ApplyLinearImpulse(aImpulse);
+			physB->ApplyLinearImpulse(bImpulse);
+		}
+	}
 }
