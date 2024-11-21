@@ -323,7 +323,9 @@ GameObject* TutorialGame::AddSphereToWorld(const Vector3& position, float radius
 		.SetPosition(position);
 
 	sphere->SetRenderObject(new RenderObject(&sphere->GetTransform(), sphereMesh, basicTex, basicShader));
-	sphere->SetPhysicsObject(new PhysicsObject(&sphere->GetTransform(), sphere->GetBoundingVolume()));
+	auto physicsObj = new PhysicsObject(&sphere->GetTransform(), sphere->GetBoundingVolume());
+	physicsObj->SetElasticity(0.99);
+	sphere->SetPhysicsObject(physicsObj);
 
 	sphere->GetPhysicsObject()->SetInverseMass(inverseMass);
 	sphere->GetPhysicsObject()->InitSphereInertia();
