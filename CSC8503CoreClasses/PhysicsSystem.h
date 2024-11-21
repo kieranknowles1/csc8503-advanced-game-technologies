@@ -13,6 +13,10 @@ namespace NCL {
 
 		class PhysicsSystem	{
 		public:
+			enum class CollisionResolution {
+				Impulse,
+			};
+
 			PhysicsSystem(GameWorld& g);
 			~PhysicsSystem();
 
@@ -46,6 +50,7 @@ namespace NCL {
 			void UpdateCollisionList();
 			void UpdateObjectAABBs();
 
+			void ResolveCollision(GameObject& a, GameObject& b, CollisionDetection::ContactPoint& p) const;
 			void ImpulseResolveCollision(GameObject& a , GameObject&b, CollisionDetection::ContactPoint& p) const;
 
 			GameWorld& gameWorld;
@@ -54,6 +59,8 @@ namespace NCL {
 			Vector3 gravity;
 			float	dTOffset;
 			float	globalDamping;
+
+			CollisionResolution resolutionType = CollisionResolution::Impulse;
 
 			std::set<CollisionDetection::CollisionInfo> allCollisions;
 			std::set<CollisionDetection::CollisionInfo> broadphaseCollisions;
