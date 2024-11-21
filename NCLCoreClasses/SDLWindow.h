@@ -5,6 +5,9 @@
 
 #include "Window.h"
 
+#include "SDLKeyboard.h"
+#include "SDLMouse.h"
+
 namespace NCL::UnixCode {
     class SDLWindow : public Window {
 public:
@@ -25,5 +28,8 @@ protected:
     bool InternalUpdate() override;
 
     void UpdateTitle() override;
+
+    SDLKeyboard* sdlKeyboard;
+    SDLMouse* sdlMouse;
     };
 }

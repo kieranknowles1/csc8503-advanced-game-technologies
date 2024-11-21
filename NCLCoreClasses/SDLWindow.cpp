@@ -12,7 +12,10 @@ namespace NCL::UnixCode {
 
         init = sdlWindow != nullptr;
 
-        // TODO: Implement
+        sdlKeyboard = new SDLKeyboard();
+        sdlMouse = new SDLMouse();
+        keyboard = sdlKeyboard;
+        mouse = sdlMouse;
         // mouse = new SDLMouse(sdlWindow);
         // keyboard = new SDLKeyboard(sdlWindow);
     }
