@@ -73,7 +73,12 @@
           default = cfgLib.shell.mkShellEx pkgs.mkShellNoCC {
             name = "dev";
             # Install all dependencies for the duration of the shell
-            packages = deps;
+            packages = deps ++ [
+              pkgs.renderdoc
+            ];
+
+            # Apply a more limited set of optimizations while including debug info
+            CMAKE_FLAGS = "-DCMAKE_BUILD_TYPE=RelWithDebInfo";
 
             # Bash snippet that runs when entering the shell
             # mkShelllEx execs into $SHELL after this, so
@@ -87,6 +92,7 @@
 
               cmake ..
               code ..
+              cd ..
             '';
           };
         };
