@@ -24,6 +24,16 @@ namespace NCL::Maths {
         }
     };
 
+    template <typename T, uint32_t n>
+    constexpr bool operator==(const VectorTemplate<T, n>& a, const VectorTemplate<T, n>& b) {
+		for (int i = 0; i < n; ++i) {
+			if (a[i] != b[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
+
     using Vector2 = VectorTemplate<float, 2>;
     using Vector3 = VectorTemplate<float, 3>;
     using Vector4 = VectorTemplate<float, 4>;

@@ -445,10 +445,14 @@ void TutorialGame::AddBridgeToWorld() {
 		block->GetPhysicsObject()->SetElasticity(0.01);
 		PositionConstraint* constraint = new PositionConstraint(previous, block, maxDistance, PositionConstraint::Type::Rope);
 		world->AddConstraint(constraint);
+		OrientationConstraint* oConstraint = new OrientationConstraint(previous, block, Quaternion(), Vector3(-10, -10, -10), Vector3(10, 10, 10));
+		world->AddConstraint(oConstraint);
 		previous = block;
 	}
 	PositionConstraint* constraint = new PositionConstraint(previous, end, cubeDistance, PositionConstraint::Type::Rope);
 	world->AddConstraint(constraint);
+	OrientationConstraint* oConstraint = new OrientationConstraint(previous, end, Quaternion(), Vector3(-10, -10, -10), Vector3(10, 10, 10));
+	world->AddConstraint(oConstraint);
 }
 
 void TutorialGame::InitDefaultFloor() {
