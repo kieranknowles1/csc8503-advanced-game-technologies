@@ -141,7 +141,7 @@ bool CollisionDetection::RaySphereIntersection(const Ray&r, const Transform& wor
 }
 
 bool CollisionDetection::RayCapsuleIntersection(const Ray& r, const Transform& worldTransform, const CapsuleVolume& volume, RayCollision& collision) {
-	return false;
+	return false; // TODO: Implement
 }
 
 bool CollisionDetection::ObjectIntersection(GameObject* a, GameObject* b, CollisionInfo& collisionInfo) {
@@ -331,24 +331,52 @@ bool CollisionDetection::AABBSphereIntersection(const AABBVolume& volumeA, const
 
 bool  CollisionDetection::OBBSphereIntersection(const OBBVolume& volumeA, const Transform& worldTransformA,
 	const SphereVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo) {
-	return false;
+	
+	// Transform the sphere into the space of the OBB
+	Quaternion orientation = worldTransformA.GetOrientation();
+	Vector3 position = worldTransformA.GetPosition();
+
+	Matrix3 transform = Quaternion::RotationMatrix<Matrix3>(orientation);
+	Matrix3 inverseTransform = Quaternion::RotationMatrix<Matrix3>(orientation.Conjugate());
+
+	Vector3 localSpherePos = inverseTransform * (worldTransformB.GetPosition() - position);
+	// Find the closest point on the OBB to the sphere
+	Vector3 halfDimensions = volumeA.GetHalfDimensions();
+	Vector3 minusHalfDimensions = -halfDimensions;
+	Vector3 closestPoint = Vector::Clamp(localSpherePos, minusHalfDimensions, halfDimensions);
+
+	// Transform the closest point back into world space
+	Vector3 closestWorldPoint = transform * closestPoint + position;
+	Vector3 delta = worldTransformB.GetPosition() - closestWorldPoint;
+
+	float distance = Vector::Length(delta);
+	if (distance > volumeB.GetRadius()) {
+		return false; // No collision
+	}
+
+	Vector3 collisionNormal = Vector::Normalise(delta);
+	float penetration = volumeB.GetRadius() - distance;
+	Vector3 localA = closestWorldPoint - position; // This is an OBB, so use the closest point to apply torque
+	Vector3 localB = -collisionNormal * volumeB.GetRadius();
+	collisionInfo.AddContactPoint(localA, localB, collisionNormal, penetration);
+	return true;
 }
 
 bool CollisionDetection::AABBCapsuleIntersection(
 	const CapsuleVolume& volumeA, const Transform& worldTransformA,
 	const AABBVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo) {
-	return false;
+	return false; // TODO: Implement
 }
 
 bool CollisionDetection::SphereCapsuleIntersection(
 	const CapsuleVolume& volumeA, const Transform& worldTransformA,
 	const SphereVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo) {
-	return false;
+	return false; // TODO: Implement
 }
 
 bool CollisionDetection::OBBIntersection(const OBBVolume& volumeA, const Transform& worldTransformA,
 	const OBBVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo) {
-	return false;
+	return false; // TODO: Implement
 }
 
 Matrix4 GenerateInverseView(const Camera &c) {
