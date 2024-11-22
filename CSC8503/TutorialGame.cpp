@@ -443,11 +443,11 @@ void TutorialGame::AddBridgeToWorld() {
 	for (int i = 0; i < numLinks; i++) {
 		GameObject* block = AddCubeToWorld(startPos + Vector3((i + 1) * cubeDistance, 0 ,0), cubeSize, inverseCubeMass);
 		block->GetPhysicsObject()->SetElasticity(0.01);
-		PositionConstraint* constraint = new PositionConstraint(previous, block, maxDistance);
+		PositionConstraint* constraint = new PositionConstraint(previous, block, maxDistance, PositionConstraint::Type::Rope);
 		world->AddConstraint(constraint);
 		previous = block;
 	}
-	PositionConstraint* constraint = new PositionConstraint(previous, end, cubeDistance);
+	PositionConstraint* constraint = new PositionConstraint(previous, end, cubeDistance, PositionConstraint::Type::Rope);
 	world->AddConstraint(constraint);
 }
 

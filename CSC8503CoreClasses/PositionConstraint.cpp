@@ -1,5 +1,7 @@
 #include "PositionConstraint.h"
-//#include "../../Common/Vector3.h"
+
+#include <cassert>
+
 #include "GameObject.h"
 #include "PhysicsObject.h"
 #include "Debug.h"
@@ -10,11 +12,9 @@ using namespace NCL;
 using namespace Maths;
 using namespace CSC8503;
 
-PositionConstraint::PositionConstraint(GameObject* a, GameObject* b, float d)
+PositionConstraint::PositionConstraint(GameObject* a, GameObject* b, float d, Type type) :
+		objectA(a), objectB(b), distance(d), type(type)
 {
-	objectA		= a;
-	objectB		= b;
-	distance	= d;
 }
 
 PositionConstraint::~PositionConstraint()
@@ -34,10 +34,14 @@ void PositionConstraint::UpdateConstraint(float dt)	{
 	// How far are we from our desired distance?
 	float offset = distance - currentDistance;
 
-	Debug::DrawLine(objectA->GetTransform().GetPosition(), objectB->GetTransform().GetPosition(), offset > 0 ? Vector4(0, 1, 0, 1) : Vector4(1, 0, 0, 1));
+	bool needsCorrection = isOutsideDistance(offset);
+	Debug::DrawLine(
+		objectA->GetTransform().GetPosition(),
+		objectB->GetTransform().GetPosition(),
+		needsCorrection ? Debug::RED : Debug::GREEN
+	);
 
-	// TODO: Enum for type. Rope, rigid, or repulse
-	if (offset < 0.0f) {
+	if (needsCorrection) {
 		Vector3 offsetDir = Vector::Normalise(relativePosition);
 		PhysicsObject* physA = objectA->GetPhysicsObject();
 		PhysicsObject* physB = objectB->GetPhysicsObject();
@@ -57,5 +61,19 @@ void PositionConstraint::UpdateConstraint(float dt)	{
 			physA->ApplyLinearImpulse(aImpulse);
 			physB->ApplyLinearImpulse(bImpulse);
 		}
+	}
+}
+
+bool PositionConstraint::isOutsideDistance(float targetOffset) const {
+	switch (type)
+	{
+	case Type::Rigid:
+		return targetOffset != 0.0f;
+	case Type::Rope:
+		return targetOffset < 0.0f; // Distance > target distance
+	case Type::Repulse:
+		return targetOffset > 0.0f; // Distance < target distance
+	default:
+		assert(false); // Invalid type
 	}
 }
