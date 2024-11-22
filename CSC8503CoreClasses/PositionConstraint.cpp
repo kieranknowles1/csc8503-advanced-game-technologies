@@ -31,7 +31,7 @@ void PositionConstraint::UpdateConstraint(float dt)	{
 
 	float currentDistance = Vector::Length(relativePosition);
 
-	// How far are we from the correct distance?d
+	// How far are we from our desired distance?
 	float offset = distance - currentDistance;
 
 	Debug::DrawLine(objectA->GetTransform().GetPosition(), objectB->GetTransform().GetPosition(), offset > 0 ? Vector4(0, 1, 0, 1) : Vector4(1, 0, 0, 1));
@@ -42,19 +42,18 @@ void PositionConstraint::UpdateConstraint(float dt)	{
 		PhysicsObject* physA = objectA->GetPhysicsObject();
 		PhysicsObject* physB = objectB->GetPhysicsObject();
 
-		Vector3 relativeVelocity = physB->GetLinearVelocity() - physA->GetLinearVelocity();
+		Vector3 relativeVelocity = physA->GetLinearVelocity() - physB->GetLinearVelocity();
 
 		float constraintMass = physA->GetInverseMass() + physB->GetInverseMass();
 		if (constraintMass > 0.0f) {
 			float velocityDot = Vector::Dot(relativeVelocity, offsetDir);
 			float bias = -(BiasFactor / dt) * offset;
 
-			float lambda = -bias / constraintMass;
-			// FIXME: velocityDot increases rapidly towards infinity? Why?
-			//float lambda = -(velocityDot + bias) / constraintMass;
+			float lambda = -(bias + velocityDot) / constraintMass;
 			Vector3 aImpulse = offsetDir * lambda;
 			Vector3 bImpulse = -offsetDir * lambda;
 
+			// These get multiplied by the inverse mass
 			physA->ApplyLinearImpulse(aImpulse);
 			physB->ApplyLinearImpulse(bImpulse);
 		}
