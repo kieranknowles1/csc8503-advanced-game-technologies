@@ -152,7 +152,7 @@ bool NavigationGrid::FindPath(const Vector3& from, const Vector3& to, Navigation
 
 bool NavigationGrid::NodeInList(GridNode* n, std::vector<GridNode*>& list) const {
 	std::vector<GridNode*>::iterator i = std::find(list.begin(), list.end(), n);
-	return i == list.end() ? false : true;
+	return i != list.end();
 }
 
 GridNode*  NavigationGrid::RemoveBestNode(std::vector<GridNode*>& list) const {

@@ -31,10 +31,28 @@ using namespace CSC8503;
 #include <thread>
 #include <sstream>
 
-void TestPathfinding() {
+NavigationPath TestPathfinding() {
+	NavigationGrid grid("TestGrid1.txt");
+	NavigationPath outPath;
+
+	Vector3 startPos(80, 0, 10);
+	Vector3 end(80, 0, 80);
+
+	bool found = grid.FindPath(startPos, end, outPath);
+	return outPath;
 }
 
 void DisplayPathfinding() {
+	auto path = TestPathfinding();
+	std::vector<Vector3> nodes;
+	Vector3 pos;
+	while (path.PopWaypoint(pos)) nodes.push_back(pos);
+
+	for (int i = 1; i < nodes.size(); i++) {
+		Vector3 from = nodes[i - 1];
+		Vector3 to = nodes[i];
+		Debug::DrawLine(from, to, Vector4(0, 1, 0, 1));
+	}
 }
 
 // Basic state machine that oscillates between two states
@@ -121,6 +139,7 @@ int main() {
 		w->SetTitle("Gametech frame time:" + std::to_string(1000.0f * dt));
 
 		g->UpdateGame(dt);
+		DisplayPathfinding();
 	}
 	Window::DestroyGameWindow();
 }
