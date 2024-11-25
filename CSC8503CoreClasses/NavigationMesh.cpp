@@ -2,6 +2,9 @@
 #include "Assets.h"
 #include "Maths.h"
 #include <fstream>
+
+// TODO: const findPath
+#if false
 using namespace NCL;
 using namespace CSC8503;
 using namespace std;
@@ -94,3 +97,4 @@ const NavigationMesh::NavTri* NavigationMesh::GetTriForPosition(const Vector3& p
 	}
 	return nullptr;
 }
+#endif

@@ -75,7 +75,7 @@ NavigationGrid::~NavigationGrid()	{
 	delete[] allNodes;
 }
 
-bool NavigationGrid::FindPath(const Vector3& from, const Vector3& to, NavigationPath& outPath) {
+bool NavigationGrid::FindPath(const Vector3& from, const Vector3& to, NavigationPath& outPath) const {
 	//need to work out which node 'from' sits in, and 'to' sits in
 	int fromX = ((int)from.x / nodeSize);
 	int fromZ = ((int)from.z / nodeSize);
@@ -96,31 +96,43 @@ bool NavigationGrid::FindPath(const Vector3& from, const Vector3& to, Navigation
 	GridNode* startNode = &allNodes[(fromZ * gridWidth) + fromX];
 	GridNode* endNode	= &allNodes[(toZ * gridWidth) + toX];
 
-	std::vector<GridNode*>  openList;
-	std::vector<GridNode*>  closedList;
+	// TODO: This is very alloc heavy, can we avoid new?
+	// TODO: Use a set for closedList and a priority queue for openList
+	std::vector<SearchNode*>  openList;
+	std::vector<SearchNode*>  closedList;
+	auto freeLists = [&]() {
+		for (auto n : openList) {
+			delete n;
+		}
+		for (auto n : closedList) {
+			delete n;
+		}
+	};
 
-	openList.push_back(startNode);
+	openList.emplace_back(new SearchNode{
+		nullptr,
+		startNode,
+		0,
+		0
+	});
 
-	startNode->f = 0;
-	startNode->g = 0;
-	startNode->parent = nullptr;
-
-	GridNode* currentBestNode = nullptr;
+	SearchNode* currentBestNode = nullptr;
 
 	while (!openList.empty()) {
 		currentBestNode = RemoveBestNode(openList);
 
-		if (currentBestNode == endNode) {			//we've found the path!
-			GridNode* node = endNode;
+		if (currentBestNode->node == endNode) {			//we've found the path!
+			SearchNode* node = currentBestNode;
 			while (node != nullptr) {
-				outPath.PushWaypoint(node->position);
+				outPath.PushWaypoint(node->node->position);
 				node = node->parent;
 			}
+			freeLists();
 			return true;
 		}
 		else {
 			for (int i = 0; i < 4; ++i) {
-				GridNode* neighbour = currentBestNode->connected[i];
+				GridNode* neighbour = currentBestNode->node->connected[i];
 				if (!neighbour) { //might not be connected...
 					continue;
 				}	
@@ -130,38 +142,55 @@ bool NavigationGrid::FindPath(const Vector3& from, const Vector3& to, Navigation
 				}
 
 				float h = Heuristic(neighbour, endNode);				
-				float g = currentBestNode->g + currentBestNode->costs[i];
+				float g = currentBestNode->currentCost + currentBestNode->node->costs[i];
 				float f = h + g;
 
-				bool inOpen		= NodeInList(neighbour, openList);
+				SearchNode* openNode = FindNode(neighbour, openList);
+				bool isNew = openNode == nullptr;
 
-				if (!inOpen) { //first time we've seen this neighbour
-					openList.emplace_back(neighbour);
+				if (isNew) { //first time we've seen this neighbour
+					openNode = new SearchNode();
+					openNode->node = neighbour;
+					openList.emplace_back(openNode);
 				}
-				if (!inOpen || f < neighbour->f) {//might be a better route to this neighbour
-					neighbour->parent = currentBestNode;
-					neighbour->f = f;
-					neighbour->g = g;
+				// Haven't seen the neighbour or it's a better route
+				if (isNew || f < openNode->currentPlusHeuristic) {
+					openNode->parent = currentBestNode;
+					openNode->currentCost = g;
+					openNode->currentPlusHeuristic = f;
 				}
 			}
 			closedList.emplace_back(currentBestNode);
 		}
 	}
+	freeLists();
 	return false; //open list emptied out with no path!
 }
 
-bool NavigationGrid::NodeInList(GridNode* n, std::vector<GridNode*>& list) const {
-	std::vector<GridNode*>::iterator i = std::find(list.begin(), list.end(), n);
+bool NavigationGrid::NodeInList(SearchNode* n, std::vector<SearchNode*>& list) const {
+	auto i = std::find(list.begin(), list.end(), n);
 	return i != list.end();
 }
 
-GridNode*  NavigationGrid::RemoveBestNode(std::vector<GridNode*>& list) const {
-	std::vector<GridNode*>::iterator bestI = list.begin();
+bool NavigationGrid::NodeInList(GridNode* n, std::vector<SearchNode*>& list) const {
+	return FindNode(n, list) != nullptr;
+}
 
-	GridNode* bestNode = *list.begin();
+SearchNode* NavigationGrid::FindNode(GridNode* n, std::vector<SearchNode*>& list) const {
+	for (auto i : list) {
+		if (i->node == n) {
+			return i;
+		}
+	}
+	return nullptr;
+}
+
+SearchNode*  NavigationGrid::RemoveBestNode(std::vector<SearchNode*>& list) const {
+	auto bestI = list.begin();
+	auto bestNode = *list.begin();
 
 	for (auto i = list.begin(); i != list.end(); ++i) {
-		if ((*i)->f < bestNode->f) {
+		if ((*i)->currentPlusHeuristic < bestNode->currentPlusHeuristic) {
 			bestNode	= (*i);
 			bestI		= i;
 		}

@@ -9,7 +9,7 @@ namespace NCL {
 			NavigationMap() {}
 			~NavigationMap() {}
 
-			virtual bool FindPath(const Vector3& from, const Vector3& to, NavigationPath& outPath) = 0;
+			virtual bool FindPath(const Vector3& from, const Vector3& to, NavigationPath& outPath) const = 0;
 		};
 	}
 }

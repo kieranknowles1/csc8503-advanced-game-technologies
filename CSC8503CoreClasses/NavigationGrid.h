@@ -4,15 +4,10 @@
 namespace NCL {
 	namespace CSC8503 {
 		struct GridNode {
-			GridNode* parent;
-
 			GridNode* connected[4];
 			int		  costs[4];
 
 			Vector3		position;
-
-			float f;
-			float g;
 
 			int type;
 
@@ -21,12 +16,17 @@ namespace NCL {
 					connected[i] = nullptr;
 					costs[i] = 0;
 				}
-				f = 0;
-				g = 0;
 				type = 0;
-				parent = nullptr;
 			}
 			~GridNode() {	}
+		};
+
+		struct SearchNode {
+			SearchNode* parent;
+			GridNode* node;
+
+			float currentCost;
+			float currentPlusHeuristic;
 		};
 
 		class NavigationGrid : public NavigationMap	{
@@ -35,11 +35,13 @@ namespace NCL {
 			NavigationGrid(const std::string&filename);
 			~NavigationGrid();
 
-			bool FindPath(const Vector3& from, const Vector3& to, NavigationPath& outPath) override;
+			bool FindPath(const Vector3& from, const Vector3& to, NavigationPath& outPath) const override;
 				
 		protected:
-			bool		NodeInList(GridNode* n, std::vector<GridNode*>& list) const;
-			GridNode*	RemoveBestNode(std::vector<GridNode*>& list) const;
+			bool		NodeInList(SearchNode* n, std::vector<SearchNode*>& list) const;
+			bool NodeInList(GridNode* n, std::vector<SearchNode*>& list) const;
+			SearchNode* FindNode(GridNode* n, std::vector<SearchNode*>& list) const;
+			SearchNode*	RemoveBestNode(std::vector<SearchNode*>& list) const;
 			float		Heuristic(GridNode* hNode, GridNode* endNode) const;
 			int nodeSize;
 			int gridWidth;
