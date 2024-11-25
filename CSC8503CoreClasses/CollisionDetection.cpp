@@ -1,6 +1,6 @@
 #include "CollisionDetection.h"
 
-#include <array>
+#include <cmath>
 
 #include "CollisionVolume.h"
 #include "AABBVolume.h"
@@ -390,127 +390,75 @@ bool CollisionDetection::SphereCapsuleIntersection(
 	return false; // TODO: Implement
 }
 
-using OBBVertices = std::array<Vector3, 8>;
-OBBVertices GetVertices(const OBBVolume& obb, const Transform& transform) {
-	OBBVertices vertices;
-	Vector3 halfDimensions = obb.GetHalfDimensions();
-	// Corner offsets in OBB's local space
-	std::array<Vector3, 8> offsets = {
-		Vector3(-halfDimensions.x, -halfDimensions.y, -halfDimensions.z),
-		Vector3(halfDimensions.x, -halfDimensions.y, -halfDimensions.z),
-		Vector3(halfDimensions.x, halfDimensions.y, -halfDimensions.z),
-		Vector3(-halfDimensions.x, halfDimensions.y, -halfDimensions.z),
-		Vector3(-halfDimensions.x, -halfDimensions.y, halfDimensions.z),
-		Vector3(halfDimensions.x, -halfDimensions.y, halfDimensions.z),
-		Vector3(halfDimensions.x, halfDimensions.y, halfDimensions.z),
-		Vector3(-halfDimensions.x, halfDimensions.y, halfDimensions.z)
-	};
+// Based on Haalef's answer from
+// https://stackoverflow.com/questions/47866571/simple-oriented-bounding-box-obb-collision-detection-explaining
+// Extended to track the axis of least penetration
 
-	for (int i = 0; i < 8; i++) {
-		Vector3 rotated = transform.GetOrientation() * offsets[i];
-		vertices[i] = rotated + transform.GetPosition();
-	}
+bool hasSeparatingPlane(Vector3 relativePosition, Vector3 plane, OBBVolume box1, Transform transform1, OBBVolume box2, Transform transform2, float& minPenetration, Vector3& minAxis)
+{
+	Vector3 b1X = transform1.GetOrientation().Rotate(Vector3(1, 0, 0));
+	Vector3 b1Y = transform1.GetOrientation().Rotate(Vector3(0, 1, 0));
+	Vector3 b1Z = transform1.GetOrientation().Rotate(Vector3(0, 0, 1));
+	Vector3 b2X = transform2.GetOrientation().Rotate(Vector3(1, 0, 0));
+	Vector3 b2Y = transform2.GetOrientation().Rotate(Vector3(0, 1, 0));
+	Vector3 b2Z = transform2.GetOrientation().Rotate(Vector3(0, 0, 1));
 
-	return vertices;
-}
-
-Vector3 ToLocalSpace(const Vector3& worldPoint, const OBBVolume& obb, const Transform& transform) {
-	Vector3 direction = worldPoint - transform.GetPosition();
-	return transform.GetOrientation() * direction;
-}
-
-void ProjectOntoAxis(const OBBVertices& vertices, Vector3 axis, float& min, float& max) {
-	min = FLT_MAX;
-	max = FLT_MIN;
-	for (auto& vertex : vertices) {
-		float projection = Vector::Dot(vertex, axis);
-		min = std::min(min, projection);
-		max = std::max(max, projection);
-	}
-}
-
-bool OverlapOnAxis(const OBBVertices& vertsA, const OBBVertices& vertsB, Vector3 axis, float& overlap) {
-	float minA;
-	float maxA;
-	float minB;
-	float maxB;
-	ProjectOntoAxis(vertsA, axis, minA, maxA);
-	ProjectOntoAxis(vertsB, axis, minB, maxB);
-	if (maxA < minB || maxB < minA) {
+	float penetration = (
+		fabs(Vector::Dot(b1X * box1.GetHalfDimensions().x, plane)) +
+		fabs(Vector::Dot(b1Y * box1.GetHalfDimensions().y, plane)) +
+		fabs(Vector::Dot(b1Z * box1.GetHalfDimensions().z, plane)) +
+		fabs(Vector::Dot(b2X * box2.GetHalfDimensions().x, plane)) +
+		fabs(Vector::Dot(b2Y * box2.GetHalfDimensions().y, plane)) +
+		fabs(Vector::Dot(b2Z * box2.GetHalfDimensions().z, plane))
+		) - fabs(Vector::Dot(relativePosition, plane));
+	if (penetration > 0) {
+		if (penetration < minPenetration) {
+			minPenetration = penetration;
+			minAxis = plane;
+		}
 		return false;
 	}
-	overlap = std::min(maxA, maxB) - std::max(minA, minB);
 	return true;
 }
 
+// Very janky, but functional. Touchy = breaky
 bool CollisionDetection::OBBIntersection(const OBBVolume& volumeA, const Transform& worldTransformA,
 	const OBBVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo) {
+	Vector3 posA = worldTransformA.GetPosition();
+	Vector3 posB = worldTransformB.GetPosition();
+	Vector3 relativePos = posB - posA;
 
-	auto verticesA = GetVertices(volumeA, worldTransformA);
-	auto verticesB = GetVertices(volumeB, worldTransformB);
+	Vector3 v1AxisX = worldTransformA.GetOrientation().Rotate(Vector3(1, 0, 0));
+	Vector3 v1AxisY = worldTransformA.GetOrientation().Rotate(Vector3(0, 1, 0));
+	Vector3 v1AxisZ = worldTransformA.GetOrientation().Rotate(Vector3(0, 0, 1));
+	Vector3 v2AxisX = worldTransformB.GetOrientation().Rotate(Vector3(1, 0, 0));
+	Vector3 v2AxisY = worldTransformB.GetOrientation().Rotate(Vector3(0, 1, 0));
+	Vector3 v2AxisZ = worldTransformB.GetOrientation().Rotate(Vector3(0, 0, 1));
 
-	auto rotationA = worldTransformA.GetOrientation();
-	auto rotationB = worldTransformB.GetOrientation();
+	float minPenetration = FLT_MAX;
+	Vector3 minAxis;
+	bool hasPlane =
+		hasSeparatingPlane(relativePos, v1AxisX, volumeA, worldTransformA, volumeB, worldTransformB, minPenetration, minAxis) ||
+		hasSeparatingPlane(relativePos, v1AxisY, volumeA, worldTransformA, volumeB, worldTransformB, minPenetration, minAxis) ||
+		hasSeparatingPlane(relativePos, v1AxisZ, volumeA, worldTransformA, volumeB, worldTransformB, minPenetration, minAxis) ||
+		hasSeparatingPlane(relativePos, v2AxisX, volumeA, worldTransformA, volumeB, worldTransformB, minPenetration, minAxis) ||
+		hasSeparatingPlane(relativePos, v2AxisY, volumeA, worldTransformA, volumeB, worldTransformB, minPenetration, minAxis) ||
+		hasSeparatingPlane(relativePos, v2AxisZ, volumeA, worldTransformA, volumeB, worldTransformB, minPenetration, minAxis);
+		hasSeparatingPlane(relativePos, Vector::Cross(v1AxisX, v2AxisX), volumeA, worldTransformA, volumeB, worldTransformB, minPenetration, minAxis) ||
+		hasSeparatingPlane(relativePos, Vector::Cross(v1AxisX, v2AxisY), volumeA, worldTransformA, volumeB, worldTransformB, minPenetration, minAxis) ||
+		hasSeparatingPlane(relativePos, Vector::Cross(v1AxisX, v2AxisZ), volumeA, worldTransformA, volumeB, worldTransformB, minPenetration, minAxis) ||
+		hasSeparatingPlane(relativePos, Vector::Cross(v1AxisY, v2AxisX), volumeA, worldTransformA, volumeB, worldTransformB, minPenetration, minAxis) ||
+		hasSeparatingPlane(relativePos, Vector::Cross(v1AxisY, v2AxisY), volumeA, worldTransformA, volumeB, worldTransformB, minPenetration, minAxis) ||
+		hasSeparatingPlane(relativePos, Vector::Cross(v1AxisY, v2AxisZ), volumeA, worldTransformA, volumeB, worldTransformB, minPenetration, minAxis) ||
+		hasSeparatingPlane(relativePos, Vector::Cross(v1AxisZ, v2AxisX), volumeA, worldTransformA, volumeB, worldTransformB, minPenetration, minAxis) ||
+		hasSeparatingPlane(relativePos, Vector::Cross(v1AxisZ, v2AxisY), volumeA, worldTransformA, volumeB, worldTransformB, minPenetration, minAxis) ||
+		hasSeparatingPlane(relativePos, Vector::Cross(v1AxisZ, v2AxisZ), volumeA, worldTransformA, volumeB, worldTransformB, minPenetration, minAxis);
+	if (hasPlane) return false;
 
-	Debug::DrawLine(verticesA[0], verticesA[1], Vector4(1, 0, 0, 1));
-	Debug::DrawLine(verticesA[1], verticesA[2], Vector4(1, 0, 0, 1));
-
-	float minOverlap = FLT_MAX;
-	Vector3 separatingAxis;
-
-	// Test all axes of both OBBs and the cross products of their edges
-	for (int i = 0; i < 3; i++) {
-		Vector3 axis(i == 0, i == 1, i == 2);
-		float overlapA;
-		if (!OverlapOnAxis(verticesA, verticesB, rotationA * axis, overlapA)) {
-			return false;
-		}
-		if (overlapA < minOverlap) {
-			minOverlap = overlapA;
-			separatingAxis = rotationA * axis;
-		}
-		float overlapB;
-		if (!OverlapOnAxis(verticesA, verticesB, rotationB * axis, overlapB)) {
-			return false;
-		}
-		if (overlapB < minOverlap) {
-			minOverlap = overlapB;
-			separatingAxis = rotationB * axis;
-		}
-		// Project onto the cross product of the edges
-		for (int j = 0; j < 3; j++) {
-			Vector3 axisInner(j == 0, j == 1, j == 2);
-
-			Vector3 crossAxis = Vector::Cross(rotationA * axis, rotationB * axisInner);
-			if (crossAxis == Vector3()) {
-				continue;
-			}
-			float overlapCross;
-			if (!OverlapOnAxis(verticesA, verticesB, crossAxis, overlapCross)) {
-				return false;
-			}
-			if (overlapCross < minOverlap) {
-				minOverlap = overlapCross;
-				separatingAxis = crossAxis;
-			}
-		}
-	}
-
-	Vector3 collisionNormal = Vector::Normalise(separatingAxis);
-	float penetrationDepth = minOverlap;
-
-	// Approximate the point of collision as the closest point
-	OBBVertices contactA;
-	OBBVertices contactB;
-	for (int i = 0; i < 8; i++) {
-		contactA[i] = ToLocalSpace(verticesA[i], volumeA, worldTransformA);
-		contactB[i] = ToLocalSpace(verticesB[i], volumeB, worldTransformB);
-	}
-
-	std::cout << "OBB collision detected" << std::endl;
-	// TODO: Calculate contact points
-	collisionInfo.AddContactPoint(Vector3(), Vector3(), collisionNormal, penetrationDepth);
-	
+	Vector3 normal = Vector::Normalise(minAxis);
+	Vector3 localA = normal * Vector::Dot(posB - posA, normal);
+	Vector3 localB = -normal * Vector::Dot(posB - posA, normal);
+	collisionInfo.AddContactPoint(localA, localB, normal, minPenetration);
 	return true;
 }
 

@@ -68,6 +68,13 @@ namespace NCL::Maths {
 			);
 		}
 
+		inline Vector3 Rotate(const Vector3& v) const {
+			Quaternion vQuaterion(v.x, v.y, v.z, 0);
+			Quaternion conjugate = Conjugate();
+			Quaternion result = *this * vQuaterion * conjugate;
+			return Vector3(result.x, result.y, result.z);
+		}
+
 		Vector3		operator *(const Vector3 &a)	const;
 
 		inline Quaternion  operator *(const float &a)		const {
