@@ -3,6 +3,9 @@
 #include "Plane.h"
 #include <string>
 #include <vector>
+
+// TODO: const findPath
+#if false
 namespace NCL {
 	namespace CSC8503 {
 		class NavigationMesh : public NavigationMap	{
@@ -41,3 +44,4 @@ namespace NCL {
 		};
 	}
 }
+#endif
