@@ -135,6 +135,8 @@ void TutorialGame::UpdateGame(float dt) {
 
 	Debug::DrawLine(Vector3(), Vector3(0, 100, 0), Vector4(1, 0, 0, 1));
 
+	stateObject->Update(dt);
+
 	SelectObject();
 	MoveSelectedObject(dt);
 
@@ -276,6 +278,13 @@ void TutorialGame::InitWorld() {
 	AddBridgeToWorld();
 	// Floor, 20m below the origin
 	InitDefaultFloor();
+
+	stateObject = new StateGameObject();
+	stateObject->GetTransform().SetScale(Vector3(5.0f, 5.0f, 5.0f));
+	stateObject->SetRenderObject(new RenderObject(&stateObject->GetTransform(), catMesh, nullptr, basicShader));
+	stateObject->SetPhysicsObject(new PhysicsObject(&stateObject->GetTransform(), stateObject->GetBoundingVolume()));
+	stateObject->GetPhysicsObject()->SetInverseMass(0.1f); // She's a chonky girl
+	world->AddGameObject(stateObject);
 }
 
 /*

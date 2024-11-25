@@ -37,6 +37,39 @@ void TestPathfinding() {
 void DisplayPathfinding() {
 }
 
+// Basic state machine that oscillates between two states
+void testStateMachine() {
+	StateMachine* machine = new StateMachine();
+	int data = 0;
+
+	State* a = new State([&](float dt)->void {
+		std::cout << "Guten tag! Ich bin ein state A!" << std::endl;
+		data++;
+	});
+	State* b = new State([&](float dt)-> void {
+		std::cout << "Bonjour! Je suis un state B!" << std::endl;
+		data--;
+	});
+
+	StateTransition* aToB = new StateTransition(a, b, [&]()->bool {
+		return data > 10;
+	});
+	StateTransition* bToA = new StateTransition(b, a, [&]()->bool {
+		return data < 0;
+	});
+
+	machine->AddState(a);
+	machine->setStartingState(a);
+	machine->AddState(b);
+	machine->AddTransition(aToB);
+	machine->AddTransition(bToA);
+
+	for (int i = 0; i < 100; i++) {
+		machine->Update(1.0f);
+	}
+	delete machine; // The machine owns its states and transitions, so it will delete them too
+}
+
 /*
 
 The main function should look pretty familar to you!
@@ -50,6 +83,8 @@ hide or show the
 
 */
 int main() {
+	//testStateMachine();
+	//return 0;
 	WindowInitialisation initInfo;
 	initInfo.width		= 1280;
 	initInfo.height		= 720;

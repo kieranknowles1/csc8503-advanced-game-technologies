@@ -5,8 +5,8 @@ namespace NCL {
 		class State;
 		class StateTransition;
 
-		typedef std::multimap<State*, StateTransition*> TransitionContainer;
-		typedef TransitionContainer::iterator TransitionIterator;
+		using TransitionContainer = std::multimap<State*, StateTransition*>;
+		using TransitionIterator = TransitionContainer::iterator;
 
 		class StateMachine	{
 		public:
@@ -14,6 +14,7 @@ namespace NCL {
 			virtual ~StateMachine(); //made it virtual!
 
 			void AddState(State* s);
+			void setStartingState(State* s) { activeState = s; }
 			void AddTransition(StateTransition* t);
 
 			virtual void Update(float dt); //made it virtual!
