@@ -94,6 +94,8 @@ namespace NCL {
 			}
 
 			GameObject* objClosest = nullptr;
+
+			StateGameObject* stateObject = nullptr;
 		};
 	}
 }

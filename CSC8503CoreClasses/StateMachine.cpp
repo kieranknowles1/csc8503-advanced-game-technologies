@@ -1,4 +1,7 @@
 #include "StateMachine.h"
+
+#include <cassert>
+
 #include "State.h"
 #include "StateTransition.h"
 
@@ -29,17 +32,17 @@ void StateMachine::AddTransition(StateTransition* t) {
 }
 
 void StateMachine::Update(float dt) {
-	if (activeState) {
-		activeState->Update(dt);
+	assert(activeState && "No active state in state machine, did you set the initial state?");
+	activeState->Update(dt);
 	
-		//Get the transition set starting from this state node;
-		std::pair<TransitionIterator, TransitionIterator> range = allTransitions.equal_range(activeState);
+	//Get the transition set starting from this state node;
+	std::pair<TransitionIterator, TransitionIterator> range = allTransitions.equal_range(activeState);
 
-		for (auto& i = range.first; i != range.second; ++i) {
-			if (i->second->CanTransition()) {
-				State* newState = i->second->GetDestinationState();
-				activeState = newState;
-			}
+	// If any transitions have been triggered, then we should change state
+	for (auto& i = range.first; i != range.second; ++i) {
+		if (i->second->CanTransition()) {
+			State* newState = i->second->GetDestinationState();
+			activeState = newState;
 		}
 	}
 }
