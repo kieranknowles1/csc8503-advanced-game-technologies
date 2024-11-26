@@ -154,9 +154,6 @@ set_source_files_properties(${ALL_FILES} PROPERTIES LANGUAGE CXX)
 ################################################################################
 add_library(${PROJECT_NAME} STATIC ${ALL_FILES})
 
-#set(CMAKE_CXX_SOURCE_FILE_EXTENSIONS c;C;M;c++;cc;cpp;cxx;m;mm;mpp;CPP;ixx;cppm)
-
-use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
 set(ROOT_NAMESPACE CSC8503CoreClasses)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

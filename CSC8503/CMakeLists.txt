@@ -3,27 +3,25 @@ set(PROJECT_NAME CSC8503)
 ################################################################################
 # Source groups
 ################################################################################
-#set(Header_Files
-#    "GameTechRenderer.h"
-#    "NetworkedGame.h"
-#    "NetworkPlayer.h"
-#    "StateGameObject.h"
-#    "TutorialGame.h"
-#)
-file(GLOB Header_Files *.h)
+set(Header_Files
+   "GameTechRenderer.h"
+   "NetworkedGame.h"
+   "NetworkPlayer.h"
+   "StateGameObject.h"
+   "TutorialGame.h"
+)
 source_group("Header Files" FILES ${Header_Files})
 
 
 
-#set(Source_Files
-#    "GameTechRenderer.cpp"
-#    "Main.cpp"
-#    "NetworkedGame.cpp"
-#    "NetworkPlayer.cpp"
-#    "StateGameObject.cpp"
-#    "TutorialGame.cpp"
-#)
-file(GLOB Source_Files *.cpp)
+set(Source_Files
+   "GameTechRenderer.cpp"
+   "Main.cpp"
+   "NetworkedGame.cpp"
+   "NetworkPlayer.cpp"
+   "StateGameObject.cpp"
+   "TutorialGame.cpp"
+)
 
 if(USE_VULKAN)
 	file(GLOB SHADER_FILES ${ASSET_ROOT}/Shaders/VK/*.*)
@@ -40,7 +38,7 @@ set(ALL_FILES
 )
 
 if(USE_VULKAN)
-    set(ALL_FILES 
+    set(ALL_FILES
         ${Header_Files}
         ${Source_Files}
         ${SHADER_FILES}
@@ -49,11 +47,11 @@ if(USE_VULKAN)
 foreach (file ${SHADER_FILES})
     get_filename_component(file_name ${file} NAME)
 	get_filename_component(file_ext ${file} EXT)
-	
+
 	if(file_ext STREQUAL ".h" OR file_ext STREQUAL ".cpp")
 		continue()
 	endif()
-		
+
 	if( file_ext STREQUAL  ".vert" OR
 		file_ext STREQUAL  ".frag" OR
 		file_ext STREQUAL  ".comp" OR
@@ -74,16 +72,16 @@ foreach (file ${SHADER_FILES})
         set(SPIRV_OUTPUT ${file_name}.spv)
 		set(SPIRV_ABS_INPUT ${file_dir})
 		set(SPIRV_ABS_OUTPUT ${file_dir}.spv)
-		
+
 		add_custom_command(
 			OUTPUT ${SPIRV_ABS_OUTPUT}
-			
+
 			COMMENT "Compiling GLSL shader:"
 			COMMAND ${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE} -V  ${SPIRV_ABS_INPUT} -o ${SPIRV_ABS_OUTPUT}
             DEPENDS ${file}
 			VERBATIM
 		)
-        list(APPEND SPIRV_BINARY_FILES ${SPIRV_OUTPUT})   
+        list(APPEND SPIRV_BINARY_FILES ${SPIRV_OUTPUT})
 	endif()
 endforeach()
 
@@ -94,7 +92,6 @@ endif()
 ################################################################################
 add_executable(${PROJECT_NAME}  ${ALL_FILES})
 
-use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
 set(ROOT_NAMESPACE CSC8503)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -110,9 +107,9 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 if(MSVC)
     target_compile_definitions(${PROJECT_NAME} PRIVATE
         "UNICODE;"
-        "_UNICODE" 
+        "_UNICODE"
         "WIN32_LEAN_AND_MEAN"
-        "_WINSOCKAPI_"   
+        "_WINSOCKAPI_"
         "_WINSOCK2API_"
         "_WINSOCK_DEPRECATED_NO_WARNINGS"
     )
@@ -122,8 +119,8 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
     <vector>
     <map>
     <stack>
-    <list>   
-	<set>   
+    <list>
+	<set>
 	<string>
     <thread>
     <atomic>
@@ -131,14 +128,14 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
     <iostream>
 	<chrono>
 	<sstream>
-	
+
 	"../NCLCoreClasses/Vector.h"
     "../NCLCoreClasses/Quaternion.h"
     "../NCLCoreClasses/Plane.h"
     "../NCLCoreClasses/Matrix.h"
     "../NCLCoreClasses/GameTimer.h"
 )
- 
+
 if(USE_VULKAN)
 target_precompile_headers(${PROJECT_NAME} PRIVATE
     <vulkan/vulkan.hpp>

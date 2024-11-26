@@ -231,8 +231,8 @@ hide or show the
 */
 int main() {
 	//testStateMachine();
-	testBehaviourTree();
-	return 0;
+	//testBehaviourTree();
+	//return 0;
 	WindowInitialisation initInfo;
 	initInfo.width		= 1280;
 	initInfo.height		= 720;

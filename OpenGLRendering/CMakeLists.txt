@@ -40,8 +40,6 @@ set_source_files_properties(${ALL_FILES} PROPERTIES LANGUAGE CXX)
 ################################################################################
 add_library(${PROJECT_NAME} STATIC ${ALL_FILES})
 
-#use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
-
 set(ROOT_NAMESPACE OpenGLRendering)
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE

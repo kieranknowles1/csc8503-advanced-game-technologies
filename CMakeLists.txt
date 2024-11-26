@@ -17,38 +17,9 @@ if(NOT ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64"))
 endif()
 
 ################################################################################
-# Global configuration types
-################################################################################
-set(CMAKE_CONFIGURATION_TYPES
-    "Debug"
-    "Release"
-    CACHE STRING "" FORCE
-)
-
-################################################################################
 # Global compiler options
 ################################################################################
-#set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD 23)
-
-################################################################################
-# Nuget packages function stub.
-################################################################################
-function(use_package TARGET PACKAGE VERSION)
-    message(WARNING "No implementation of use_package. Create yours. "
-                    "Package \"${PACKAGE}\" with version \"${VERSION}\" "
-                    "for target \"${TARGET}\" is ignored!")
-endfunction()
-
-################################################################################
-# Common utils
-################################################################################
-include(CMake/Utils.cmake)
-
-################################################################################
-# Additional Global Settings(add specific info there)
-################################################################################
-include(CMake/GlobalSettingsInclude.cmake OPTIONAL)
 
 ################################################################################
 # Use solution folders feature
@@ -56,19 +27,19 @@ include(CMake/GlobalSettingsInclude.cmake OPTIONAL)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 if(USE_VULKAN)
 	find_package(Vulkan)
-endif() 
+endif()
 set(ASSET_ROOT "${CMAKE_SOURCE_DIR}/Assets/" CACHE STRING "" FORCE)
-add_compile_definitions(ASSETROOTLOCATION="${ASSET_ROOT}") 
+add_compile_definitions(ASSETROOTLOCATION="${ASSET_ROOT}")
 
 set(USE_VULKAN CACHE BOOL FORCE)
 if(USE_VULKAN)
-    add_compile_definitions("USEVULKAN") 
-	add_compile_definitions("VK_USE_PLATFORM_WIN32_KHR") 
-endif() 
+    add_compile_definitions("USEVULKAN")
+	add_compile_definitions("VK_USE_PLATFORM_WIN32_KHR")
+endif()
 
 if(MSVC)
     add_compile_definitions("NOMINMAX")
-    add_compile_definitions("WIN32_LEAN_AND_MEAN")  
+    add_compile_definitions("WIN32_LEAN_AND_MEAN")
 endif()
 
 
