@@ -1,6 +1,6 @@
 #include "Mouse.h"
 
-#include <cstring>>
+#include <cstring>
 
 using namespace NCL;
 

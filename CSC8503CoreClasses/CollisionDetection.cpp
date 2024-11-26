@@ -239,9 +239,9 @@ bool CollisionDetection::AABBTest(const Vector3& posA, const Vector3& posB, cons
 	Vector3 delta = posB - posA;
 	Vector3 totalSize = halfSizeA + halfSizeB;
 
-	if (abs(delta.x) < totalSize.x &&
-		abs(delta.y) < totalSize.y &&
-		abs(delta.z) < totalSize.z) {
+	if (std::abs(delta.x) < totalSize.x &&
+		std::abs(delta.y) < totalSize.y &&
+		std::abs(delta.z) < totalSize.z) {
 		return true;
 	}
 	return false;

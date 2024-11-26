@@ -1,5 +1,7 @@
 #include "SDLMouse.h"
 
+#include <cassert>
+
 namespace NCL::UnixCode {
     MouseButtons::Type toWindowsButton(Uint8 sdlButton)
     {
@@ -15,6 +17,8 @@ namespace NCL::UnixCode {
                 return MouseButtons::Four;
             case SDL_BUTTON_X2:
                 return MouseButtons::Five;
+            default:
+                assert(false);
         }
     }
 
