@@ -97,7 +97,7 @@ namespace NCL::CSC8503 {
 		NetworkObject*		networkObject;
 
 		// If true, this object will not respond to collisions but still cause/recieve events
-		bool trigger;
+		bool trigger = false;
 		LayerMask::Index layer = LayerMask::Index::Default;
 
 		bool		isActive;
