@@ -89,15 +89,17 @@ set(Windowing_and_Input__Win32
 )
 source_group("Windowing and Input\\Win32" FILES ${Windowing_and_Input__Win32})
 
-set(Windowing_and_Input__Unix
-    SDLWindow.cpp
-    SDLWindow.h
-    SDLKeyboard.cpp
-    SDLKeyboard.h
-    SDLMouse.cpp
-    SDLMouse.h
-)
-source_group("Windowing and Input\\Unix" FILES ${Windowing_and_Input__Unix})
+if(UNIX)
+    set(Windowing_and_Input__Unix
+        SDLWindow.cpp
+        SDLWindow.h
+        SDLKeyboard.cpp
+        SDLKeyboard.h
+        SDLMouse.cpp
+        SDLMouse.h
+    )
+    source_group("Windowing and Input\\Unix" FILES ${Windowing_and_Input__Unix})
+endif(UNIX)
 
 set(ALL_FILES
     ${Asset_Handling}
