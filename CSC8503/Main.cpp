@@ -37,6 +37,7 @@ NavigationPath TestPathfinding() {
 
 	Vector3 startPos(80, 0, 10);
 	Vector3 end(80, 0, 80);
+	Debug::DrawLine(startPos, end, Debug::BLUE);
 
 	bool found = grid.FindPath(startPos, end, outPath);
 	return outPath;

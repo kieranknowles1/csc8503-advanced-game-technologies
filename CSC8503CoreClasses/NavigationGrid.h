@@ -22,11 +22,25 @@ namespace NCL {
 		};
 
 		struct SearchNode {
-			SearchNode* parent;
+			static SearchNode empty() {
+				return SearchNode(nullptr, nullptr, 0, 0);
+			}
+			bool isEmpty() const {
+				return node == nullptr;
+			}
+
+			GridNode* parent;
 			GridNode* node;
 
+			// g(n), cost from start to n
 			float currentCost;
+			// g(n) + h(n), cost from start to n + heuristic cost from n to goal
 			float currentPlusHeuristic;
+
+			// Comparator used in priority_queue<T>
+			float operator>(const SearchNode& other) const {
+				return currentPlusHeuristic > other.currentPlusHeuristic;
+			}
 		};
 
 		class NavigationGrid : public NavigationMap	{
@@ -38,10 +52,6 @@ namespace NCL {
 			bool FindPath(const Vector3& from, const Vector3& to, NavigationPath& outPath) const override;
 				
 		protected:
-			bool		NodeInList(SearchNode* n, std::vector<SearchNode*>& list) const;
-			bool NodeInList(GridNode* n, std::vector<SearchNode*>& list) const;
-			SearchNode* FindNode(GridNode* n, std::vector<SearchNode*>& list) const;
-			SearchNode*	RemoveBestNode(std::vector<SearchNode*>& list) const;
 			float		Heuristic(GridNode* hNode, GridNode* endNode) const;
 			int nodeSize;
 			int gridWidth;

@@ -1,7 +1,10 @@
 #include "NavigationGrid.h"
-#include "Assets.h"
 
+#include <cassert>
+#include <queue>
 #include <fstream>
+
+#include "Assets.h"
 
 using namespace NCL;
 using namespace CSC8503;
@@ -96,108 +99,94 @@ bool NavigationGrid::FindPath(const Vector3& from, const Vector3& to, Navigation
 	GridNode* startNode = &allNodes[(fromZ * gridWidth) + fromX];
 	GridNode* endNode	= &allNodes[(toZ * gridWidth) + toX];
 
-	// TODO: This is very alloc heavy, can we avoid new?
-	// TODO: Use a set for closedList and a priority queue for openList
-	std::vector<SearchNode*>  openList;
-	std::vector<SearchNode*>  closedList;
-	auto freeLists = [&]() {
-		for (auto n : openList) {
-			delete n;
+	// All nodes we've seen, with their best parent and cost
+	// See `closedNodes` for nodes we've already expanded
+	std::map<const GridNode*, SearchNode> seenNodes;
+	std::set<const GridNode*> closedNodes;
+	// The open list of nodes to expand. This may contain nodes that we found a better route to, so check the seenNodes map
+	// This is faster than a vector in this case as finding the best node is O(log n) instead of O(n)
+	// The priority queue is a max heap by default, so explicitly create it as a min heap
+	std::priority_queue<SearchNode, std::vector<SearchNode>, std::greater<SearchNode>> openList;
+
+	// Push a node onto the open list, if we haven't already seen a better route
+	auto pushIfBetter = [&](const SearchNode& node) {
+		auto existing = seenNodes.find(node.node);
+		if (existing != seenNodes.end() && existing->second.currentPlusHeuristic > node.currentPlusHeuristic) {
+			// The current route is better
+			return;
 		}
-		for (auto n : closedList) {
-			delete n;
-		}
+		openList.push(node);
+		seenNodes[node.node] = node;
 	};
 
-	openList.emplace_back(new SearchNode{
-		nullptr,
-		startNode,
-		0,
-		0
+	// Pop the best node from the open list, skipping nodes that have already been closed
+	// Returns SearchNode::empty() if the open list is empty
+	auto popNode = [&]() {
+		while (!openList.empty()) {
+			auto node = openList.top();
+			openList.pop();
+			// We can't remove arbitrary nodes from the priority queue,
+			// so check that the GridNode hasn't been closed
+			bool closed = closedNodes.find(node.node) != closedNodes.end();
+			if (!closed) {
+				return node;
+			}
+		}
+		return SearchNode::empty();
+	};
+
+	pushIfBetter(SearchNode{
+		nullptr, // parent
+		startNode, // node
+		0, // currentCost
+		0, // costPlusHeuristic
 	});
 
-	SearchNode* currentBestNode = nullptr;
-
 	while (!openList.empty()) {
-		currentBestNode = RemoveBestNode(openList);
+		auto currentBestNode = popNode();
+		if (currentBestNode.isEmpty()) {
+			break; // Couldn't find a path
+		}
 
-		if (currentBestNode->node == endNode) {			//we've found the path!
-			SearchNode* node = currentBestNode;
-			while (node != nullptr) {
-				outPath.PushWaypoint(node->node->position);
-				node = node->parent;
+		if (currentBestNode.node == endNode) {			//we've found the path!
+			SearchNode node = currentBestNode;
+			while (node.parent != nullptr) {
+				outPath.PushWaypoint(node.node->position);
+				node = seenNodes.find(node.parent)->second;
 			}
-			freeLists();
+			// Add the start node
+			outPath.PushWaypoint(node.node->position);
 			return true;
 		}
 		else {
 			for (int i = 0; i < 4; ++i) {
-				GridNode* neighbour = currentBestNode->node->connected[i];
+				GridNode* neighbour = currentBestNode.node->connected[i];
 				if (!neighbour) { //might not be connected...
 					continue;
 				}	
-				bool inClosed	= NodeInList(neighbour, closedList);
-				if (inClosed) {
+				
+				if (closedNodes.find(neighbour) != closedNodes.end()) {
 					continue; //already discarded this neighbour...
 				}
 
 				float h = Heuristic(neighbour, endNode);				
-				float g = currentBestNode->currentCost + currentBestNode->node->costs[i];
+				float g = currentBestNode.currentCost + currentBestNode.node->costs[i];
 				float f = h + g;
 
-				SearchNode* openNode = FindNode(neighbour, openList);
-				bool isNew = openNode == nullptr;
-
-				if (isNew) { //first time we've seen this neighbour
-					openNode = new SearchNode();
-					openNode->node = neighbour;
-					openList.emplace_back(openNode);
-				}
-				// Haven't seen the neighbour or it's a better route
-				if (isNew || f < openNode->currentPlusHeuristic) {
-					openNode->parent = currentBestNode;
-					openNode->currentCost = g;
-					openNode->currentPlusHeuristic = f;
-				}
+				pushIfBetter(SearchNode{
+					currentBestNode.node, // parent
+					neighbour, // node
+					g, // currentCost
+					f, // costPlusHeuristic
+				});
 			}
-			closedList.emplace_back(currentBestNode);
+			// Mark this node as closed
+			closedNodes.insert(currentBestNode.node);
+			// Track the best route to this node
+			seenNodes[currentBestNode.node] = currentBestNode;
 		}
 	}
-	freeLists();
 	return false; //open list emptied out with no path!
-}
-
-bool NavigationGrid::NodeInList(SearchNode* n, std::vector<SearchNode*>& list) const {
-	auto i = std::find(list.begin(), list.end(), n);
-	return i != list.end();
-}
-
-bool NavigationGrid::NodeInList(GridNode* n, std::vector<SearchNode*>& list) const {
-	return FindNode(n, list) != nullptr;
-}
-
-SearchNode* NavigationGrid::FindNode(GridNode* n, std::vector<SearchNode*>& list) const {
-	for (auto i : list) {
-		if (i->node == n) {
-			return i;
-		}
-	}
-	return nullptr;
-}
-
-SearchNode*  NavigationGrid::RemoveBestNode(std::vector<SearchNode*>& list) const {
-	auto bestI = list.begin();
-	auto bestNode = *list.begin();
-
-	for (auto i = list.begin(); i != list.end(); ++i) {
-		if ((*i)->currentPlusHeuristic < bestNode->currentPlusHeuristic) {
-			bestNode	= (*i);
-			bestI		= i;
-		}
-	}
-	list.erase(bestI);
-
-	return bestNode;
 }
 
 float NavigationGrid::Heuristic(GridNode* hNode, GridNode* endNode) const {
