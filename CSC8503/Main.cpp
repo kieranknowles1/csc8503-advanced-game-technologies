@@ -1,5 +1,7 @@
 #include "Window.h"
 
+#include <iostream>
+
 #include "Debug.h"
 
 #include "StateMachine.h"
@@ -23,6 +25,7 @@
 #include "BehaviourSelector.h"
 #include "BehaviourSequence.h"
 #include "BehaviourAction.h"
+#include "BehaviourParallel.h"
 
 using namespace NCL;
 using namespace CSC8503;
@@ -159,6 +162,9 @@ void testBehaviourTree() {
 		}
 		else if (state == Ongoing) {
 			bool overEncumbered = rand() % 2;
+			// I'm not a loot goblin, I'm a loot dragon.
+			// If it's not nailed down, I'm taking it.
+			// If it is nailed down, I'm coming back with a hammer.
 			std::cout << "1 kettle added to inventory!" << std::endl;
 			std::cout << "3 well-seasoned iron pans added to inventory!" << std::endl;
 			std::cout << "1 fork added to inventory!" << std::endl;
@@ -169,6 +175,7 @@ void testBehaviourTree() {
 			std::cout << "Who even buys this stuff?" << std::endl;
 			return Success;
 		}
+		return state;
 	});
 
 	// Actions that must be performed in sequence
@@ -177,10 +184,15 @@ void testBehaviourTree() {
 	sequence->AddChild(goToRoom);
 	sequence->AddChild(openDoor);
 
-	// Do the first action that succeeds
-	BehaviourSelector* selection = new BehaviourSelector("LootSelector");
+	// Do both actions at the same time until one succeeds or both fail
+	BehaviourParallel* selection = new BehaviourParallel("LootSelector");
 	selection->AddChild(lootThatBody);
 	selection->AddChild(packMule);
+
+	// Do the first action that succeeds
+	//BehaviourSelector* selection = new BehaviourSelector("LootSelector");
+	//selection->AddChild(lootThatBody);
+	//selection->AddChild(packMule);
 
 	BehaviourSequence* root = new BehaviourSequence("RootSequence");
 	root->AddChild(sequence);
@@ -209,10 +221,10 @@ The main function should look pretty familar to you!
 We make a window, and then go into a while loop that repeatedly
 runs our 'game' until we press escape. Instead of making a 'renderer'
 and updating it, we instead make a whole game, and repeatedly update that,
-instead. 
+instead.
 
 This time, we've added some extra functionality to the window class - we can
-hide or show the 
+hide or show the
 
 */
 int main() {
@@ -228,7 +240,7 @@ int main() {
 
 	if (!w->HasInitialised()) {
 		return -1;
-	}	
+	}
 
 	w->ShowOSPointer(false);
 	w->LockMouseToWindow(true);

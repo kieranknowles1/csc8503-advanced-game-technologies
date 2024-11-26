@@ -1,4 +1,7 @@
 #pragma once
+
+#include <vector>
+
 #include "BehaviourNode.h"
 
 class BehaviourNodeWithChildren : public BehaviourNode	{

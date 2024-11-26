@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 enum BehaviourState {
 	Initialise,
 	Failure,
