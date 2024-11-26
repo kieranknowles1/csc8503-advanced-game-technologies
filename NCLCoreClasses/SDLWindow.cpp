@@ -81,6 +81,8 @@ namespace NCL::UnixCode {
                 case SDL_MOUSEBUTTONUP:
                     sdlMouse->handleEvent(event.button);
                     break;
+                default:
+                    break;
             }
         };
 
