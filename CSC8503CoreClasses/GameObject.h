@@ -81,6 +81,13 @@ namespace NCL::CSC8503 {
 		LayerMask::Index getLayer() const {
 			return layer;
 		}
+
+		bool IsTrigger() const {
+			return trigger;
+		}
+		void SetTrigger(bool state) {
+			trigger = state;
+		}
 	protected:
 		Transform			transform;
 
@@ -89,6 +96,8 @@ namespace NCL::CSC8503 {
 		RenderObject*		renderObject;
 		NetworkObject*		networkObject;
 
+		// If true, this object will not respond to collisions but still cause/recieve events
+		bool trigger;
 		LayerMask::Index layer = LayerMask::Index::Default;
 
 		bool		isActive;
