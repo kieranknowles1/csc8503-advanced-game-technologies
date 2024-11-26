@@ -118,7 +118,7 @@ void PhysicsSystem::Update(float dt) {
 
 	ClearForces();	//Once we've finished with the forces, reset them to zero
 
-	UpdateCollisionList(); //Remove any old collisions
+	UpdateCollisionList(); //Remove any old collisions and fire events
 
 	t.Tick();
 	float updateTime = t.GetTimeDeltaSeconds();
@@ -220,6 +220,12 @@ void PhysicsSystem::BasicCollisionDetection() {
 }
 
 void PhysicsSystem::ResolveCollision(GameObject& a, GameObject& b, CollisionDetection::ContactPoint& p) const {
+	if (a.IsTrigger() || b.IsTrigger()) {
+		// Don't resolve triggers
+		// UpdateCollisionList is responsible for firing events
+		return;
+	}
+
 	switch (resolutionType) {
 	case CollisionResolution::Impulse:
 		return ImpulseResolveCollision(a, b, p);
@@ -328,7 +334,7 @@ void PhysicsSystem::NarrowPhase() {
 		CollisionDetection::CollisionInfo info = *i;
 		if (CollisionDetection::ObjectIntersection(info.a, info.b, info)) {
 			info.framesLeft = numCollisionFrames;
-			ImpulseResolveCollision(*info.a, *info.b, info.point);
+			ResolveCollision(*info.a, *info.b, info.point);
 			allCollisions.insert(info);
 		}
 	}
