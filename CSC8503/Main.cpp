@@ -26,6 +26,7 @@
 #include "BehaviourSequence.h"
 #include "BehaviourAction.h"
 #include "BehaviourParallel.h"
+#include "BehaviourInverter.h"
 
 using namespace NCL;
 using namespace CSC8503;
@@ -187,7 +188,8 @@ void testBehaviourTree() {
 	// Do both actions at the same time until one succeeds or both fail
 	BehaviourParallel* selection = new BehaviourParallel("LootSelector");
 	selection->AddChild(lootThatBody);
-	selection->AddChild(packMule);
+	selection->AddChild(new BehaviourInverter("StrengthTraining", packMule));
+	//selection->AddChild(packMule);
 
 	// Do the first action that succeeds
 	//BehaviourSelector* selection = new BehaviourSelector("LootSelector");
