@@ -22,6 +22,13 @@ namespace NCL::UnixCode {
             return (KeyCodes::Type)(KeyCodes::F1 + offset);
         }
 
+        switch (key) {
+            case SDLK_LSHIFT:
+                return KeyCodes::SHIFT;
+            case SDLK_RSHIFT:
+                return KeyCodes::SHIFT;
+        }
+
         if (key >= KeyCodes::MAXVALUE) {
             std::cerr << "Unknown key code: " << key << std::endl;
             return KeyCodes::MAXVALUE;

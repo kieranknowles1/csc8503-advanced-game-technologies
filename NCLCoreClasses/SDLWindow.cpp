@@ -1,6 +1,6 @@
 #include "SDLWindow.h"
 
-#include <SDL2/SDL_events.h>
+#include <SDL2/SDL.h>
 
 namespace NCL::UnixCode {
     SDLWindow::SDLWindow(const WindowInitialisation& initData) : Window() {
@@ -29,12 +29,12 @@ namespace NCL::UnixCode {
 
     void SDLWindow::LockMouseToWindow(bool lock)
     {
-        // TODO: Implement
+        SDL_SetRelativeMouseMode(lock ? SDL_TRUE : SDL_FALSE);
     }
 
     void SDLWindow::ShowOSPointer(bool show)
     {
-        // TODO: Implement
+        SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE);
     }
 
     void SDLWindow::SetWindowPosition(int x, int y)
@@ -44,22 +44,23 @@ namespace NCL::UnixCode {
 
     void SDLWindow::SetFullScreen(bool state)
     {
-        // TODO: Implement
+        SDL_SetWindowFullscreen(sdlWindow, state ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
     }
 
     void SDLWindow::SetConsolePosition(int x, int y)
     {
-        // TODO: Implement
+        // The terminal is the only meaningful console on Unix, don't mess with it
+        // Just make this a no-op
     }
 
     void SDLWindow::ShowConsole(bool state)
     {
-        // TODO: Implement
+        // Same as above
     }
 
     void SDLWindow::UpdateTitle()
     {
-        // TODO: Implement
+        SDL_SetWindowTitle(sdlWindow, windowTitle.c_str());
     }
 
     // Handle any events that have been triggered
