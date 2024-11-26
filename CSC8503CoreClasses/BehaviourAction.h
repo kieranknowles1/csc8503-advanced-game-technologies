@@ -3,6 +3,7 @@
 
 typedef std::function<BehaviourState(float, BehaviourState)> BehaviourActionFunc;
 
+// Node that performs an action defined by a function pointer.
 class BehaviourAction : public BehaviourNode	{
 public:
 	BehaviourAction(const std::string& nodeName, BehaviourActionFunc f) : BehaviourNode(nodeName) {

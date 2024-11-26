@@ -1,6 +1,7 @@
 #pragma once
 #include "BehaviourNodeWithChildren.h"
 
+// Selector node. Executes the first child that succeeds, then returns success.
 class BehaviourSelector: public BehaviourNodeWithChildren {
 public:
 	BehaviourSelector(const std::string& nodeName) : BehaviourNodeWithChildren(nodeName) {}

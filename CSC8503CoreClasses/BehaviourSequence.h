@@ -1,6 +1,7 @@
 #pragma once
 #include "BehaviourNodeWithChildren.h"
 
+// Sequence node. Executes all children in order, failing if any child fails.
 class BehaviourSequence : public BehaviourNodeWithChildren {
 public:
 	BehaviourSequence(const std::string& nodeName) : BehaviourNodeWithChildren(nodeName) {}

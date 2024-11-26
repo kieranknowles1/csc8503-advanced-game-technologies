@@ -89,6 +89,120 @@ void testStateMachine() {
 	delete machine; // The machine owns its states and transitions, so it will delete them too
 }
 
+void testBehaviourTree() {
+	float timer;
+	float distanceToTarget;
+	BehaviourAction* findKey = new BehaviourAction("FindKey", [&](float dt, BehaviourState state)->BehaviourState {
+		if (state == Initialise) {
+			std::cout << "Finding key!" << std::endl;
+			timer = rand() % 100;
+			return Ongoing;
+		}
+		else if (state == Ongoing) {
+			timer -= dt;
+			if (timer <= 0.0f) {
+				std::cout << "Found a key" << std::endl;
+				return Success;
+			}
+		}
+		return state; // Continue searching
+	});
+
+	// Actions can take some time to complete
+	BehaviourAction* goToRoom = new BehaviourAction("GoToRoom", [&](float dt, BehaviourState state)->BehaviourState {
+		if (state == Initialise) {
+			std::cout << "Fetching loot!" << std::endl;
+			return Ongoing;
+		} else if (state == Ongoing) {
+			distanceToTarget -= dt;
+			if (distanceToTarget <= 0.0f) {
+				std::cout << "Got to the room!" << std::endl;
+				return Success;
+			}
+		}
+		return state;
+	});
+
+	// Actions may be instant
+	BehaviourAction* openDoor = new BehaviourAction("OpenDoor", [&](float dt, BehaviourState state)->BehaviourState {
+		if (state == Initialise) {
+			std::cout << "Opening door!" << std::endl;
+			return Success;
+		}
+		return state;
+	});
+
+	// Actions can succeed or fail
+	BehaviourAction* lootThatBody = new BehaviourAction("Loot", [&](float dt, BehaviourState state)->BehaviourState {
+		if (state == Initialise) {
+			std::cout << "Looting chest!" << std::endl;
+			return Ongoing;
+		}
+		else if (state == Ongoing) {
+			bool found = rand() % 2;
+			if (found) {
+				std::cout << "Found some loot!" << std::endl;
+				std::cout << "1 gold added to inventory!" << std::endl;
+				return Success;
+			}
+			std::cout << "No loot found!" << std::endl;
+			std::cout << "lockpick removed from inventory!" << std::endl;
+			return Failure;
+		}
+		return state;
+	});
+
+	BehaviourAction* packMule = new BehaviourAction("LootScrap", [&](float dt, BehaviourState state)->BehaviourState {
+		if (state == Initialise) {
+			std::cout << "Taking random junk!" << std::endl;
+			return Ongoing;
+		}
+		else if (state == Ongoing) {
+			bool overEncumbered = rand() % 2;
+			std::cout << "1 kettle added to inventory!" << std::endl;
+			std::cout << "3 well-seasoned iron pans added to inventory!" << std::endl;
+			std::cout << "1 fork added to inventory!" << std::endl;
+			if (overEncumbered) {
+				std::cout << "You are carrying too much to be able to run!" << std::endl;
+				return Failure;
+			}
+			std::cout << "Who even buys this stuff?" << std::endl;
+			return Success;
+		}
+	});
+
+	// Actions that must be performed in sequence
+	BehaviourSequence* sequence = new BehaviourSequence("RoomSequence");
+	sequence->AddChild(findKey);
+	sequence->AddChild(goToRoom);
+	sequence->AddChild(openDoor);
+
+	// Do the first action that succeeds
+	BehaviourSelector* selection = new BehaviourSelector("LootSelector");
+	selection->AddChild(lootThatBody);
+	selection->AddChild(packMule);
+
+	BehaviourSequence* root = new BehaviourSequence("RootSequence");
+	root->AddChild(sequence);
+	root->AddChild(selection);
+
+	for (int i = 0; i < 20; i++) {
+		root->Reset();
+		timer = 0;
+		distanceToTarget = rand() % 250;
+		BehaviourState state = Ongoing;
+		while (state == Ongoing) {
+			state = root->Execute(1.0f);
+		}
+		if (state == Success) {
+			std::cout << "Success!" << std::endl;
+		}
+		else {
+			std::cout << "Failure!" << std::endl;
+		}
+	}
+}
+
 /*
 
 The main function should look pretty familar to you!
@@ -103,7 +217,8 @@ hide or show the
 */
 int main() {
 	//testStateMachine();
-	//return 0;
+	testBehaviourTree();
+	return 0;
 	WindowInitialisation initInfo;
 	initInfo.width		= 1280;
 	initInfo.height		= 720;
