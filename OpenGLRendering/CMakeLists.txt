@@ -34,7 +34,7 @@ set(ALL_FILES
 )
 
 set_source_files_properties(${ALL_FILES} PROPERTIES LANGUAGE CXX)
- 
+
 ################################################################################
 # Target
 ################################################################################
@@ -63,16 +63,21 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
     <Quaternion.h>
 )
 
-target_include_directories (${PROJECT_NAME} 
+target_include_directories (${PROJECT_NAME}
     PUBLIC ${CMAKE_SOURCE_DIR}/NCLCoreClasses
     PUBLIC ${CMAKE_SOURCE_DIR}/OpenGLRendering
-)	
+)
 ################################################################################
 # Dependencies
 ################################################################################
+find_package(OpenGL REQUIRED)
 set(ADDITIONAL_LIBRARY_DEPENDENCIES
     "NCLCoreClasses"
-    "opengl32.lib"
+    ${OPENGL_LIBRARIES}
 )
+if (UNIX)
+    find_package(SDL2 REQUIRED)
+    list(APPEND ADDITIONAL_LIBRARY_DEPENDENCIES SDL2::SDL2)
+endif()
 
 target_link_libraries(${PROJECT_NAME} PUBLIC "${ADDITIONAL_LIBRARY_DEPENDENCIES}")

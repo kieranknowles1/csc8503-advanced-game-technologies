@@ -2,21 +2,16 @@
 
 using namespace NCL;
 
-bool Assets::ReadTextFile(const std::string &filepath, std::string& result) {
+void Assets::ReadTextFile(const std::string &filepath, std::string& result) {
 	std::ifstream file(filepath, std::ios::in);
-	if (file) {
-		std::ostringstream stream;
-
-		stream << file.rdbuf();
-
-		result = stream.str();
-
-		return true;
+	if (!file) {
+		throw std::runtime_error("File not found: " + filepath);
 	}
-	else {
-		std::cout << __FUNCTION__ << " can't read file " << filepath << "\n";
-		return false;
-	}
+	std::ostringstream stream;
+
+	stream << file.rdbuf();
+
+	result = stream.str();
 }
 
 bool	Assets::ReadBinaryFile(const std::string& filename, char** into, size_t& size) {

@@ -15,16 +15,20 @@ License: MIT (see LICENSE file at the top of the source tree)
 #include "TextureLoader.h"
 
 #include "Mesh.h"
-
 #ifdef _WIN32
 #include "Win32Window.h"
-
 #include "KHR\khrplatform.h"
-#include "glad\gl.h"
+#include "glad/gl.h"
 #include "KHR/WGLext.h"
 
 PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
 #endif
+
+#ifndef _WIN32
+#include "SDLWindow.h"
+#endif
+
+#include <stdexcept>
 
 using namespace NCL;
 using namespace NCL::Rendering;
@@ -39,6 +43,11 @@ OGLRenderer::OGLRenderer(Window& w) : RendererBase(w)	{
 	initState = false;
 #ifdef _WIN32
 	InitWithWin32(w);
+#else
+	// TODO: Platform specific code should probably be in its own files
+	// We could probably use SDL2 for Windows and save having to
+	// navigate the Windows API
+	InitWithSDL2(w);
 #endif
 	boundMesh		= nullptr;
 	activeShader	= nullptr;
@@ -49,6 +58,8 @@ OGLRenderer::OGLRenderer(Window& w) : RendererBase(w)	{
 OGLRenderer::~OGLRenderer()	{
 #ifdef _WIN32
 	DestroyWithWin32();
+#else
+	DestroyWithSDL2();
 #endif
 }
 
@@ -73,7 +84,14 @@ void OGLRenderer::EndFrame()		{
 }
 
 void OGLRenderer::SwapBuffers()   {
+#ifdef _WIN32
 	::SwapBuffers(deviceContext);
+#else
+	// FIXME: Implement for other platforms
+	// TODO: The window should be responsible for this
+	auto sdlWindow = window->getSdlWindow();
+	SDL_GL_SwapWindow(sdlWindow);
+#endif
 }
 
 void OGLRenderer::BindBufferAsUBO(const OGLBuffer& b, GLuint slotID) {
@@ -96,7 +114,9 @@ void OGLRenderer::UseShader(const OGLShader& oglShader) {
 
 void OGLRenderer::BindMesh(const OGLMesh& m) {
 	if (m.GetVAO() == 0) {
-		std::cout << __FUNCTION__ << ": Mesh has not been uploaded!\n";
+		// TODO: This doesn't fit in with RAII, it shouldn't be possible to have a mesh without a VAO
+		// This also doesn't go well with single-responsibility principle as mesh should bind itself
+		throw std::runtime_error("Mesh has not been uploaded!");
 	}
 	glBindVertexArray(m.GetVAO());
 	boundMesh = &m;
@@ -166,7 +186,7 @@ void OGLRenderer::BindTextureToShader(const OGLTexture& t, const std::string& un
 		std::cout << __FUNCTION__ << " has been called without a bound shader!\n";
 		return;//Debug message time!
 	}
-	
+
 	GLuint slot = glGetUniformLocation(activeShader->GetProgramID(), uniform.c_str());
 
 	if (slot < 0) {
@@ -251,7 +271,7 @@ void OGLRenderer::InitWithWin32(Window& w) {
 		WGL_CONTEXT_MAJOR_VERSION_ARB, major,
 		WGL_CONTEXT_MINOR_VERSION_ARB, minor,
 		WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
-#ifdef OPENGL_DEBUGGING 
+#ifdef OPENGL_DEBUGGING
 		| WGL_CONTEXT_DEBUG_BIT_ARB
 #endif		//No deprecated stuff!! DIE DIE DIE glBegin!!!!
 		,WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
@@ -284,7 +304,7 @@ void OGLRenderer::InitWithWin32(Window& w) {
 #endif
 
 	//If we get this far, everything's going well!
-	initState = true; 
+	initState = true;
 
 	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
 }
@@ -307,7 +327,12 @@ bool OGLRenderer::SetVerticalSync(VerticalSyncState s) {
 
 	return wglSwapIntervalEXT(state);
 }
-#endif
+#else // _WIN32
+// FIXME: Implement for other platfoI'm
+bool OGLRenderer::SetVerticalSync(VerticalSyncState s) {
+	return false;
+}
+#endif // _WIN32
 
 #ifdef OPENGL_DEBUGGING
 static void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam) {
@@ -341,4 +366,25 @@ static void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum
 
 	std::cout << "OpenGL Debug Output: " + sourceName + ", " + typeName + ", " + severityName + ", " + string(message) + "\n";
 }
+#endif
+
+#ifndef _WIN32
+	void OGLRenderer::InitWithSDL2(Window& w) {
+		// This will throw if the window is not an SDLWindow
+		// Shouldn't happen, but we need to handle it
+		// TODO: Could we skip win32 and use SDL2 for all platforms?
+		auto& sdlWindow = dynamic_cast<UnixCode::SDLWindow&>(w);
+		this->window = &sdlWindow;
+		auto* handle = sdlWindow.getSdlWindow();
+
+		glContext = SDL_GL_CreateContext(handle);
+
+		if (!gladLoaderLoadGL()) {
+			throw std::runtime_error("Failed to initialise GLAD!");
+		}
+	}
+
+	void OGLRenderer::DestroyWithSDL2() {
+
+	}
 #endif

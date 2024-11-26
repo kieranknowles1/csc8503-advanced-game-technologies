@@ -24,7 +24,7 @@ source_group("AI\\Pushdown Automata" FILES ${AI_Pushdown_Automata})
 
 set(AI_State_Machine
     "State.h"
-    "StateMachine.h"  
+    "StateMachine.h"
     "StateMachine.cpp"
     "StateMachine.h"
     "StateTransition.h"
@@ -33,7 +33,7 @@ source_group("AI\\State Machine" FILES ${AI_State_Machine})
 
 set(AI_Pathfinding
     "NavigationGrid.h"
-    "NavigationGrid.cpp"  
+    "NavigationGrid.cpp"
     "NavigationMesh.cpp"
     "NavigationMesh.h"
     "NavigationMap.h"
@@ -44,7 +44,7 @@ source_group("AI\\Pathfinding" FILES ${AI_Pathfinding})
 
 set(Collision_Detection
     "AABBVolume.h"
-    "CapsuleVolume.h"  
+    "CapsuleVolume.h"
     "CapsuleVolume.cpp"
     "CollisionDetection.h"
     "CollisionDetection.cpp"
@@ -58,7 +58,7 @@ set(Collision_Detection
 source_group("Collision Detection" FILES ${Collision_Detection})
 
 set(Networking
-    "GameClient.h"  
+    "GameClient.h"
     "GameClient.cpp"
     "GameServer.h"
     "GameServer.cpp"
@@ -72,8 +72,7 @@ set(Networking
 source_group("Networking" FILES ${Networking})
 
 set(Physics
-    "constraint.h"  
-     "constraint.h"  
+    "Constraint.h"
     "PositionConstraint.cpp"
     "PositionConstraint.h"
     "OrientationConstraint.cpp"
@@ -111,8 +110,8 @@ set(enet_Files
     "./enet/list.c"
     "./enet/protocol.h"
     "./enet/protocol.c"
-    "./enet/win32.h"
-    "./enet/win32.c"
+    # "./enet/win32.h"
+    # "./enet/win32.c"
 
     "./enet/enet.h"
     "./enet/time.h"
@@ -124,6 +123,12 @@ set(enet_Files
     "./enet/packet.c"
     "./enet/peer.c"
 )
+if (MSVC)
+    set(enet_Files ${enet_Files} "./enet/win32.c" "./enet/win32.h")
+else()
+    set(enet_Files ${enet_Files} "./enet/unix.c" "./enet/unix.h")
+endif()
+
 source_group("eNet" FILES ${enet_Files})
 
 set(ALL_FILES
@@ -136,7 +141,7 @@ set(ALL_FILES
     ${Collision_Detection}
     ${Networking}
     ${Physics}
-    ${enet_Files}   
+    ${enet_Files}
 )
 
 set_source_files_properties(${ALL_FILES} PROPERTIES LANGUAGE CXX)

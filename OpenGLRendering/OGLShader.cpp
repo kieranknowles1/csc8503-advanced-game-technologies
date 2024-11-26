@@ -51,30 +51,30 @@ void OGLShader::ReloadShader() {
 	string fileContents = "";
 	for (int i = 0; i < (int)ShaderStages::MAX_SIZE; ++i) {
 		if (!shaderFiles[i].empty()) {
-			if (Assets::ReadTextFile(Assets::SHADERDIR + shaderFiles[i], fileContents)) {
-				Preprocessor(fileContents);
+			Assets::ReadTextFile(Assets::SHADERDIR + shaderFiles[i], fileContents);
+			Preprocessor(fileContents);
 
-				shaderIDs[i] = glCreateShader(shaderTypes[i]);
+			shaderIDs[i] = glCreateShader(shaderTypes[i]);
 
-				std::cout << "Reading " << shaderNames[i] << " shader " << shaderFiles[i] << "\n";
+			std::cout << "Reading " << shaderNames[i] << " shader " << shaderFiles[i] << "\n";
 
-				const char* stringData	 = fileContents.c_str();
-				int			stringLength = (int)fileContents.length();
-				glShaderSource(shaderIDs[i], 1, &stringData, &stringLength);
-				glCompileShader(shaderIDs[i]);
+			const char* stringData	 = fileContents.c_str();
+			int			stringLength = (int)fileContents.length();
+			glShaderSource(shaderIDs[i], 1, &stringData, &stringLength);
+			glCompileShader(shaderIDs[i]);
 
-				glGetShaderiv(shaderIDs[i], GL_COMPILE_STATUS, &shaderValid[i]);
-		
-				if (shaderValid[i] == GL_TRUE) {					
-					glAttachShader(programID, shaderIDs[i]);
-				}
-				else {
-					std::cout << shaderNames[i] << " shader " << shaderFiles[i] << " has failed!" << "\n";
-				}
-				PrintCompileLog(shaderIDs[i]);
+			glGetShaderiv(shaderIDs[i], GL_COMPILE_STATUS, &shaderValid[i]);
+
+			if (shaderValid[i] == GL_TRUE) {
+				glAttachShader(programID, shaderIDs[i]);
 			}
+			else {
+				// Don't throw here, as I can't be bothered with proper error handling when debugging shaders
+				std::cout << shaderNames[i] << " shader " << shaderFiles[i] << " has failed!" << "\n";
+			}
+			PrintCompileLog(shaderIDs[i]);
 		}
-	}	
+	}
 	glLinkProgram(programID);
 	glGetProgramiv(programID, GL_LINK_STATUS, &programValid);
 
@@ -141,7 +141,7 @@ bool	OGLShader::Preprocessor(string& shaderFile) {
 
 		size_t hasComment = substr.find("//");
 		size_t hasInclude = substr.find("#include");
-		 
+
 		if (hasComment== string::npos && hasInclude != string::npos) {
 			size_t nameStart	= substr.find_first_of("\"");
 			size_t nameEnd		= substr.find_last_of("\"");
@@ -158,14 +158,9 @@ bool	OGLShader::Preprocessor(string& shaderFile) {
 			includes.insert(filename);
 
 			std::string newFile;
-			if (!Assets::ReadTextFile(Assets::SHADERDIR + filename, newFile)) {
-				std::cout << __FUNCTION__ << ": Preprocessor failure! No include file " << filename << " can be found.\n";
-				return false;
-			}
-			else {
-				shaderFile.replace(lineStart, lineLength, newFile);
-				continue; //Don't move on, the replaced file could have additional includes!
-			}	
+			Assets::ReadTextFile(Assets::SHADERDIR + filename, newFile);
+			shaderFile.replace(lineStart, lineLength, newFile);
+			continue; //Don't move on, the replaced file could have additional includes!
 		}
 		lineStart = lineEnd+1;
 	}
