@@ -25,6 +25,8 @@ struct GamePacket {
 
 		// Server has shut down, all clients should disconnect
 		Shutdown,
+		// Level reset
+		Reset,
 
 
 		// None,

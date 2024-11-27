@@ -44,7 +44,6 @@ void GameClient::UpdateClient() {
 			connected = false;
 			break;
 		case ENET_EVENT_TYPE_RECEIVE: {
-			std::cout << "Packet received!" << std::endl;
 			GamePacket* payload = (GamePacket*)event.packet->data;
 			ProcessPacket(payload);
 			break;

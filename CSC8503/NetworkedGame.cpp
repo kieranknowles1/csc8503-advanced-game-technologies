@@ -47,6 +47,7 @@ void NetworkedGame::StartAsClient(char a, char b, char c, char d) {
 	// TODO
 	//thisClient->RegisterPacketHandler(GamePacket::Type::Player_Connected, this);
 	//thisClient->RegisterPacketHandler(GamePacket::Type::Player_Disconnected, this);
+	thisClient->RegisterPacketHandler(GamePacket::Type::Reset, this);
 
 	StartLevel();
 }
@@ -79,6 +80,12 @@ void NetworkedGame::UpdateGame(float dt) {
 
 void NetworkedGame::UpdateAsServer(float dt) {
 	thisServer->UpdateServer();
+
+	if (Window::GetKeyboard()->KeyDown(KeyCodes::F11)) {
+		auto reset = GamePacket(GamePacket::Type::Reset);
+		thisServer->SendGlobalPacket(reset);
+		StartLevel();
+	}
 
 	packetsToSnapshot--;
 	if (packetsToSnapshot < 0) {
@@ -185,6 +192,8 @@ GameObject* NetworkedGame::getNetworkObject(NetworkObject::Id id) {
 
 void NetworkedGame::StartLevel() {
 	ClearWorld();
+	nextNetworkId = 0;
+	networkObjects.clear();
 
 	InitDefaultFloor();
 
@@ -221,6 +230,9 @@ void NetworkedGame::ReceivePacket(GamePacket::Type type, GamePacket* payload, in
 	//case GamePacket::Type::Player_Disconnected:
 		// TODO
 		//HandlePacket()
+	case GamePacket::Type::Reset:
+		StartLevel();
+		break;
 	default:
 		break;
 	}
