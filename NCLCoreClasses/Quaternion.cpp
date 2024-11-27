@@ -44,7 +44,7 @@ Quaternion::Quaternion(const Vector3& vector, float w) {
 Quaternion::Quaternion(const Matrix4 &m) {
 	w = sqrt(std::max(0.0f, (1.0f + m.array[0][0] + m.array[1][1] + m.array[2][2])))  * 0.5f;
 
-	if (abs(w) < 0.0001f) {
+	if (std::abs(w) < 0.0001f) {
 		x = sqrt(std::max(0.0f, (1.0f + m.array[0][0] - m.array[1][1] - m.array[2][2]))) / 2.0f;
 		y = sqrt(std::max(0.0f, (1.0f - m.array[0][0] + m.array[1][1] - m.array[2][2]))) / 2.0f;
 		z = sqrt(std::max(0.0f, (1.0f - m.array[0][0] - m.array[1][1] + m.array[2][2]))) / 2.0f;
@@ -66,7 +66,7 @@ Quaternion::Quaternion(const Matrix4 &m) {
 Quaternion::Quaternion(const Matrix3& m) {
 	w = sqrt(std::max(0.0f, (1.0f + m.array[0][0] + m.array[1][1] + m.array[2][2]))) * 0.5f;
 
-	if (abs(w) < 0.0001f) {
+	if (std::abs(w) < 0.0001f) {
 		x = sqrt(std::max(0.0f, (1.0f + m.array[0][0] - m.array[1][1] - m.array[2][2]))) / 2.0f;
 		y = sqrt(std::max(0.0f, (1.0f - m.array[0][0] + m.array[1][1] - m.array[2][2]))) / 2.0f;
 		z = sqrt(std::max(0.0f, (1.0f - m.array[0][0] - m.array[1][1] + m.array[2][2]))) / 2.0f;

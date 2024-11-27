@@ -52,7 +52,7 @@ namespace NCL::Rendering {
 			return initState;
 		}
 
-		virtual bool SetVerticalSync(VerticalSyncState s);
+		bool SetVerticalSync(VerticalSyncState s) override;
 
 	protected:
 		void BeginFrame()	override;
