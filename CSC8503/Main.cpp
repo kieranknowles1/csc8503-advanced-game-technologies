@@ -217,6 +217,72 @@ void testBehaviourTree() {
 	}
 }
 
+class PauseScreen : public PushdownState {
+	PushdownResult OnUpdate(float dt, PushdownState** newState) override {
+		if (Window::GetKeyboard()->KeyPressed(KeyCodes::U)) {
+			return PushdownResult::Pop;
+		}
+		return PushdownResult::NoChange;
+	}
+	void OnAwake() override {
+		std::cout << "Press U to unpause!" << std::endl;
+	};
+};
+
+class GameScreen : public PushdownState {
+	PushdownResult OnUpdate(float dt, PushdownState** newState) {
+		timer -= dt;
+		if (timer < 0) {
+			std::cout << "Coins: " << coins << std::endl;
+			timer += 1.0f;
+		}
+		if (Window::GetKeyboard()->KeyDown(KeyCodes::P)) {
+			*newState = new PauseScreen();
+			return PushdownResult::Push;
+		}
+		if (Window::GetKeyboard()->KeyDown(KeyCodes::F1)) {
+			std::cout << "Exiting game!" << std::endl;
+			return PushdownResult::Pop;
+		}
+		coins++;
+		return PushdownResult::NoChange;
+	}
+
+	void OnAwake() {
+		std::cout << "The children yearn for the mines!" << std::endl;
+	}
+
+	int coins = 0;
+	float timer = 0.0f;
+};
+
+class IntroScreen : public PushdownState {
+	PushdownResult OnUpdate(float dt, PushdownState** newState) {
+		if (Window::GetKeyboard()->KeyPressed(KeyCodes::SPACE)) {
+			*newState = new GameScreen();
+			return PushdownResult::Push;
+		}
+		if (Window::GetKeyboard()->KeyPressed(KeyCodes::ESCAPE)) {
+			return PushdownResult::Pop;
+		}
+		return PushdownResult::NoChange;
+	}
+
+	void OnAwake() {
+		std::cout << "Press SPACE to start!" << std::endl;
+	}
+};
+
+void testPushdownAutomata(Window* window) {
+	PushdownMachine machine(new IntroScreen());
+	while (window->UpdateWindow()) {
+		float dt = window->GetTimer().GetTimeDeltaSeconds();
+		if (!machine.Update(dt)) {
+			break;
+		}
+	}
+}
+
 /*
 
 The main function should look pretty familar to you!
@@ -232,13 +298,15 @@ hide or show the
 int main() {
 	//testStateMachine();
 	//testBehaviourTree();
-	//return 0;
 	WindowInitialisation initInfo;
 	initInfo.width		= 1280;
 	initInfo.height		= 720;
 	initInfo.windowTitle = "CSC8503 Game technology!";
 
 	Window*w = Window::CreateGameWindow(initInfo);
+
+/*	testPushdownAutomata(w);
+	return 0*/;
 
 	if (!w->HasInitialised()) {
 		return -1;
