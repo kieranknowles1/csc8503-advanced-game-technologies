@@ -61,8 +61,7 @@ void NetworkedGame::UpdateGame(float dt) {
 	if (timeToNextPacket < 0) {
 		if (thisServer) {
 			UpdateAsServer(dt);
-		}
-		if (thisClient) {
+		} else if (thisClient) {
 			UpdateAsClient(dt);
 		}
 		timeToNextPacket += 1.0f / 20.0f; //20hz server/client update
@@ -108,6 +107,7 @@ void NetworkedGame::UpdateAsClient(float dt) {
 	if (Window::GetKeyboard()->KeyPressed(KeyCodes::SPACE)) {
 		//fire button pressed!
 		newPacket.buttonstates[0] = 1;
+		// TODO: Set this somehow
 		newPacket.lastID = 0; //You'll need to work this out somehow...
 	}
 	thisClient->SendPacket(newPacket);
@@ -166,14 +166,64 @@ void NetworkedGame::SpawnPlayer() {
 
 }
 
+NetworkObject* NetworkedGame::createNetworkObject(GameObject* obj) {
+	NetworkObject* netObj = new NetworkObject(*obj, nextNetworkId);
+	obj->SetNetworkObject(netObj);
+	networkObjects.emplace(nextNetworkId, obj);
+	nextNetworkId++;
+	return netObj;
+}
+
+GameObject* NetworkedGame::getNetworkObject(NetworkObject::Id id) {
+	auto i = networkObjects.find(id);
+	// TODO: This doesn't handle destruction, may cause use-after-free
+	if (i == networkObjects.end()) {
+		return nullptr;
+	}
+	return i->second;
+}
+
 void NetworkedGame::StartLevel() {
 	ClearWorld();
 
 	InitDefaultFloor();
+
+	auto netCube = AddCubeToWorld(Vector3(0, 20, 0), Vector3(1, 1, 5), 0.5f);
+	createNetworkObject(netCube);
+}
+
+void NetworkedGame::HandlePacket(DeltaPacket* payload, int source) {
+	GameObject* o = getNetworkObject(payload->objectID);
+	if (!o) {
+		return;
+	}
+	o->GetNetworkObject()->ReadPacket(*payload);
+}
+
+void NetworkedGame::HandlePacket(FullPacket* payload, int source) {
+	GameObject* o = getNetworkObject(payload->objectID);
+	if (!o) {
+		return;
+	}
+	o->GetNetworkObject()->ReadPacket(*payload);
 }
 
 void NetworkedGame::ReceivePacket(int type, GamePacket* payload, int source) {
-	
+	switch (type)
+	{
+	case Delta_State:
+		HandlePacket((DeltaPacket*)payload, source);
+		break;
+	case Full_State:
+		HandlePacket((FullPacket*)payload, source);
+		break;
+	case Player_Connected:
+	case Player_Disconnected:
+		// TODO
+		//HandlePacket()
+	default:
+		break;
+	}
 }
 
 void NetworkedGame::OnPlayerCollision(NetworkPlayer* a, NetworkPlayer* b) {

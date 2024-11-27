@@ -42,7 +42,9 @@ namespace NCL::CSC8503 {
 
 	class NetworkObject		{
 	public:
-		NetworkObject(GameObject& o, int id);
+		using Id = unsigned int;
+
+		NetworkObject(GameObject& o, Id id);
 		virtual ~NetworkObject();
 
 		//Called by clients
@@ -73,6 +75,6 @@ namespace NCL::CSC8503 {
 		int deltaErrors;
 		int fullErrors;
 
-		int networkID;
+		Id networkID;
 	};
 }

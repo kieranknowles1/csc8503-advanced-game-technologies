@@ -3,7 +3,7 @@
 using namespace NCL;
 using namespace CSC8503;
 
-NetworkObject::NetworkObject(GameObject& o, int id) : object(o)	{
+NetworkObject::NetworkObject(GameObject& o, Id id) : object(o)	{
 	deltaErrors = 0;
 	fullErrors  = 0;
 	networkID   = id;
