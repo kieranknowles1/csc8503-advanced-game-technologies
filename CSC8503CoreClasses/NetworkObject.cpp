@@ -14,9 +14,9 @@ NetworkObject::~NetworkObject()	{
 
 bool NetworkObject::ReadPacket(GamePacket& p) {
 	switch (p.type) {
-	case BasicNetworkMessages::Delta_State:
+	case GamePacket::Type::Delta_State:
 		return ReadDeltaPacket((DeltaPacket&)p);
-	case BasicNetworkMessages::Full_State:
+	case GamePacket::Type::Full_State:
 		return ReadFullPacket((FullPacket&)p);
 	default: // We don't care about this packet type
 		return false;

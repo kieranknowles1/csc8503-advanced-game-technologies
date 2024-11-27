@@ -11,8 +11,7 @@ namespace NCL::CSC8503 {
 		// The full state of the object
 		NetworkState fullState;
 
-		FullPacket() {
-			type = Full_State;
+		FullPacket() : GamePacket(Type::Full_State) {
 			size = sizeof(FullPacket) - sizeof(GamePacket);
 		}
 	};
@@ -25,8 +24,8 @@ namespace NCL::CSC8503 {
 		char	pos[3];
 		char	orientation[4];
 
-		DeltaPacket() {
-			type = Delta_State;
+		DeltaPacket() : GamePacket(Type::Delta_State) {
+			type = Type::Delta_State;
 			size = sizeof(DeltaPacket) - sizeof(GamePacket);
 		}
 	};
@@ -35,7 +34,7 @@ namespace NCL::CSC8503 {
 		int		lastID;
 		char	buttonstates[8];
 
-		ClientPacket() {
+		ClientPacket() : GamePacket(Type::ClientState) {
 			size = sizeof(ClientPacket);
 		}
 	};

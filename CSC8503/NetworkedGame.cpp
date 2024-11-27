@@ -10,8 +10,7 @@ struct MessagePacket : public GamePacket {
 	short playerID;
 	short messageID;
 
-	MessagePacket() {
-		type = Message;
+	MessagePacket() : GamePacket(Type::Message) {
 		size = sizeof(short) * 2;
 	}
 };
@@ -33,7 +32,7 @@ NetworkedGame::~NetworkedGame()	{
 void NetworkedGame::StartAsServer() {
 	thisServer = new GameServer(NetworkBase::GetDefaultPort(), 128);
 
-	thisServer->RegisterPacketHandler(Received_State, this);
+	thisServer->RegisterPacketHandler(GamePacket::Type::ClientState, this);
 
 	StartLevel();
 }
@@ -43,10 +42,11 @@ void NetworkedGame::StartAsClient(char a, char b, char c, char d) {
 	thisClient = new GameClient();
 	thisClient->Connect(a, b, c, d, NetworkBase::GetDefaultPort());
 
-	thisClient->RegisterPacketHandler(Delta_State, this);
-	thisClient->RegisterPacketHandler(Full_State, this);
-	thisClient->RegisterPacketHandler(Player_Connected, this);
-	thisClient->RegisterPacketHandler(Player_Disconnected, this);
+	thisClient->RegisterPacketHandler(GamePacket::Type::Delta_State, this);
+	thisClient->RegisterPacketHandler(GamePacket::Type::Full_State, this);
+	// TODO
+	//thisClient->RegisterPacketHandler(GamePacket::Type::Player_Connected, this);
+	//thisClient->RegisterPacketHandler(GamePacket::Type::Player_Disconnected, this);
 
 	StartLevel();
 }
@@ -127,8 +127,8 @@ void NetworkedGame::BroadcastSnapshot(bool deltaFrame) {
 		//TODO - you'll need some way of determining
 		//when a player has sent the server an acknowledgement
 		//and store the lastID somewhere. A map between player
-		//and an int could work, or it could be part of a 
-		//NetworkPlayer struct. 
+		//and an int could work, or it could be part of a
+		//NetworkPlayer struct.
 		int playerState = 0;
 		GamePacket* newPacket = nullptr;
 		if (o->WritePacket(&newPacket, deltaFrame, playerState)) {
@@ -208,17 +208,17 @@ void NetworkedGame::HandlePacket(FullPacket* payload, int source) {
 	o->GetNetworkObject()->ReadPacket(*payload);
 }
 
-void NetworkedGame::ReceivePacket(int type, GamePacket* payload, int source) {
+void NetworkedGame::ReceivePacket(GamePacket::Type type, GamePacket* payload, int source) {
 	switch (type)
 	{
-	case Delta_State:
+	case GamePacket::Type::Delta_State:
 		HandlePacket((DeltaPacket*)payload, source);
 		break;
-	case Full_State:
+	case GamePacket::Type::Full_State:
 		HandlePacket((FullPacket*)payload, source);
 		break;
-	case Player_Connected:
-	case Player_Disconnected:
+	//case GamePacket::Type::Player_Connected:
+	//case GamePacket::Type::Player_Disconnected:
 		// TODO
 		//HandlePacket()
 	default:

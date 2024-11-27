@@ -289,8 +289,8 @@ public:
 		this->name = name;
 	}
 
-	void ReceivePacket(int type, GamePacket* payload, int source) {
-		if (type != String_Message) {
+	void ReceivePacket(GamePacket::Type type, GamePacket* payload, int source) {
+		if (type != GamePacket::Type::String_Message) {
 			return;
 		}
 
@@ -307,7 +307,7 @@ void testServer() {
 	int port = NetworkBase::GetDefaultPort();
 	GameServer* server = new GameServer(port, 128);
 
-	server->RegisterPacketHandler(String_Message, &serverReceiver);
+	server->RegisterPacketHandler(GamePacket::Type::String_Message, &serverReceiver);
 
 	while (server->getClientCount() < 2) {
 		server->UpdateServer();
@@ -329,7 +329,7 @@ void testClient() {
 	TestPacketReceiver clientReceiver("Client");
 
 	GameClient* client = new GameClient();
-	client->RegisterPacketHandler(String_Message, &clientReceiver);
+	client->RegisterPacketHandler(GamePacket::Type::String_Message, &clientReceiver);
 	bool ok = client->Connect(127, 0, 0, 1, NetworkBase::GetDefaultPort());
 	if (!ok) {
 		return;
@@ -350,8 +350,8 @@ void testNetworking() {
 	GameServer* server = new GameServer(port, 1);
 	GameClient* client = new GameClient();
 
-	server->RegisterPacketHandler(String_Message, &serverReceiver);
-	client->RegisterPacketHandler(String_Message, &clientReceiver);
+	server->RegisterPacketHandler(GamePacket::Type::String_Message, &serverReceiver);
+	client->RegisterPacketHandler(GamePacket::Type::String_Message, &clientReceiver);
 
 	bool connected = client->Connect(127, 0, 0, 1, port);
 

@@ -14,7 +14,7 @@ namespace NCL {
 
 			void SetGameWorld(GameWorld &g);
 
-			bool SendGlobalPacket(int msgID);
+			bool SendGlobalPacket(GamePacket::Type msgID);
 			bool SendGlobalPacket(GamePacket& packet);
 
 			virtual void UpdateServer();

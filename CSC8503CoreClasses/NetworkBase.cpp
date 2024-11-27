@@ -23,7 +23,7 @@ bool NetworkBase::ProcessPacket(GamePacket* packet, int peerID) {
 	PacketHandlerIterator lastHandler;
 	bool hasHandler = GetPacketHandlers(packet->type, firstHandler, lastHandler);
 	if (!hasHandler) {
-		std::cerr << __FUNCTION__ << " no handler for packet type " << packet->type << std::endl;
+		std::cerr << __FUNCTION__ << " no handler for packet type " << (short)packet->type << std::endl;
 		return false;
 	}
 

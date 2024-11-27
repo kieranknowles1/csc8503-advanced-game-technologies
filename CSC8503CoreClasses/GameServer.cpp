@@ -17,7 +17,7 @@ GameServer::~GameServer()	{
 }
 
 void GameServer::Shutdown() {
-	SendGlobalPacket(BasicNetworkMessages::Shutdown);
+	SendGlobalPacket(GamePacket::Type::Shutdown);
 	enet_host_destroy(netHandle);
 	netHandle = nullptr;
 }
@@ -37,9 +37,8 @@ bool GameServer::Initialise() {
 }
 
 // Send a simple event to all clients
-bool GameServer::SendGlobalPacket(int msgID) {
-	GamePacket packet;
-	packet.type = msgID;
+bool GameServer::SendGlobalPacket(GamePacket::Type msgID) {
+	GamePacket packet(msgID);
 	return SendGlobalPacket(packet);
 }
 
