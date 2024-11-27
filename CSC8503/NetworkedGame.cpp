@@ -31,7 +31,7 @@ NetworkedGame::~NetworkedGame()	{
 }
 
 void NetworkedGame::StartAsServer() {
-	thisServer = new GameServer(NetworkBase::GetDefaultPort(), 4);
+	thisServer = new GameServer(NetworkBase::GetDefaultPort(), 128);
 
 	thisServer->RegisterPacketHandler(Received_State, this);
 
@@ -39,6 +39,7 @@ void NetworkedGame::StartAsServer() {
 }
 
 void NetworkedGame::StartAsClient(char a, char b, char c, char d) {
+	connectionLength = 0.0f;
 	thisClient = new GameClient();
 	thisClient->Connect(a, b, c, d, NetworkBase::GetDefaultPort());
 
@@ -52,11 +53,16 @@ void NetworkedGame::StartAsClient(char a, char b, char c, char d) {
 
 void NetworkedGame::UpdateGame(float dt) {
 	timeToNextPacket -= dt;
+	if (thisServer)
+		Debug::Print("This is a server with " + std::to_string(thisServer->getClientCount()) + " clients\n", Vector2(10, 10));
+	if (thisClient)
+		Debug::Print("This is a client\n", Vector2(10, 20));
+
 	if (timeToNextPacket < 0) {
 		if (thisServer) {
 			UpdateAsServer(dt);
 		}
-		else if (thisClient) {
+		if (thisClient) {
 			UpdateAsClient(dt);
 		}
 		timeToNextPacket += 1.0f / 20.0f; //20hz server/client update
@@ -73,6 +79,8 @@ void NetworkedGame::UpdateGame(float dt) {
 }
 
 void NetworkedGame::UpdateAsServer(float dt) {
+	thisServer->UpdateServer();
+
 	packetsToSnapshot--;
 	if (packetsToSnapshot < 0) {
 		BroadcastSnapshot(false);
@@ -84,6 +92,17 @@ void NetworkedGame::UpdateAsServer(float dt) {
 }
 
 void NetworkedGame::UpdateAsClient(float dt) {
+	// Very simple check for a timeout - just disconnect and delete the client
+	if (connectionLength > 1.0f && !thisClient->isConnected()) {
+		std::cerr << "Connection timed out!\n";
+		delete thisClient;
+		thisClient = nullptr;
+		return;
+	}
+	connectionLength += dt;
+
+	thisClient->UpdateClient();
+
 	ClientPacket newPacket;
 
 	if (Window::GetKeyboard()->KeyPressed(KeyCodes::SPACE)) {
@@ -148,7 +167,9 @@ void NetworkedGame::SpawnPlayer() {
 }
 
 void NetworkedGame::StartLevel() {
+	ClearWorld();
 
+	InitDefaultFloor();
 }
 
 void NetworkedGame::ReceivePacket(int type, GamePacket* payload, int source) {

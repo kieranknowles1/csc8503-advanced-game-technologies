@@ -36,6 +36,9 @@ namespace NCL {
 
 			GameServer* thisServer;
 			GameClient* thisClient;
+			// How long since we first tried to connect
+			float connectionLength;
+
 			float timeToNextPacket;
 			int packetsToSnapshot;
 

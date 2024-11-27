@@ -390,19 +390,19 @@ int main(int argc, char** argv) {
 	initInfo.height		= 720;
 	initInfo.windowTitle = "CSC8503 Game technology!";
 
-	if (argc >= 2) {
-		if (argv[1][0] == 's') {
-			testServer();
-			return 0;
-		}
-		if (argv[1][0] == 'c') {
-			testClient();
-			return 0;
-		}
-	}
+	//if (argc >= 2) {
+	//	if (argv[1][0] == 's') {
+	//		testServer();
+	//		return 0;
+	//	}
+	//	if (argv[1][0] == 'c') {
+	//		testClient();
+	//		return 0;
+	//	}
+	//}
 
-	//testNetworking();
-	return 0;
+	////testNetworking();
+	//return 0;
 
 	Window*w = Window::CreateGameWindow(initInfo);
 
@@ -413,10 +413,11 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
-	w->ShowOSPointer(false);
-	w->LockMouseToWindow(true);
+	//w->ShowOSPointer(false);
+	//w->LockMouseToWindow(true);
 
-	TutorialGame* g = new TutorialGame();
+	//TutorialGame* g = new TutorialGame();
+	NetworkedGame* g = new NetworkedGame();
 	w->GetTimer().GetTimeDeltaSeconds(); //Clear the timer so we don't get a larget first dt!
 	while (w->UpdateWindow() && !Window::GetKeyboard()->KeyDown(KeyCodes::ESCAPE)) {
 		float dt = w->GetTimer().GetTimeDeltaSeconds();

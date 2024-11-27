@@ -8,7 +8,7 @@ GameClient::GameClient()	{
 }
 
 GameClient::~GameClient()	{
-	enet_host_destroy(netHandle);
+	
 }
 
 bool GameClient::Connect(uint8_t a, uint8_t b, uint8_t c, uint8_t d, int portNum) {
@@ -37,6 +37,11 @@ void GameClient::UpdateClient() {
 		{
 		case ENET_EVENT_TYPE_CONNECT:
 			std::cout << "Server connection succeeded!" << std::endl;
+			connected = true;
+			break;
+		case ENET_EVENT_TYPE_DISCONNECT:
+			std::cout << "Server disconnected!" << std::endl;
+			connected = false;
 			break;
 		case ENET_EVENT_TYPE_RECEIVE: {
 			std::cout << "Packet received!" << std::endl;

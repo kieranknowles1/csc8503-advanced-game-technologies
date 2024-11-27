@@ -8,6 +8,7 @@ namespace NCL::CSC8503 {
 
 	struct FullPacket : public GamePacket {
 		int		objectID = -1;
+		// The full state of the object
 		NetworkState fullState;
 
 		FullPacket() {
@@ -17,6 +18,8 @@ namespace NCL::CSC8503 {
 	};
 
 	struct DeltaPacket : public GamePacket {
+		// The ID of the last full state
+		// Reject this delta if it doesn't match the last full state
 		int		fullID		= -1;
 		int		objectID	= -1;
 		char	pos[3];

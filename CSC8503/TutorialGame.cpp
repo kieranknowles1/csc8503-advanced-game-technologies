@@ -135,7 +135,8 @@ void TutorialGame::UpdateGame(float dt) {
 
 	Debug::DrawLine(Vector3(), Vector3(0, 100, 0), Vector4(1, 0, 0, 1));
 
-	stateObject->Update(dt);
+	if (stateObject)
+		stateObject->Update(dt);
 
 	SelectObject();
 	MoveSelectedObject(dt);
@@ -264,9 +265,19 @@ void TutorialGame::InitCamera() {
 	lockedObject = nullptr;
 }
 
-void TutorialGame::InitWorld() {
+void TutorialGame::ClearWorld() {
 	world->ClearAndErase();
 	physics->Clear();
+
+	stateObject = nullptr;
+	lockedObject = nullptr;
+	selectionObject = nullptr;
+	selectionVisibleObject = nullptr;
+	objClosest = nullptr;
+}
+
+void TutorialGame::InitWorld() {
+	ClearWorld();
 
 	// Grid of random cubes and spheres, 10m above the origin
 	InitMixedGridWorld(15, 15, 3.5f, 3.5f);

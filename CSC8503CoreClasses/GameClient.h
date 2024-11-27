@@ -17,8 +17,14 @@ namespace NCL {
 			void SendPacket(GamePacket&  payload);
 
 			void UpdateClient();
+
+			bool isConnected() const {
+				return connected;
+			}
 		protected:	
 			_ENetPeer*	netPeer;
+
+			bool connected;
 		};
 	}
 }

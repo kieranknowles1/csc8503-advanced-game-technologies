@@ -11,6 +11,7 @@ namespace NCL {
 
 			Vector3		position;
 			Quaternion	orientation;
+			// Will be ignored if the last processed state is newer
 			int			stateID;
 		};
 	}
