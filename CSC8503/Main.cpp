@@ -283,6 +283,93 @@ void testPushdownAutomata(Window* window) {
 	}
 }
 
+class TestPacketReceiver : public PacketReceiver {
+public:
+	TestPacketReceiver(std::string name) {
+		this->name = name;
+	}
+
+	void ReceivePacket(int type, GamePacket* payload, int source) {
+		if (type != String_Message) {
+			return;
+		}
+
+		StringPacket* realPacket = (StringPacket*)payload;
+		std::cout << name << " received a message: " << realPacket->toString() << std::endl;
+	}
+protected:
+	std::string name;
+};
+
+void testServer() {
+	NetworkBase::Initialise();
+	TestPacketReceiver serverReceiver("Server");
+	int port = NetworkBase::GetDefaultPort();
+	GameServer* server = new GameServer(port, 128);
+
+	server->RegisterPacketHandler(String_Message, &serverReceiver);
+
+	while (server->getClientCount() < 2) {
+		server->UpdateServer();
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+
+	for (int i = 0; i < 100; i++) {
+		StringPacket p("Hello world!");
+		server->SendGlobalPacket(p);
+		server->UpdateServer();
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+	delete server;
+	NetworkBase::Destroy();
+}
+
+void testClient() {
+	NetworkBase::Initialise();
+	TestPacketReceiver clientReceiver("Client");
+
+	GameClient* client = new GameClient();
+	client->RegisterPacketHandler(String_Message, &clientReceiver);
+	bool ok = client->Connect(127, 0, 0, 1, NetworkBase::GetDefaultPort());
+	if (!ok) {
+		return;
+	}
+
+	while (true) {
+		client->UpdateClient();
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+}
+
+void testNetworking() {
+	NetworkBase::Initialise();
+	TestPacketReceiver serverReceiver("Server");
+	TestPacketReceiver clientReceiver("Client");
+
+	int port = NetworkBase::GetDefaultPort();
+	GameServer* server = new GameServer(port, 1);
+	GameClient* client = new GameClient();
+
+	server->RegisterPacketHandler(String_Message, &serverReceiver);
+	client->RegisterPacketHandler(String_Message, &clientReceiver);
+
+	bool connected = client->Connect(127, 0, 0, 1, port);
+
+	for (int i = 0; i < 100; i++) {
+		StringPacket p("Hello world!");
+		server->SendGlobalPacket(p);
+
+		p = StringPacket("Hello back!");
+		client->SendPacket(p);
+
+		server->UpdateServer();
+		client->UpdateClient();
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+	NetworkBase::Destroy();
+}
+
 /*
 
 The main function should look pretty familar to you!
@@ -295,13 +382,27 @@ This time, we've added some extra functionality to the window class - we can
 hide or show the
 
 */
-int main() {
+int main(int argc, char** argv) {
 	//testStateMachine();
 	//testBehaviourTree();
 	WindowInitialisation initInfo;
 	initInfo.width		= 1280;
 	initInfo.height		= 720;
 	initInfo.windowTitle = "CSC8503 Game technology!";
+
+	if (argc >= 2) {
+		if (argv[1][0] == 's') {
+			testServer();
+			return 0;
+		}
+		if (argv[1][0] == 'c') {
+			testClient();
+			return 0;
+		}
+	}
+
+	//testNetworking();
+	return 0;
 
 	Window*w = Window::CreateGameWindow(initInfo);
 

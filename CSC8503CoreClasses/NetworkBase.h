@@ -35,6 +35,26 @@ struct GamePacket {
 	}
 };
 
+struct StringPacket : public GamePacket {
+	// Null terminated string
+	char data[256];
+
+	StringPacket(std::string_view message) {
+		if (message.length() > sizeof(data)) {
+			throw std::runtime_error("String too long for packet data!");
+		};
+
+		type = BasicNetworkMessages::String_Message;
+		size = message.length() + 1;
+		memcpy(data, message.data(), message.length());
+		data[message.length()] = 0;
+	}
+
+	std::string toString() const {
+		return std::string(data);
+	}
+};
+
 class PacketReceiver {
 public:
 	virtual void ReceivePacket(int type, GamePacket* payload, int source = -1) = 0;
