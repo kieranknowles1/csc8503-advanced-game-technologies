@@ -49,6 +49,8 @@ void NetworkedGame::StartAsServer() {
 	thisServer = new GameServer(NetworkBase::GetDefaultPort(), 128);
 
 	thisServer->RegisterPacketHandler(GamePacket::Type::ClientState, this);
+	thisServer->RegisterPacketHandler(GamePacket::Type::Server_ClientConnect, this);
+	thisServer->RegisterPacketHandler(GamePacket::Type::Server_ClientDisconnect, this);
 }
 
 void NetworkedGame::StartAsClient(char a, char b, char c, char d) {
@@ -186,13 +188,35 @@ void NetworkedGame::StartLevel() {
 	networkWorld->trackObject(netCube);
 }
 
+void NetworkedGame::ProcessPacket(PlayerConnectedPacket* payload) {
+	std::cout << "Player " << payload->playerID << " connected\n";
+}
+
+void NetworkedGame::ProcessPacket(PlayerDisconnectedPacket* payload) {
+	std::cout << "Player " << payload->playerID << " disconnected\n";
+}
+
+void NetworkedGame::ProcessPlayerConnect(int playerID)
+{
+	std::cout << "Player " << playerID << " connected\n";
+	// TODO: Implement
+
+	PlayerConnectedPacket newPacket(playerID);
+}
+
+void NetworkedGame::ProcessPlayerDisconnect(int playerID)
+{
+	std::cout << "Player " << playerID << " disconnected\n";
+	// TODO: Implement
+}
+
 void NetworkedGame::ReceivePacket(GamePacket::Type type, GamePacket* payload, int source) {
 	switch (type)
 	{
-	//case GamePacket::Type::Player_Connected:
-	//case GamePacket::Type::Player_Disconnected:
-		// TODO
-		//HandlePacket()
+	case GamePacket::Type::Server_ClientConnect:
+		return ProcessPlayerConnect(source);
+	case GamePacket::Type::Server_ClientDisconnect:
+		return ProcessPlayerDisconnect(source);
 	case GamePacket::Type::Reset:
 		StartLevel();
 		break;

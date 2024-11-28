@@ -10,6 +10,25 @@
 
 namespace NCL {
 	namespace CSC8503 {
+		struct PlayerConnectedPacket : public GamePacket {
+			int playerID;
+
+			PlayerConnectedPacket(int id) : GamePacket(Type::PlayerConnected) {
+				size = sizeof(PlayerConnectedPacket) - sizeof(GamePacket);
+				playerID = id;
+			}
+		};
+
+		struct PlayerDisconnectedPacket : public GamePacket {
+			int playerID;
+
+			PlayerDisconnectedPacket(int id) : GamePacket(Type::PlayerDisconnected) {
+				size = sizeof(PlayerDisconnectedPacket) - sizeof(GamePacket);
+				playerID = id;
+			}
+		};
+
+
 		class GameServer;
 		class GameClient;
 		class NetworkPlayer;
@@ -33,6 +52,12 @@ namespace NCL {
 			void OnPlayerCollision(NetworkPlayer* a, NetworkPlayer* b);
 
 		protected:
+			void ProcessPacket(PlayerConnectedPacket* payload);
+			void ProcessPacket(PlayerDisconnectedPacket* payload);
+
+			void ProcessPlayerConnect(int playerID);
+			void ProcessPlayerDisconnect(int playerID);
+
 			void UpdateAsServer(float dt);
 			void UpdateAsClient(float dt);
 

@@ -21,24 +21,36 @@ struct GamePacket {
 		// Payloadless message intended for a specific player
 		Message,
 
+		// A new player has connected
+		// The first of this type seen by a client is the client's own connection
+		// @see: PlayerConnectedPacket
+		PlayerConnected,
+		// A player has disconnected
+		// @see: PlayerDisconnectedPacket
+		PlayerDisconnected,
+
 		PayloadEnd, // Marker for packets that have payloads
+
+		// Only sent to servers, a new client has connected
+		Server_ClientConnect,
+		// Only sent to servers, a client has disconnected
+		Server_ClientDisconnect,
+
+		// Only sent to clients, the server has accepted the connection
+		Client_ClientConnect,
+		// Only sent to clients, the server has disconnected
+		Client_ClientDisconnect,
 
 		// Server has shut down, all clients should disconnect
 		Shutdown,
 		// Level reset
 		Reset,
 
-
-		// None,
 		// Hello,
 		// Message,
-		// String_Message,
-		// Delta_State,	//1 byte per channel since the last state
-		// Full_State,		//Full transform etc
 		// ClientState, //received from a client, informs that its received packet n
 		// Player_Connected,
 		// Player_Disconnected,
-		// Shutdown
 	};
 
 	short size;

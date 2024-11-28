@@ -62,16 +62,19 @@ void GameServer::UpdateServer() {
 
 		switch (type)
 		{
-		case ENET_EVENT_TYPE_CONNECT:
+		case ENET_EVENT_TYPE_CONNECT: {
 			std::cout << "Server: New client connected" << std::endl;
 			clientCount++;
+			GamePacket p(GamePacket::Type::Server_ClientConnect);
+			ProcessPacket(&p, peer);
 			break;
-		case ENET_EVENT_TYPE_DISCONNECT:
+		} case ENET_EVENT_TYPE_DISCONNECT: {
 			std::cout << "Server: Client disconnected" << std::endl;
 			clientCount--;
+			GamePacket p(GamePacket::Type::Server_ClientDisconnect);
+			ProcessPacket(&p, peer);
 			break;
-		case ENET_EVENT_TYPE_RECEIVE: {
-			std::cout << "Server: Packet received" << std::endl;
+		} case ENET_EVENT_TYPE_RECEIVE: {
 			GamePacket* packet = (GamePacket*)event.packet->data;
 			ProcessPacket(packet, peer);
 			break;
