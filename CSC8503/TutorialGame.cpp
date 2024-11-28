@@ -23,10 +23,10 @@ TutorialGame::TutorialGame() : controller(*Window::GetWindow()->GetKeyboard(), *
 	renderer = new GameTechRenderer(*world);
 #endif
 
-	physics		= new PhysicsSystem(*world);
+	physics	= new PhysicsSystem(*world);
+	physics->SetGravity(Gravity::Earth);
 
 	forceMagnitude	= 10.0f;
-	useGravity		= false;
 	inSelectionMode = false;
 
 	world->GetMainCamera().SetController(controller);
@@ -97,12 +97,6 @@ void TutorialGame::UpdateGame(float dt) {
 
 	UpdateKeys();
 
-	if (useGravity) {
-		Debug::Print("(G)ravity on", Vector2(5, 95), Debug::RED);
-	}
-	else {
-		Debug::Print("(G)ravity off", Vector2(5, 95), Debug::RED);
-	}
 	//This year we can draw debug textures as well!
 	//Debug::DrawTex(*basicTex, Vector2(10, 10), Vector2(5, 5), Debug::MAGENTA);
 
@@ -152,12 +146,6 @@ void TutorialGame::UpdateKeys() {
 
 	if (Window::GetKeyboard()->KeyPressed(KeyCodes::F2)) {
 		InitCamera(); //F2 will reset the camera to a specific default place
-	}
-
-	if (Window::GetKeyboard()->KeyPressed(KeyCodes::G)) {
-		useGravity = !useGravity; //Toggle gravity!
-		physics->SetGravity(Gravity::Earth);
-		physics->UseGravity(useGravity);
 	}
 	//Running certain physics updates in a consistent order might cause some
 	//bias in the calculations - the same objects might keep 'winning' the constraint

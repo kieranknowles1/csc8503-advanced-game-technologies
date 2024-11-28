@@ -66,7 +66,6 @@ namespace NCL {
 
 			KeyboardMouseController controller;
 
-			bool useGravity;
 			bool inSelectionMode;
 
 			// Force to apply when right-clicking the selected object, in Newton seconds

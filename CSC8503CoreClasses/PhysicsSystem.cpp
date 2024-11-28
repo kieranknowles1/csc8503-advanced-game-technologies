@@ -16,7 +16,6 @@ using namespace NCL;
 using namespace CSC8503;
 
 PhysicsSystem::PhysicsSystem(GameWorld& g) : gameWorld(g)	{
-	applyGravity	= false;
 	dTOffset		= 0.0f;
 	globalDamping	= 0.9f;
 	SetGravity(Vector3(0.0f, -9.8f, 0.0f));
@@ -369,7 +368,7 @@ void PhysicsSystem::integrateObjectAccel(PhysicsObject& object, float dt) {
 	Vector3 acceleration = force * inverseMass;
 
 	// Gravity is a constant acceleration, unless the object has infinite mass
-	if (applyGravity && inverseMass > 0) {
+	if (inverseMass > 0) {
 		acceleration += gravity;
 	}
 	// Integrate linear acceleration using implicit Euler

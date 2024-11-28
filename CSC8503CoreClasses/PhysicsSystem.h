@@ -24,10 +24,6 @@ namespace NCL {
 
 			void Update(float dt);
 
-			void UseGravity(bool state) {
-				applyGravity = state;
-			}
-
 			void SetGlobalDamping(float d) {
 				globalDamping = d;
 			}
@@ -55,7 +51,6 @@ namespace NCL {
 
 			GameWorld& gameWorld;
 
-			bool	applyGravity;
 			Vector3 gravity;
 			float	dTOffset;
 			float	globalDamping;
