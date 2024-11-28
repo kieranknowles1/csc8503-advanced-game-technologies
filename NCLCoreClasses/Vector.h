@@ -110,6 +110,10 @@ namespace NCL::Maths {
         T& operator[](int i) {
             return ((T*)this)[i];
         }
+
+        inline VectorTemplate<T, 3> operator*(float scalar) {
+            return VectorTemplate<T, 3>(x * scalar, y * scalar, z * scalar);
+        }
     };
 
     template <typename T>

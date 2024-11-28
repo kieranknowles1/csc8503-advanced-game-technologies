@@ -30,15 +30,6 @@ namespace NCL::CSC8503 {
 		}
 	};
 
-	struct ClientPacket : public GamePacket {
-		int		lastID;
-		char	buttonstates[8];
-
-		ClientPacket() : GamePacket(Type::ClientState) {
-			size = sizeof(ClientPacket);
-		}
-	};
-
 	class NetworkObject		{
 	public:
 		using Id = unsigned int;

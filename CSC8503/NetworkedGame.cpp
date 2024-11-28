@@ -95,7 +95,32 @@ void NetworkedGame::UpdateGame(float dt) {
 		timeToNextPacket += 1.0f / 20.0f; //20hz server/client update
 	}
 
+	ProcessInput(dt);
+
 	TutorialGame::UpdateGame(dt);
+}
+
+void NetworkedGame::ProcessInput(float dt) {
+	auto it = allPlayers.find(localPlayer.id);
+	if (it == allPlayers.end()) {
+		return;
+	}
+	auto playerObject = it->second.player;
+
+	auto input = playerObject->processInput();
+
+	// Track the player with the camera
+	lockedObject = playerObject;
+
+	if (thisServer) {
+		playerObject->setLastInput(input);
+	} else {
+		ClientPacket newPacket;
+		newPacket.input = input;
+		// TODO: Should this sync with the state ID?
+		newPacket.index = inputIndex++;
+		thisClient->SendPacket(newPacket);
+	}
 }
 
 void NetworkedGame::UpdateAsServer(float dt) {
@@ -129,15 +154,15 @@ void NetworkedGame::UpdateAsClient(float dt) {
 
 	thisClient->UpdateClient();
 
-	ClientPacket newPacket;
+	// ClientPacket newPacket;
 
-	if (Window::GetKeyboard()->KeyPressed(KeyCodes::SPACE)) {
-		//fire button pressed!
-		newPacket.buttonstates[0] = 1;
-		// TODO: Set this somehow
-		newPacket.lastID = 0; //You'll need to work this out somehow...
-	}
-	thisClient->SendPacket(newPacket);
+	// if (Window::GetKeyboard()->KeyPressed(KeyCodes::SPACE)) {
+	// 	//fire button pressed!
+	// 	newPacket.buttonstates[0] = 1;
+	// 	// TODO: Set this somehow
+	// 	newPacket.lastID = 0; //You'll need to work this out somehow...
+	// }
+	// thisClient->SendPacket(newPacket);
 }
 
 void NetworkedGame::BroadcastSnapshot(bool deltaFrame) {
@@ -253,8 +278,8 @@ void NetworkedGame::ProcessPlayerConnect(int playerID)
 	// TODO: Implement
 	auto playerObject = SpawnPlayer(PlayerIdStart + playerID);
 	allPlayers[playerID] = LocalPlayerState{
-		playerID,
-		playerObject->GetNetworkObject()->getId()
+		PlayerState{playerID, playerObject->GetNetworkObject()->getId()},
+		playerObject
 	};
 
 	PlayerConnectedPacket newPacket(playerID, playerObject);
@@ -269,6 +294,14 @@ void NetworkedGame::ProcessPlayerConnect(int playerID)
 	thisServer->SendClientPacket(playerID, helloPacket);
 }
 
+void NetworkedGame::ProcessPacket(ClientPacket* payload, int source) {
+	std::cout << "Received packet " << payload->index << " from " << source << "\n";
+	auto it = allPlayers.find(source);
+	if (it != allPlayers.end()) {
+		it->second.player->setLastInput(payload->input);
+	}
+}
+
 void NetworkedGame::ProcessPlayerDisconnect(int playerID)
 {
 	std::cout << "Player " << playerID << " disconnected\n";
@@ -278,10 +311,15 @@ void NetworkedGame::ProcessPlayerDisconnect(int playerID)
 void NetworkedGame::ReceivePacket(GamePacket::Type type, GamePacket* payload, int source) {
 	switch (type)
 	{
+	// Server events
 	case GamePacket::Type::Server_ClientConnect:
 		return ProcessPlayerConnect(source);
 	case GamePacket::Type::Server_ClientDisconnect:
 		return ProcessPlayerDisconnect(source);
+	case GamePacket::Type::ClientState:
+		return ProcessPacket((ClientPacket*)payload, source);
+
+	// Client events
 	case GamePacket::Type::PlayerConnected:
 	//	return ProcessPacket((PlayerConnectedPacket*)payload);
 	//case GamePacket::Type::PlayerDisconnected:

@@ -91,10 +91,14 @@ namespace NCL {
 			void OnPlayerCollision(NetworkPlayer* a, NetworkPlayer* b);
 
 		protected:
+			void ProcessInput(float dt);
+
 			//void ProcessPacket(PlayerConnectedPacket* payload);
 			void ProcessPacket(PlayerDisconnectedPacket* payload);
 			void ProcessPacket(PlayerListPacket* payload);
 			void ProcessPacket(HelloPacket* payload);
+
+			void ProcessPacket(ClientPacket* payload, int source);
 
 			void ProcessPlayerConnect(int playerID);
 			void ProcessPlayerDisconnect(int playerID);
@@ -118,6 +122,8 @@ namespace NCL {
 
 			float timeToNextPacket;
 			int packetsToSnapshot;
+
+			int inputIndex = 0;
 
 			std::map<int, LocalPlayerState> allPlayers;
 			PlayerState localPlayer;

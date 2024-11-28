@@ -76,6 +76,10 @@ void GameWorld::UpdateWorld(float dt) {
 	if (shuffleConstraints) {
 		std::shuffle(constraints.begin(), constraints.end(), e);
 	}
+
+	for (auto& i : gameObjects) {
+		i->OnUpdate(dt);
+	}
 }
 
 bool GameWorld::Raycast(Ray& r, RayCollision& closestCollision, bool closestObject, GameObject* ignoreThis) const {
@@ -97,8 +101,8 @@ bool GameWorld::Raycast(Ray& r, RayCollision& closestCollision, bool closestObje
 		}
 		RayCollision thisCollision;
 		if (CollisionDetection::RayIntersection(r, *i, thisCollision)) {
-				
-			if (!closestObject) {	
+
+			if (!closestObject) {
 				closestCollision		= collision;
 				closestCollision.node = i;
 				return true;
