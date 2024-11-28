@@ -1,9 +1,12 @@
 #pragma once
 
+#include <map>
+
 #include "Cli.h"
 #include "TutorialGame.h"
 #include "NetworkBase.h"
 #include "NetworkObject.h"
+#include "NetworkWorld.h"
 
 namespace NCL {
 	namespace CSC8503 {
@@ -30,9 +33,6 @@ namespace NCL {
 			void OnPlayerCollision(NetworkPlayer* a, NetworkPlayer* b);
 
 		protected:
-			void HandlePacket(DeltaPacket* payload, int source);
-			void HandlePacket(FullPacket* payload, int source);
-
 			void UpdateAsServer(float dt);
 			void UpdateAsClient(float dt);
 
@@ -43,13 +43,7 @@ namespace NCL {
 			// TODO: Make this a Server class
 			GameServer* thisServer;
 
-			NetworkObject::Id nextNetworkId;
-			// Assign a network object to track a game object
-			// Must be called in the same order on all clients and servers
-			NetworkObject* createNetworkObject(GameObject* obj);
-			GameObject* getNetworkObject(NetworkObject::Id id);
-			std::map<NetworkObject::Id, GameObject*> networkObjects;
-
+			NetworkWorld* networkWorld;
 
 			// TODO: Make this a Client class
 			GameClient* thisClient;

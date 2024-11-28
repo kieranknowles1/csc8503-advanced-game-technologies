@@ -8,6 +8,7 @@ set(Header_Files
     "GameTechRenderer.h"
     "NetworkedGame.h"
     "NetworkPlayer.h"
+    "NetworkWorld.h"
     "StateGameObject.h"
     "TutorialGame.h"
 )
@@ -21,6 +22,7 @@ set(Source_Files
     "Main.cpp"
     "NetworkedGame.cpp"
     "NetworkPlayer.cpp"
+    "NetworkWorld.cpp"
     "StateGameObject.cpp"
     "TutorialGame.cpp"
 )

@@ -1,4 +1,9 @@
 #include "NetworkedGame.h"
+
+#include <iostream>
+#include <string>
+#include <algorithm>
+
 #include "NetworkPlayer.h"
 #include "NetworkObject.h"
 #include "GameServer.h"
@@ -30,6 +35,9 @@ NetworkedGame::NetworkedGame(const Cli& cli) {
 		// TODO: Allow specifying IP
 		StartAsClient(127, 0, 0, 1);
 	}
+
+	networkWorld = new NetworkWorld(thisClient, thisServer);
+	StartLevel();
 }
 
 NetworkedGame::~NetworkedGame()	{
@@ -41,8 +49,6 @@ void NetworkedGame::StartAsServer() {
 	thisServer = new GameServer(NetworkBase::GetDefaultPort(), 128);
 
 	thisServer->RegisterPacketHandler(GamePacket::Type::ClientState, this);
-
-	StartLevel();
 }
 
 void NetworkedGame::StartAsClient(char a, char b, char c, char d) {
@@ -50,14 +56,10 @@ void NetworkedGame::StartAsClient(char a, char b, char c, char d) {
 	thisClient = new GameClient();
 	thisClient->Connect(a, b, c, d, NetworkBase::GetDefaultPort());
 
-	thisClient->RegisterPacketHandler(GamePacket::Type::Delta_State, this);
-	thisClient->RegisterPacketHandler(GamePacket::Type::Full_State, this);
 	// TODO
 	//thisClient->RegisterPacketHandler(GamePacket::Type::Player_Connected, this);
 	//thisClient->RegisterPacketHandler(GamePacket::Type::Player_Disconnected, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::Reset, this);
-
-	StartLevel();
 }
 
 void NetworkedGame::UpdateGame(float dt) {
@@ -174,59 +176,19 @@ void NetworkedGame::SpawnPlayer() {
 
 }
 
-NetworkObject* NetworkedGame::createNetworkObject(GameObject* obj) {
-	NetworkObject* netObj = new NetworkObject(*obj, nextNetworkId);
-	obj->SetNetworkObject(netObj);
-	networkObjects.emplace(nextNetworkId, obj);
-	nextNetworkId++;
-	return netObj;
-}
-
-GameObject* NetworkedGame::getNetworkObject(NetworkObject::Id id) {
-	auto i = networkObjects.find(id);
-	// TODO: This doesn't handle destruction, may cause use-after-free
-	if (i == networkObjects.end()) {
-		return nullptr;
-	}
-	return i->second;
-}
-
 void NetworkedGame::StartLevel() {
 	ClearWorld();
-	nextNetworkId = 0;
-	networkObjects.clear();
+	networkWorld->reset();
 
 	InitDefaultFloor();
 
 	auto netCube = AddCubeToWorld(Vector3(0, 20, 0), Vector3(1, 1, 5), 0.5f);
-	createNetworkObject(netCube);
-}
-
-void NetworkedGame::HandlePacket(DeltaPacket* payload, int source) {
-	GameObject* o = getNetworkObject(payload->objectID);
-	if (!o) {
-		return;
-	}
-	o->GetNetworkObject()->ReadPacket(*payload);
-}
-
-void NetworkedGame::HandlePacket(FullPacket* payload, int source) {
-	GameObject* o = getNetworkObject(payload->objectID);
-	if (!o) {
-		return;
-	}
-	o->GetNetworkObject()->ReadPacket(*payload);
+	networkWorld->trackObject(netCube);
 }
 
 void NetworkedGame::ReceivePacket(GamePacket::Type type, GamePacket* payload, int source) {
 	switch (type)
 	{
-	case GamePacket::Type::Delta_State:
-		HandlePacket((DeltaPacket*)payload, source);
-		break;
-	case GamePacket::Type::Full_State:
-		HandlePacket((FullPacket*)payload, source);
-		break;
 	//case GamePacket::Type::Player_Connected:
 	//case GamePacket::Type::Player_Disconnected:
 		// TODO
