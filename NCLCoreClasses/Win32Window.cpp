@@ -94,8 +94,6 @@ Win32Window::Win32Window(const WindowInitialisation& winInitInfo) {
 	LockMouseToWindow(lockMouse);
 	ShowOSPointer(showMouse);
 
-	SetConsolePosition(winInitInfo.consolePositionX, winInitInfo.consolePositionY);
-
 	init		= true;
 	maximised	= false;
 	minimised	= false;
@@ -114,7 +112,7 @@ bool	Win32Window::InternalUpdate() {
 	winMouse->SetAbsolutePosition(Vector2((float)pt.x, (float)pt.y));
 
 	while(PeekMessage(&msg,windowHandle,0,0,PM_REMOVE)) {
-		CheckMessages(msg); 
+		CheckMessages(msg);
 	}
 
 	return !forceQuit;
@@ -186,7 +184,7 @@ void Win32Window::CheckMessages(MSG &msg)	{
 			GetRawInputData((HRAWINPUT)msg.lParam, RID_INPUT, NULL, &dwSize,sizeof(RAWINPUTHEADER));
 
 			BYTE* lpb = new BYTE[dwSize];
-	
+
 			GetRawInputData((HRAWINPUT)msg.lParam, RID_INPUT, lpb, &dwSize,sizeof(RAWINPUTHEADER));
 			RAWINPUT* raw = (RAWINPUT*)lpb;
 
@@ -194,7 +192,7 @@ void Win32Window::CheckMessages(MSG &msg)	{
 				thisWindow->winKeyboard->UpdateRAW(raw);
 			}
 
-			if (mouse && raw->header.dwType == RIM_TYPEMOUSE && active) {			
+			if (mouse && raw->header.dwType == RIM_TYPEMOUSE && active) {
 				thisWindow->winMouse->UpdateRAW(raw);
 			}
 
@@ -229,7 +227,7 @@ LRESULT CALLBACK Win32Window::WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 				if (thisWindow->init && mouse && keyboard) {
 					thisWindow->winMouse->Sleep();
 					thisWindow->winKeyboard->Sleep();
-				}				
+				}
 			}
 			else {
 				thisWindow->active = true;

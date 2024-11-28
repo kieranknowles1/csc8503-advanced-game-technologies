@@ -435,10 +435,6 @@ int main(int argc, char** argv) {
 			w->ShowConsole(false);
 		}
 
-		if (Window::GetKeyboard()->KeyPressed(KeyCodes::T)) {
-			w->SetWindowPosition(0, 0);
-		}
-
 		w->SetTitle("Gametech frame time:" + std::to_string(1000.0f * dt));
 
 		g->UpdateGame(dt);
