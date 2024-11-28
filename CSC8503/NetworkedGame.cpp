@@ -37,6 +37,14 @@ NetworkedGame::NetworkedGame(const Cli& cli) {
 	}
 
 	networkWorld = new NetworkWorld(thisClient, thisServer);
+
+	if (thisServer) {
+		int playerId = -1;
+		auto obj = SpawnPlayer(PlayerIdStart + playerId);
+		localPlayer = PlayerState{ playerId, obj->GetNetworkObject()->getId() };
+		allPlayers[playerId] = localPlayer;
+	}
+
 	StartLevel();
 }
 

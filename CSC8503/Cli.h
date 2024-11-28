@@ -8,7 +8,7 @@ public:
 	Cli(int argc, char** argv);
 
 	bool isServer() const {
-		return server;
+		return !server;
 	}
 
 private:
