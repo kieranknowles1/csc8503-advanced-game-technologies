@@ -15,13 +15,21 @@ struct MessagePacket : public GamePacket {
 	}
 };
 
-NetworkedGame::NetworkedGame()	{
+NetworkedGame::NetworkedGame(const Cli& cli) {
 	thisServer = nullptr;
 	thisClient = nullptr;
 
 	NetworkBase::Initialise();
 	timeToNextPacket  = 0.0f;
 	packetsToSnapshot = 0;
+
+	if (cli.isServer()) {
+		StartAsServer();
+	}
+	else {
+		// TODO: Allow specifying IP
+		StartAsClient(127, 0, 0, 1);
+	}
 }
 
 NetworkedGame::~NetworkedGame()	{
@@ -66,13 +74,6 @@ void NetworkedGame::UpdateGame(float dt) {
 			UpdateAsClient(dt);
 		}
 		timeToNextPacket += 1.0f / 20.0f; //20hz server/client update
-	}
-
-	if (!thisServer && Window::GetKeyboard()->KeyPressed(KeyCodes::F9)) {
-		StartAsServer();
-	}
-	if (!thisClient && Window::GetKeyboard()->KeyPressed(KeyCodes::F10)) {
-		StartAsClient(127,0,0,1);
 	}
 
 	TutorialGame::UpdateGame(dt);

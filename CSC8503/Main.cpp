@@ -16,6 +16,7 @@
 
 #include "TutorialGame.h"
 #include "NetworkedGame.h"
+#include "Cli.h"
 
 #include "PushdownMachine.h"
 
@@ -383,6 +384,8 @@ hide or show the
 
 */
 int main(int argc, char** argv) {
+	Cli cli(argc, argv);
+
 	//testStateMachine();
 	//testBehaviourTree();
 	WindowInitialisation initInfo;
@@ -417,7 +420,7 @@ int main(int argc, char** argv) {
 	//w->LockMouseToWindow(true);
 
 	//TutorialGame* g = new TutorialGame();
-	NetworkedGame* g = new NetworkedGame();
+	NetworkedGame* g = new NetworkedGame(cli);
 	w->GetTimer().GetTimeDeltaSeconds(); //Clear the timer so we don't get a larget first dt!
 	while (w->UpdateWindow() && !Window::GetKeyboard()->KeyDown(KeyCodes::ESCAPE)) {
 		float dt = w->GetTimer().GetTimeDeltaSeconds();

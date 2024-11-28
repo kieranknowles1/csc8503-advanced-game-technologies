@@ -1,4 +1,6 @@
 #pragma once
+
+#include "Cli.h"
 #include "TutorialGame.h"
 #include "NetworkBase.h"
 #include "NetworkObject.h"
@@ -11,7 +13,7 @@ namespace NCL {
 
 		class NetworkedGame : public TutorialGame, public PacketReceiver {
 		public:
-			NetworkedGame();
+			NetworkedGame(const Cli& cli);
 			~NetworkedGame();
 
 			void StartAsServer();
