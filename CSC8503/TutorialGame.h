@@ -8,6 +8,7 @@
 #include "PhysicsSystem.h"
 
 #include "StateGameObject.h"
+#include "Resources.h"
 
 namespace NCL {
 	namespace CSC8503 {
@@ -30,7 +31,7 @@ namespace NCL {
 			/*
 			These are some of the world/object creation functions I created when testing the functionality
 			in the module. Feel free to mess around with them to see different objects being created in different
-			test scenarios (constraints, collision types, and so on). 
+			test scenarios (constraints, collision types, and so on).
 			*/
 			void InitGameExamples();
 
@@ -71,6 +72,8 @@ namespace NCL {
 			// Force to apply when right-clicking the selected object, in Newton seconds
 			float		forceMagnitude;
 
+			Resources* resources = nullptr;
+
 			GameObject* selectionObject = nullptr;
 			GameObject* selectionVisibleObject = nullptr;
 
@@ -87,7 +90,7 @@ namespace NCL {
 			Mesh*	enemyMesh	= nullptr;
 			Mesh*	bonusMesh	= nullptr;
 
-			//Coursework Additional functionality	
+			//Coursework Additional functionality
 			GameObject* lockedObject	= nullptr;
 			Vector3 lockedOffset		= Vector3(0, 14, 20);
 			void LockCameraToObject(GameObject* o) {

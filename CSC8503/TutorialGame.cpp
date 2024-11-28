@@ -49,32 +49,26 @@ for this module, even in the coursework, but you can add it if you like!
 
 */
 void TutorialGame::InitialiseAssets() {
-	cubeMesh	= renderer->LoadMesh("Cube.msh");
-	sphereMesh	= renderer->LoadMesh("Sphere.msh");
-	catMesh		= renderer->LoadMesh("ORIGAMI_Chat.msh");
-	kittenMesh	= renderer->LoadMesh("Kitten.msh");
+	resources = new Resources(renderer);
 
-	enemyMesh	= renderer->LoadMesh("Keeper.msh");
-	bonusMesh	= renderer->LoadMesh("19463_Kitten_Head_v1.msh");
-	capsuleMesh = renderer->LoadMesh("Capsule.msh");
+	cubeMesh = resources->getMesh("Cube.msh");
+	sphereMesh = resources->getMesh("Sphere.msh");
+	catMesh = resources->getMesh("ORIGAMI_Chat.msh");
+	kittenMesh = resources->getMesh("Kitten.msh");
 
-	basicTex	= renderer->LoadTexture("checkerboard.png");
-	basicShader = renderer->LoadShader("scene.vert", "scene.frag");
+	enemyMesh = resources->getMesh("Keeper.msh");
+	bonusMesh = resources->getMesh("19463_Kitten_Head_v1.msh");
+	capsuleMesh = resources->getMesh("Capsule.msh");
+
+	basicTex = resources->getTexture("checkerboard.png");
+	basicShader = resources->getShader("scene.vert", "scene.frag");
 
 	InitCamera();
 	InitWorld();
 }
 
 TutorialGame::~TutorialGame()	{
-	delete cubeMesh;
-	delete sphereMesh;
-	delete catMesh;
-	delete kittenMesh;
-	delete enemyMesh;
-	delete bonusMesh;
-
-	delete basicTex;
-	delete basicShader;
+	delete resources;
 
 	delete physics;
 	delete renderer;
