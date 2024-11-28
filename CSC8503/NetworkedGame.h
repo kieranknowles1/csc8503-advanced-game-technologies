@@ -16,18 +16,22 @@ namespace NCL {
 			int id;
 			NetworkObject::Id netObjectID;
 		};
+		struct LocalPlayerState {
+			PlayerState netState;
+			NetworkPlayer* player;
+		};
 
 		struct PlayerListPacket : public GamePacket {
 			char count;
 			PlayerState playerStates[MaxPlayers];
 
-			PlayerListPacket(std::map<int, PlayerState>& players) : GamePacket(Type::PlayerList) {
+			PlayerListPacket(std::map<int, LocalPlayerState>& players) : GamePacket(Type::PlayerList) {
 				size = sizeof(PlayerListPacket) - sizeof(GamePacket);
 				count = (char)players.size();
 
 				int i = 0;
 				for (auto& player : players) {
-					playerStates[i] = player.second;
+					playerStates[i] = player.second.netState;
 					i++;
 				}
 			}
@@ -77,7 +81,7 @@ namespace NCL {
 			void UpdateGame(float dt) override;
 
 			const static constexpr int PlayerIdStart = 100000;
-			GameObject* SpawnPlayer(int id);
+			NetworkPlayer* SpawnPlayer(int id);
 			void SpawnMissingPlayers();
 
 			void StartLevel();
@@ -115,7 +119,7 @@ namespace NCL {
 			float timeToNextPacket;
 			int packetsToSnapshot;
 
-			std::map<int, PlayerState> allPlayers;
+			std::map<int, LocalPlayerState> allPlayers;
 			PlayerState localPlayer;
 			//std::map<int, GameObject*> allPlayers;
 			//GameObject* localPlayer;

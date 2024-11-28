@@ -42,7 +42,10 @@ NetworkedGame::NetworkedGame(const Cli& cli) {
 		int playerId = -1;
 		auto obj = SpawnPlayer(PlayerIdStart + playerId);
 		localPlayer = PlayerState{ playerId, obj->GetNetworkObject()->getId() };
-		allPlayers[playerId] = localPlayer;
+		allPlayers[playerId] = {
+			localPlayer,
+			obj
+		};
 	}
 
 	StartLevel();
@@ -186,7 +189,7 @@ void NetworkedGame::UpdateMinimumState() {
 	}
 }
 
-GameObject* NetworkedGame::SpawnPlayer(int id) {
+NetworkPlayer* NetworkedGame::SpawnPlayer(int id) {
 	auto obj = AddPlayerToWorld(Vector3(0, 5, 0));
 	networkWorld->trackObjectManual(obj, id);
 
@@ -195,9 +198,8 @@ GameObject* NetworkedGame::SpawnPlayer(int id) {
 
 void NetworkedGame::SpawnMissingPlayers() {
 	for (auto& [playerID, playerState] : allPlayers) {
-		auto netObj = networkWorld->getTrackedObject(playerState.netObjectID);
-		if (!netObj) {
-			auto obj = SpawnPlayer(playerState.netObjectID);
+		if (playerState.player == nullptr) {
+			playerState.player = SpawnPlayer(playerState.netState.netObjectID);
 		}
 	}
 }
@@ -205,6 +207,9 @@ void NetworkedGame::SpawnMissingPlayers() {
 void NetworkedGame::StartLevel() {
 	ClearWorld();
 	networkWorld->reset();
+	for (auto& player : allPlayers) {
+		player.second.player = nullptr;
+	}
 
 	InitDefaultFloor();
 
@@ -229,7 +234,10 @@ void NetworkedGame::ProcessPacket(PlayerListPacket* payload) {
 	for (int i = 0; i < payload->count; i++) {
 		auto player = payload->playerStates[i];
 		std::cout << "Player " << player.id << " has object ID " << player.netObjectID << "\n";
-		allPlayers[player.id] = player;
+		if (allPlayers.find(player.id) == allPlayers.end()) {
+			std::cout << "Spawning player " << player.id << "\n";
+			allPlayers[player.id] = { player, nullptr };
+		}
 	}
 	SpawnMissingPlayers();
 }
@@ -244,7 +252,7 @@ void NetworkedGame::ProcessPlayerConnect(int playerID)
 	std::cout << "Player " << playerID << " connected\n";
 	// TODO: Implement
 	auto playerObject = SpawnPlayer(PlayerIdStart + playerID);
-	allPlayers[playerID] = PlayerState{
+	allPlayers[playerID] = LocalPlayerState{
 		playerID,
 		playerObject->GetNetworkObject()->getId()
 	};
@@ -290,15 +298,15 @@ void NetworkedGame::ReceivePacket(GamePacket::Type type, GamePacket* payload, in
 	}
 }
 
-void NetworkedGame::OnPlayerCollision(NetworkPlayer* a, NetworkPlayer* b) {
-	if (thisServer) { //detected a collision between players!
-		MessagePacket newPacket;
-		newPacket.messageID = COLLISION_MSG;
-		newPacket.playerID  = a->GetPlayerNum();
-
-		thisClient->SendPacket(newPacket);
-
-		newPacket.playerID = b->GetPlayerNum();
-		thisClient->SendPacket(newPacket);
-	}
-}
+//void NetworkedGame::OnPlayerCollision(NetworkPlayer* a, NetworkPlayer* b) {
+//	if (thisServer) { //detected a collision between players!
+//		MessagePacket newPacket;
+//		newPacket.messageID = COLLISION_MSG;
+//		newPacket.playerID  = a->GetPlayerNum();
+//
+//		thisClient->SendPacket(newPacket);
+//
+//		newPacket.playerID = b->GetPlayerNum();
+//		thisClient->SendPacket(newPacket);
+//	}
+//}

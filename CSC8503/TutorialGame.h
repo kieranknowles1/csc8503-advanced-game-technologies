@@ -9,6 +9,7 @@
 
 #include "StateGameObject.h"
 #include "Resources.h"
+#include "NetworkPlayer.h"
 
 namespace NCL {
 	namespace CSC8503 {
@@ -50,7 +51,7 @@ namespace NCL {
 			GameObject* AddSphereToWorld(const Vector3& position, float radius, float inverseMass = 10.0f);
 			GameObject* AddCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass = 10.0f);
 
-			GameObject* AddPlayerToWorld(const Vector3& position);
+			NetworkPlayer* AddPlayerToWorld(const Vector3& position);
 			GameObject* AddEnemyToWorld(const Vector3& position);
 			GameObject* AddBonusToWorld(const Vector3& position);
 
