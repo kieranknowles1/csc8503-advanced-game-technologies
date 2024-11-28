@@ -46,7 +46,7 @@ NetworkedGame::~NetworkedGame()	{
 }
 
 void NetworkedGame::StartAsServer() {
-	thisServer = new GameServer(NetworkBase::GetDefaultPort(), 128);
+	thisServer = new GameServer(NetworkBase::GetDefaultPort(), MaxPlayers);
 
 	thisServer->RegisterPacketHandler(GamePacket::Type::ClientState, this);
 	thisServer->RegisterPacketHandler(GamePacket::Type::Server_ClientConnect, this);
@@ -64,6 +64,7 @@ void NetworkedGame::StartAsClient(char a, char b, char c, char d) {
 	thisClient->RegisterPacketHandler(GamePacket::Type::Reset, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerConnected, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerDisconnected, this);
+	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerList, this);
 }
 
 void NetworkedGame::UpdateGame(float dt) {
@@ -196,13 +197,27 @@ void NetworkedGame::StartLevel() {
 	// TODO: Tell clients about all players
 }
 
-void NetworkedGame::ProcessPacket(PlayerConnectedPacket* payload) {
-	std::cout << "Player " << payload->playerID << " connected\n";
-	SpawnPlayer(payload->playerObjectID);
-}
+//void NetworkedGame::ProcessPacket(PlayerConnectedPacket* payload) {
+//	std::cout << "Player " << payload->playerID << " connected\n";
+//	auto obj = SpawnPlayer(payload->playerObjectID);
+//	allPlayers[payload->playerID] = obj;
+//}
 
 void NetworkedGame::ProcessPacket(PlayerDisconnectedPacket* payload) {
 	std::cout << "Player " << payload->playerID << " disconnected\n";
+}
+
+void NetworkedGame::ProcessPacket(PlayerListPacket* payload) {
+	std::cout << "Received list of " << (int)payload->count << " players\n";
+	for (int i = 0; i < payload->count; i++) {
+		auto player = payload->playerStates[i];
+		std::cout << "Player " << player.id << " has object ID " << player.netObjectID << "\n";
+		if (allPlayers.find(player.id) == allPlayers.end()) {
+			std::cout << "Spawning player " << player.id << "\n";
+			auto obj = SpawnPlayer(player.netObjectID);
+			allPlayers[player.id] = obj;
+		}
+	}
 }
 
 void NetworkedGame::ProcessPlayerConnect(int playerID)
@@ -210,9 +225,13 @@ void NetworkedGame::ProcessPlayerConnect(int playerID)
 	std::cout << "Player " << playerID << " connected\n";
 	// TODO: Implement
 	auto playerObject = SpawnPlayer(PlayerIdStart + playerID);
+	allPlayers[playerID] = playerObject;
 
 	PlayerConnectedPacket newPacket(playerID, playerObject);
 	thisServer->SendGlobalPacket(newPacket);
+
+	PlayerListPacket listPacket(allPlayers);
+	thisServer->SendGlobalPacket(listPacket);
 }
 
 void NetworkedGame::ProcessPlayerDisconnect(int playerID)
@@ -229,9 +248,11 @@ void NetworkedGame::ReceivePacket(GamePacket::Type type, GamePacket* payload, in
 	case GamePacket::Type::Server_ClientDisconnect:
 		return ProcessPlayerDisconnect(source);
 	case GamePacket::Type::PlayerConnected:
-		return ProcessPacket((PlayerConnectedPacket*)payload);
-	case GamePacket::Type::PlayerDisconnected:
+	//	return ProcessPacket((PlayerConnectedPacket*)payload);
+	//case GamePacket::Type::PlayerDisconnected:
 		return ProcessPacket((PlayerDisconnectedPacket*)payload);
+	case GamePacket::Type::PlayerList:
+		return ProcessPacket((PlayerListPacket*)payload);
 	case GamePacket::Type::Reset:
 		StartLevel();
 		break;

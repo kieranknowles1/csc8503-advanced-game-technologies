@@ -29,6 +29,10 @@ struct GamePacket {
 		// @see: PlayerDisconnectedPacket
 		PlayerDisconnected,
 
+		// A list of all players in the game, along with their current state
+		// @see: PlayerListPacket
+		PlayerList,
+
 		PayloadEnd, // Marker for packets that have payloads
 
 		// Only sent to servers, a new client has connected

@@ -10,6 +10,29 @@
 
 namespace NCL {
 	namespace CSC8503 {
+		static const constexpr int MaxPlayers = 64;
+
+		struct PlayerListPacket : public GamePacket {
+			char count;
+			struct PlayerState {
+				int id;
+				NetworkObject::Id netObjectID;
+			};
+			PlayerState playerStates[MaxPlayers];
+
+			PlayerListPacket(std::map<int, GameObject*>& players) : GamePacket(Type::PlayerList) {
+				size = sizeof(PlayerListPacket) - sizeof(GamePacket);
+				count = (char)players.size();
+
+				int i = 0;
+				for (auto& player : players) {
+					playerStates[i].id = player.first;
+					playerStates[i].netObjectID = player.second->GetNetworkObject()->getId();
+					i++;
+				}
+			}
+		};
+
 		struct PlayerConnectedPacket : public GamePacket {
 			int playerID;
 			NetworkObject::Id playerObjectID;
@@ -55,8 +78,9 @@ namespace NCL {
 			void OnPlayerCollision(NetworkPlayer* a, NetworkPlayer* b);
 
 		protected:
-			void ProcessPacket(PlayerConnectedPacket* payload);
+			//void ProcessPacket(PlayerConnectedPacket* payload);
 			void ProcessPacket(PlayerDisconnectedPacket* payload);
+			void ProcessPacket(PlayerListPacket* payload);
 
 			void ProcessPlayerConnect(int playerID);
 			void ProcessPlayerDisconnect(int playerID);
@@ -81,7 +105,7 @@ namespace NCL {
 			float timeToNextPacket;
 			int packetsToSnapshot;
 
-			std::map<int, GameObject*> serverPlayers;
+			std::map<int, GameObject*> allPlayers;
 			GameObject* localPlayer;
 		};
 	}
