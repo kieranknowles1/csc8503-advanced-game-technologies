@@ -12,22 +12,22 @@ namespace NCL {
 	namespace CSC8503 {
 		static const constexpr int MaxPlayers = 64;
 
+		struct PlayerState {
+			int id;
+			NetworkObject::Id netObjectID;
+		};
+
 		struct PlayerListPacket : public GamePacket {
 			char count;
-			struct PlayerState {
-				int id;
-				NetworkObject::Id netObjectID;
-			};
 			PlayerState playerStates[MaxPlayers];
 
-			PlayerListPacket(std::map<int, GameObject*>& players) : GamePacket(Type::PlayerList) {
+			PlayerListPacket(std::map<int, PlayerState>& players) : GamePacket(Type::PlayerList) {
 				size = sizeof(PlayerListPacket) - sizeof(GamePacket);
 				count = (char)players.size();
 
 				int i = 0;
 				for (auto& player : players) {
-					playerStates[i].id = player.first;
-					playerStates[i].netObjectID = player.second->GetNetworkObject()->getId();
+					playerStates[i] = player.second;
 					i++;
 				}
 			}
@@ -70,6 +70,7 @@ namespace NCL {
 
 			const static constexpr int PlayerIdStart = 100000;
 			GameObject* SpawnPlayer(int id);
+			void SpawnMissingPlayers();
 
 			void StartLevel();
 
@@ -105,8 +106,10 @@ namespace NCL {
 			float timeToNextPacket;
 			int packetsToSnapshot;
 
-			std::map<int, GameObject*> allPlayers;
-			GameObject* localPlayer;
+			std::map<int, PlayerState> allPlayers;
+			int clientPlayerID;
+			//std::map<int, GameObject*> allPlayers;
+			//GameObject* localPlayer;
 		};
 	}
 }

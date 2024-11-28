@@ -184,6 +184,15 @@ GameObject* NetworkedGame::SpawnPlayer(int id) {
 	return obj;
 }
 
+void NetworkedGame::SpawnMissingPlayers() {
+	for (auto& [playerID, playerState] : allPlayers) {
+		auto netObj = networkWorld->getTrackedObject(playerState.netObjectID);
+		if (!netObj) {
+			auto obj = SpawnPlayer(playerState.netObjectID);
+		}
+	}
+}
+
 void NetworkedGame::StartLevel() {
 	ClearWorld();
 	networkWorld->reset();
@@ -193,8 +202,7 @@ void NetworkedGame::StartLevel() {
 	auto netCube = AddCubeToWorld(Vector3(0, 20, 0), Vector3(1, 1, 5), 0.5f);
 	networkWorld->trackObject(netCube);
 
-	// TODO: Spawn player objects
-	// TODO: Tell clients about all players
+	SpawnMissingPlayers();
 }
 
 //void NetworkedGame::ProcessPacket(PlayerConnectedPacket* payload) {
@@ -212,12 +220,9 @@ void NetworkedGame::ProcessPacket(PlayerListPacket* payload) {
 	for (int i = 0; i < payload->count; i++) {
 		auto player = payload->playerStates[i];
 		std::cout << "Player " << player.id << " has object ID " << player.netObjectID << "\n";
-		if (allPlayers.find(player.id) == allPlayers.end()) {
-			std::cout << "Spawning player " << player.id << "\n";
-			auto obj = SpawnPlayer(player.netObjectID);
-			allPlayers[player.id] = obj;
-		}
+		allPlayers[player.id] = player;
 	}
+	SpawnMissingPlayers();
 }
 
 void NetworkedGame::ProcessPlayerConnect(int playerID)
@@ -225,7 +230,10 @@ void NetworkedGame::ProcessPlayerConnect(int playerID)
 	std::cout << "Player " << playerID << " connected\n";
 	// TODO: Implement
 	auto playerObject = SpawnPlayer(PlayerIdStart + playerID);
-	allPlayers[playerID] = playerObject;
+	allPlayers[playerID] = PlayerState{
+		playerID,
+		playerObject->GetNetworkObject()->getId()
+	};
 
 	PlayerConnectedPacket newPacket(playerID, playerObject);
 	thisServer->SendGlobalPacket(newPacket);

@@ -22,7 +22,6 @@ struct GamePacket {
 		Message,
 
 		// A new player has connected
-		// The first of this type seen by a client is the client's own connection
 		// @see: PlayerConnectedPacket
 		PlayerConnected,
 		// A player has disconnected
