@@ -62,6 +62,8 @@ void NetworkedGame::StartAsClient(char a, char b, char c, char d) {
 	//thisClient->RegisterPacketHandler(GamePacket::Type::Player_Connected, this);
 	//thisClient->RegisterPacketHandler(GamePacket::Type::Player_Disconnected, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::Reset, this);
+	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerConnected, this);
+	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerDisconnected, this);
 }
 
 void NetworkedGame::UpdateGame(float dt) {
@@ -174,8 +176,11 @@ void NetworkedGame::UpdateMinimumState() {
 	}
 }
 
-void NetworkedGame::SpawnPlayer() {
+GameObject* NetworkedGame::SpawnPlayer(int id) {
+	auto obj = AddPlayerToWorld(Vector3(0, 5, 0));
+	networkWorld->trackObjectManual(obj, id);
 
+	return obj;
 }
 
 void NetworkedGame::StartLevel() {
@@ -186,10 +191,14 @@ void NetworkedGame::StartLevel() {
 
 	auto netCube = AddCubeToWorld(Vector3(0, 20, 0), Vector3(1, 1, 5), 0.5f);
 	networkWorld->trackObject(netCube);
+
+	// TODO: Spawn player objects
+	// TODO: Tell clients about all players
 }
 
 void NetworkedGame::ProcessPacket(PlayerConnectedPacket* payload) {
 	std::cout << "Player " << payload->playerID << " connected\n";
+	SpawnPlayer(payload->playerObjectID);
 }
 
 void NetworkedGame::ProcessPacket(PlayerDisconnectedPacket* payload) {
@@ -200,8 +209,10 @@ void NetworkedGame::ProcessPlayerConnect(int playerID)
 {
 	std::cout << "Player " << playerID << " connected\n";
 	// TODO: Implement
+	auto playerObject = SpawnPlayer(PlayerIdStart + playerID);
 
-	PlayerConnectedPacket newPacket(playerID);
+	PlayerConnectedPacket newPacket(playerID, playerObject);
+	thisServer->SendGlobalPacket(newPacket);
 }
 
 void NetworkedGame::ProcessPlayerDisconnect(int playerID)
@@ -217,6 +228,10 @@ void NetworkedGame::ReceivePacket(GamePacket::Type type, GamePacket* payload, in
 		return ProcessPlayerConnect(source);
 	case GamePacket::Type::Server_ClientDisconnect:
 		return ProcessPlayerDisconnect(source);
+	case GamePacket::Type::PlayerConnected:
+		return ProcessPacket((PlayerConnectedPacket*)payload);
+	case GamePacket::Type::PlayerDisconnected:
+		return ProcessPacket((PlayerDisconnectedPacket*)payload);
 	case GamePacket::Type::Reset:
 		StartLevel();
 		break;

@@ -16,11 +16,27 @@ namespace NCL::CSC8503 {
     }
 
     NetworkObject* NetworkWorld::trackObject(GameObject* obj) {
+        if (nextId >= ManualIdStart) {
+            throw std::runtime_error("Too many network objects");
+		}
+
         NetworkObject* netObj = new NetworkObject(*obj, nextId);
         obj->SetNetworkObject(netObj);
         networkObjects.emplace(nextId, obj);
         nextId++;
         return netObj;
+    }
+
+    NetworkObject* NetworkWorld::trackObjectManual(GameObject* obj, NetworkObject::Id id)
+    {
+        if (id < ManualIdStart) {
+			throw std::runtime_error("Manual ID must be greater than " + std::to_string(ManualIdStart));
+		}
+
+        NetworkObject* netObj = new NetworkObject(*obj, id);
+		obj->SetNetworkObject(netObj);
+		networkObjects.emplace(id, obj);
+		return netObj;
     }
 
     GameObject* NetworkWorld::getTrackedObject(NetworkObject::Id id) {

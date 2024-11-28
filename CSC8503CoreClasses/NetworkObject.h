@@ -46,6 +46,10 @@ namespace NCL::CSC8503 {
 		NetworkObject(GameObject& o, Id id);
 		virtual ~NetworkObject();
 
+		Id getId() const {
+			return networkID;
+		}
+
 		//Called by clients
 		virtual bool ReadPacket(GamePacket& p);
 		//Called by servers

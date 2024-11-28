@@ -12,10 +12,12 @@ namespace NCL {
 	namespace CSC8503 {
 		struct PlayerConnectedPacket : public GamePacket {
 			int playerID;
+			NetworkObject::Id playerObjectID;
 
-			PlayerConnectedPacket(int id) : GamePacket(Type::PlayerConnected) {
+			PlayerConnectedPacket(int id, GameObject* playerObject) : GamePacket(Type::PlayerConnected) {
 				size = sizeof(PlayerConnectedPacket) - sizeof(GamePacket);
 				playerID = id;
+				playerObjectID = playerObject->GetNetworkObject()->getId();
 			}
 		};
 
@@ -43,7 +45,8 @@ namespace NCL {
 
 			void UpdateGame(float dt) override;
 
-			void SpawnPlayer();
+			const static constexpr int PlayerIdStart = 100000;
+			GameObject* SpawnPlayer(int id);
 
 			void StartLevel();
 
@@ -77,8 +80,6 @@ namespace NCL {
 
 			float timeToNextPacket;
 			int packetsToSnapshot;
-
-			//std::vector<NetworkObject*> networkObjects;
 
 			std::map<int, GameObject*> serverPlayers;
 			GameObject* localPlayer;
