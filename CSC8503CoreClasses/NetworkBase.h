@@ -28,6 +28,10 @@ struct GamePacket {
 		// @see: PlayerDisconnectedPacket
 		PlayerDisconnected,
 
+		// The server has acknowledged a player's connection
+		// @see: HelloPacket
+		Hello,
+
 		// A list of all players in the game, along with their current state
 		// @see: PlayerListPacket
 		PlayerList,

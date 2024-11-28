@@ -49,6 +49,13 @@ bool GameServer::SendGlobalPacket(GamePacket& packet) {
 	return true;
 }
 
+bool GameServer::SendClientPacket(int clientID, GamePacket& packet) {
+	ENetPacket* enetPacket = enet_packet_create(&packet, packet.GetTotalSize(), 0);
+	ENetPeer* peer = netHandle->peers + clientID;
+	enet_peer_send(peer, 0, enetPacket);
+	return true;
+}
+
 // Process incoming packets from clients
 void GameServer::UpdateServer() {
 	if (!netHandle) {

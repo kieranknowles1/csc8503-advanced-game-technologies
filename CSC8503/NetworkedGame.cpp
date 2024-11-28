@@ -65,6 +65,7 @@ void NetworkedGame::StartAsClient(char a, char b, char c, char d) {
 	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerConnected, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerDisconnected, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerList, this);
+	thisClient->RegisterPacketHandler(GamePacket::Type::Hello, this);
 }
 
 void NetworkedGame::UpdateGame(float dt) {
@@ -225,6 +226,11 @@ void NetworkedGame::ProcessPacket(PlayerListPacket* payload) {
 	SpawnMissingPlayers();
 }
 
+void NetworkedGame::ProcessPacket(HelloPacket* payload) {
+	std::cout << "Received hello packet. We are player " << payload->whoAmI.id << "\n";
+	localPlayer = payload->whoAmI;
+}
+
 void NetworkedGame::ProcessPlayerConnect(int playerID)
 {
 	std::cout << "Player " << playerID << " connected\n";
@@ -240,6 +246,11 @@ void NetworkedGame::ProcessPlayerConnect(int playerID)
 
 	PlayerListPacket listPacket(allPlayers);
 	thisServer->SendGlobalPacket(listPacket);
+
+	HelloPacket helloPacket{
+		PlayerState{playerID, playerObject->GetNetworkObject()->getId()}
+	};
+	thisServer->SendClientPacket(playerID, helloPacket);
 }
 
 void NetworkedGame::ProcessPlayerDisconnect(int playerID)
@@ -261,6 +272,8 @@ void NetworkedGame::ReceivePacket(GamePacket::Type type, GamePacket* payload, in
 		return ProcessPacket((PlayerDisconnectedPacket*)payload);
 	case GamePacket::Type::PlayerList:
 		return ProcessPacket((PlayerListPacket*)payload);
+	case GamePacket::Type::Hello:
+		return ProcessPacket((HelloPacket*)payload);
 	case GamePacket::Type::Reset:
 		StartLevel();
 		break;

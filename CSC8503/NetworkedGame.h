@@ -53,6 +53,14 @@ namespace NCL {
 			}
 		};
 
+		struct HelloPacket : public GamePacket {
+			PlayerState whoAmI;
+			HelloPacket(PlayerState state) : GamePacket(Type::Hello) {
+				size = sizeof(HelloPacket) - sizeof(GamePacket);
+				whoAmI = state;
+			}
+		};
+
 
 		class GameServer;
 		class GameClient;
@@ -82,6 +90,7 @@ namespace NCL {
 			//void ProcessPacket(PlayerConnectedPacket* payload);
 			void ProcessPacket(PlayerDisconnectedPacket* payload);
 			void ProcessPacket(PlayerListPacket* payload);
+			void ProcessPacket(HelloPacket* payload);
 
 			void ProcessPlayerConnect(int playerID);
 			void ProcessPlayerDisconnect(int playerID);
@@ -107,7 +116,7 @@ namespace NCL {
 			int packetsToSnapshot;
 
 			std::map<int, PlayerState> allPlayers;
-			int clientPlayerID;
+			PlayerState localPlayer;
 			//std::map<int, GameObject*> allPlayers;
 			//GameObject* localPlayer;
 		};

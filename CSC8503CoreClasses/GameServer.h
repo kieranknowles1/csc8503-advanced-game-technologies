@@ -17,6 +17,9 @@ namespace NCL {
 			bool SendGlobalPacket(GamePacket::Type msgID);
 			bool SendGlobalPacket(GamePacket& packet);
 
+			// Send a packet to a specific client
+			bool SendClientPacket(int clientID, GamePacket& packet);
+
 			virtual void UpdateServer();
 
 			int getClientCount() const {
