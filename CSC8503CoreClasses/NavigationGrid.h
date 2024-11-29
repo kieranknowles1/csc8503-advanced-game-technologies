@@ -50,7 +50,11 @@ namespace NCL {
 			~NavigationGrid();
 
 			bool FindPath(const Vector3& from, const Vector3& to, NavigationPath& outPath) const override;
-				
+
+			// Draw the grid for debugging
+			// White: Connection between nodes
+			// Red: Wall
+			void debugDraw();
 		protected:
 			float		Heuristic(GridNode* hNode, GridNode* endNode) const;
 			int nodeSize;

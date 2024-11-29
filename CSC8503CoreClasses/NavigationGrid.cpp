@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include "Assets.h"
+#include "Debug.h"
 
 using namespace NCL;
 using namespace CSC8503;
@@ -42,11 +43,11 @@ NavigationGrid::NavigationGrid(const std::string&filename) : NavigationGrid() {
 			n.position = Vector3((float)(x * nodeSize), 0, (float)(y * nodeSize));
 		}
 	}
-	
+
 	//now to build the connectivity between the nodes
 	for (int y = 0; y < gridHeight; ++y) {
 		for (int x = 0; x < gridWidth; ++x) {
-			GridNode&n = allNodes[(gridWidth * y) + x];		
+			GridNode&n = allNodes[(gridWidth * y) + x];
 
 			if (y > 0) { //get the above node
 				n.connected[0] = &allNodes[(gridWidth * (y - 1)) + x];
@@ -70,7 +71,7 @@ NavigationGrid::NavigationGrid(const std::string&filename) : NavigationGrid() {
 					}
 				}
 			}
-		}	
+		}
 	}
 }
 
@@ -163,13 +164,13 @@ bool NavigationGrid::FindPath(const Vector3& from, const Vector3& to, Navigation
 				GridNode* neighbour = currentBestNode.node->connected[i];
 				if (!neighbour) { //might not be connected...
 					continue;
-				}	
-				
+				}
+
 				if (closedNodes.find(neighbour) != closedNodes.end()) {
 					continue; //already discarded this neighbour...
 				}
 
-				float h = Heuristic(neighbour, endNode);				
+				float h = Heuristic(neighbour, endNode);
 				float g = currentBestNode.currentCost + currentBestNode.node->costs[i];
 				float f = h + g;
 
@@ -191,4 +192,34 @@ bool NavigationGrid::FindPath(const Vector3& from, const Vector3& to, Navigation
 
 float NavigationGrid::Heuristic(GridNode* hNode, GridNode* endNode) const {
 	return Vector::Length(hNode->position - endNode->position);
+}
+
+void NavigationGrid::debugDraw()
+{
+	auto drawConnection = [&](GridNode* a, GridNode* b) {
+		if (a && b) {
+			Debug::DrawLine(a->position, b->position, Debug::WHITE);
+		}
+	};
+
+	int numNodes = gridWidth * gridHeight;
+	for (int i = 0; i < numNodes; i++) {
+		GridNode& node = allNodes[i];
+		if (node.type == WALL_NODE) {
+			Vector3 halfSize(nodeSize / 2, 0, nodeSize / 2);
+			Vector3 topLeft = node.position - halfSize;
+			Vector3 bottomRight = node.position + halfSize;
+			Vector3 topRight(topLeft.x, 0, bottomRight.z);
+			Vector3 bottomLeft(bottomRight.x, 0, topLeft.z);
+
+			Debug::DrawLine(topLeft, topRight, Debug::RED);
+			Debug::DrawLine(topRight, bottomRight, Debug::RED);
+			Debug::DrawLine(bottomRight, bottomLeft, Debug::RED);
+			Debug::DrawLine(bottomLeft, topLeft, Debug::RED);
+		} else {
+			drawConnection(&node, node.connected[TOP_NODE]);
+			drawConnection(&node, node.connected[RIGHT_NODE]);
+			// The neighbour will draw the connection to the bottom and left as we are its top or right neighbour
+		}
+	}
 }

@@ -37,11 +37,12 @@ using namespace CSC8503;
 #include <sstream>
 
 NavigationPath TestPathfinding() {
-	NavigationGrid grid("TestGrid1.txt");
+	NavigationGrid grid("maze.txt");
+	grid.debugDraw();
 	NavigationPath outPath;
 
-	Vector3 startPos(80, 0, 10);
-	Vector3 end(80, 0, 80);
+	Vector3 startPos(0, 0, 10);
+	Vector3 end(160, 0, 150);
 	Debug::DrawLine(startPos, end, Debug::BLUE);
 
 	bool found = grid.FindPath(startPos, end, outPath);

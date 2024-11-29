@@ -1,6 +1,7 @@
-# Template Repository
+# CSC8503 Advanced Game Technologies
 
-This is a repository based on my
-[NixOS Configuration](https://github.com/kieranknowles1/nixcfg).
+My coursework for the Advanced Game Technologies module at Newcastle University.
 
-See comments in [flake.nix](./flake.nix) for more information.
+## Tools Used
+
+[keesiemeijer/maze-generator](https://keesiemeijer.github.io/maze-generator/) - Maze generation
