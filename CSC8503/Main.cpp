@@ -393,6 +393,10 @@ int main(int argc, char** argv) {
 	initInfo.height		= 720;
 	initInfo.windowTitle = "CSC8503 Game technology!";
 
+	if (cli.isServer()) {
+		initInfo.windowPositionX += 1280;
+	}
+
 	//if (argc >= 2) {
 	//	if (argv[1][0] == 's') {
 	//		testServer();

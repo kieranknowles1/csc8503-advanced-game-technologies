@@ -75,6 +75,7 @@
             # Install all dependencies for the duration of the shell
             packages = deps ++ [
               pkgs.renderdoc
+              pkgs.tmux
             ];
 
             # Apply a more limited set of optimizations while including debug info
