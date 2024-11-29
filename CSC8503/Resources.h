@@ -1,12 +1,18 @@
 #pragma once
 
 #include <string>
+#include <cstring>
 #include <map>
 
 #include "GameTechRenderer.h"
 #include "Mesh.h"
 #include "TextureLoader.h"
 #include "Shader.h"
+
+// TODO: This is a bit of a hack for building on Linux
+#ifndef _WIN32
+#define strncpy_s(dest, src, size) strncpy(dest, src, size)
+#endif
 
 namespace NCL::CSC8503 {
     // Basic resource manager

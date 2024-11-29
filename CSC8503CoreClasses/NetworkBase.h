@@ -1,4 +1,7 @@
 #pragma once
+
+#include <cstring>
+
 //#include "./enet/enet.h"
 struct _ENetHost;
 struct _ENetPeer;
