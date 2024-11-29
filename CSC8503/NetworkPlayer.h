@@ -35,5 +35,13 @@ namespace NCL::CSC8503 {
 		void OnUpdate(float dt) override;
 	private:
 		PlayerInput lastInput;
+
+		const constexpr static float JumpCooldown = 0.2f;
+		const constexpr static float JumpRayLength = 10.0f;
+		const constexpr static float JumpForce = 1000.0f;
+
+		bool canJump();
+		// Time until the player can jump again
+		float jumpCooldown = 0;
 	};
 }

@@ -9,6 +9,7 @@ namespace NCL::CSC8503 {
 	class NetworkObject;
 	class RenderObject;
 	class PhysicsObject;
+	class GameWorld;
 
 	class GameObject	{
 	public:
@@ -83,6 +84,13 @@ namespace NCL::CSC8503 {
 			return worldID;
 		}
 
+		void SetWorld(GameWorld* world) {
+			this->world = world;
+		}
+		GameWorld* GetWorld() const {
+			return world;
+		}
+
 		void setLayer(LayerMask::Index layer) {
 			this->layer = layer;
 		}
@@ -98,6 +106,8 @@ namespace NCL::CSC8503 {
 		}
 	protected:
 		Transform			transform;
+
+		GameWorld*			world;
 
 		CollisionVolume*	boundingVolume;
 		PhysicsObject*		physicsObject;

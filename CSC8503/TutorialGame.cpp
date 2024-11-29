@@ -121,8 +121,6 @@ void TutorialGame::UpdateGame(float dt) {
 		}
 	}
 
-	Debug::DrawLine(Vector3(), Vector3(0, 100, 0), Vector4(1, 0, 0, 1));
-
 	if (stateObject)
 		stateObject->Update(dt);
 

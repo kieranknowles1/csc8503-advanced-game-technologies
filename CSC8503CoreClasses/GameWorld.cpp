@@ -37,12 +37,14 @@ void GameWorld::ClearAndErase() {
 
 void GameWorld::AddGameObject(GameObject* o) {
 	gameObjects.emplace_back(o);
+	o->SetWorld(this);
 	o->SetWorldID(worldIDCounter++);
 	worldStateCounter++;
 }
 
 void GameWorld::RemoveGameObject(GameObject* o, bool andDelete) {
 	gameObjects.erase(std::remove(gameObjects.begin(), gameObjects.end(), o), gameObjects.end());
+	o->SetWorld(nullptr);
 	if (andDelete) {
 		delete o;
 	}
@@ -85,8 +87,6 @@ void GameWorld::UpdateWorld(float dt) {
 bool GameWorld::Raycast(Ray& r, RayCollision& closestCollision, bool closestObject, GameObject* ignoreThis) const {
 	//The simplest raycast just goes through each object and sees if there's a collision
 	RayCollision collision;
-
-	Debug::DrawLine(r.GetPosition(), r.GetDirection() * 1000.0f, Debug::RED, 30.0f);
 
 	for (auto& i : gameObjects) {
 		if (!i->GetBoundingVolume()) { //objects might not be collideable etc...

@@ -13,7 +13,8 @@ namespace NCL::CSC8503 {
 		input.backward = keyboard->KeyDown(KeyCodes::S);
 		input.left     = keyboard->KeyDown(KeyCodes::A);
 		input.right    = keyboard->KeyDown(KeyCodes::D);
-		input.jump     = keyboard->KeyDown(KeyCodes::SPACE);
+		// Always jump for one frame
+		input.jump = lastInput.jump || keyboard->KeyPressed(KeyCodes::SPACE);
 		input.action   = keyboard->KeyDown(KeyCodes::F);
 		return input;
 	}
@@ -35,10 +36,30 @@ namespace NCL::CSC8503 {
 			GetPhysicsObject()->AddTorque({ 0, -force, 0 });
 		}
 
-		if (lastInput.jump) {
-			// TODO: Check if we're on the ground
-			// no hovercats allowed
-			GetPhysicsObject()->AddForce({ 0, force * 10, 0 });
+		if (lastInput.jump && canJump()) {
+			GetPhysicsObject()->AddForce({ 0, JumpForce, 0 });
+			jumpCooldown = JumpCooldown;
 		}
+		lastInput.jump = false;
+		jumpCooldown -= dt;
+	}
+
+	bool NetworkPlayer::canJump() {
+		if (jumpCooldown > 0) {
+			return false;
+		}
+		auto world = GetWorld();
+		Ray ray(GetTransform().GetPosition(), Vector3(0, -1, 0));
+		RayCollision closestCollision;
+		bool hit = world->Raycast(ray, closestCollision, true, this);
+
+		bool closeEnough = hit && closestCollision.rayDistance < JumpRayLength;
+		Debug::DrawLine(
+			ray.GetPosition(),
+			ray.GetPosition() + ray.GetDirection() * (closeEnough ? closestCollision.rayDistance : JumpRayLength),
+			closeEnough ? Debug::GREEN : Debug::RED,
+			5.0f
+		);
+		return closeEnough;
 	}
 }
