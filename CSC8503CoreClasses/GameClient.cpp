@@ -11,10 +11,10 @@ GameClient::~GameClient()	{
 
 }
 
-bool GameClient::Connect(uint8_t a, uint8_t b, uint8_t c, uint8_t d, int portNum) {
+bool GameClient::Connect(uint32_t addr, int portNum) {
 	ENetAddress address;
 	address.port = portNum;
-	address.host = (d << 24) | (c << 16) | (b << 8) | a;
+	address.host = addr;
 	netPeer = enet_host_connect(netHandle, &address, 2, 0);
 
 	if (netPeer == nullptr) {

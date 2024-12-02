@@ -385,7 +385,13 @@ hide or show the
 
 */
 int main(int argc, char** argv) {
-	Cli cli(argc, argv);
+	std::unique_ptr<Cli> cli;
+	try {
+		cli = std::make_unique<Cli>(argc, argv);
+	} catch (const std::exception& e) {
+		std::cerr << e.what() << std::endl;
+		return 1;
+	}
 
 	//testStateMachine();
 	//testBehaviourTree();
@@ -394,23 +400,9 @@ int main(int argc, char** argv) {
 	initInfo.height		= 720;
 	initInfo.windowTitle = "CSC8503 Game technology!";
 
-	if (cli.isServer()) {
+	if (cli->isServer()) {
 		initInfo.windowPositionX += 1280;
 	}
-
-	//if (argc >= 2) {
-	//	if (argv[1][0] == 's') {
-	//		testServer();
-	//		return 0;
-	//	}
-	//	if (argv[1][0] == 'c') {
-	//		testClient();
-	//		return 0;
-	//	}
-	//}
-
-	////testNetworking();
-	//return 0;
 
 	Window*w = Window::CreateGameWindow(initInfo);
 
@@ -421,11 +413,7 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
-	//w->ShowOSPointer(false);
-	//w->LockMouseToWindow(true);
-
-	//TutorialGame* g = new TutorialGame();
-	NetworkedGame* g = new NetworkedGame(cli);
+	NetworkedGame* g = new NetworkedGame(*cli);
 	w->GetTimer().GetTimeDeltaSeconds(); //Clear the timer so we don't get a larget first dt!
 	while (w->UpdateWindow() && !Window::GetKeyboard()->KeyDown(KeyCodes::ESCAPE)) {
 		float dt = w->GetTimer().GetTimeDeltaSeconds();

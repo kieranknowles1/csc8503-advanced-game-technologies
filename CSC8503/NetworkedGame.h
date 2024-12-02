@@ -76,7 +76,7 @@ namespace NCL {
 			~NetworkedGame();
 
 			void StartAsServer();
-			void StartAsClient(char a, char b, char c, char d);
+			void StartAsClient(uint32_t addr);
 
 			void UpdateGame(float dt) override;
 

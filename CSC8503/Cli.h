@@ -10,11 +10,15 @@ public:
 	bool isServer() const {
 		// TODO: Don't invert this
 		// TODO: Script to run both server and client
-		return !server;
+		return server;
 	}
 
+	uint32_t getIp() const {
+		return ip;
+	}
 private:
 	bool server = false;
+	uint32_t ip = (127 << 24) | (0 << 16) | (0 << 8) | 1;
 
     void printUsage(char* programName) const;
 };

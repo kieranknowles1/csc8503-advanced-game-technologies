@@ -32,8 +32,7 @@ NetworkedGame::NetworkedGame(const Cli& cli) {
 		StartAsServer();
 	}
 	else {
-		// TODO: Allow specifying IP
-		StartAsClient(127, 0, 0, 1);
+		StartAsClient(cli.getIp());
 	}
 
 	networkWorld = new NetworkWorld(thisClient, thisServer);
@@ -64,10 +63,10 @@ void NetworkedGame::StartAsServer() {
 	thisServer->RegisterPacketHandler(GamePacket::Type::Server_ClientDisconnect, this);
 }
 
-void NetworkedGame::StartAsClient(char a, char b, char c, char d) {
+void NetworkedGame::StartAsClient(uint32_t addr) {
 	connectionLength = 0.0f;
 	thisClient = new GameClient();
-	thisClient->Connect(a, b, c, d, NetworkBase::GetDefaultPort());
+	thisClient->Connect(addr, NetworkBase::GetDefaultPort());
 
 	// TODO
 	//thisClient->RegisterPacketHandler(GamePacket::Type::Player_Connected, this);
