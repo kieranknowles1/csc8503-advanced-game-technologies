@@ -29,7 +29,6 @@ NetworkedGame::NetworkedGame(const Cli& cli) {
 
 	NetworkBase::Initialise();
 	timeToNextPacket  = 0.0f;
-	packetsToSnapshot = 0;
 
 	if (cli.isServer()) {
 		server = new Server(this, MaxPlayers);
@@ -80,7 +79,7 @@ void NetworkedGame::UpdateGame(float dt) {
 
 	if (timeToNextPacket < 0) {
 		if (server) {
-			UpdateAsServer(dt);
+			server->update(dt);
 		} else if (thisClient) {
 			UpdateAsClient(dt);
 		}
@@ -117,26 +116,6 @@ void NetworkedGame::ProcessInput(float dt) {
 		newPacket.index = inputIndex++;
 		thisClient->SendPacket(newPacket);
 	}
-}
-
-void NetworkedGame::UpdateAsServer(float dt) {
-	if (Window::GetKeyboard()->KeyDown(KeyCodes::F11)) {
-		auto reset = GamePacket(GamePacket::Type::Reset);
-		server->getServer()->SendGlobalPacket(reset);
-		StartLevel();
-	}
-
-	packetsToSnapshot--;
-	if (packetsToSnapshot < 0) {
-		BroadcastSnapshot(false);
-		packetsToSnapshot = snapshotFrequency;
-	}
-	else {
-		BroadcastSnapshot(true);
-	}
-
-	// Process any packets received and flush the send buffer
-	server->getServer()->UpdateServer();
 }
 
 void NetworkedGame::UpdateAsClient(float dt) {

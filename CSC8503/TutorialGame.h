@@ -20,6 +20,9 @@ namespace NCL {
 
 			virtual void UpdateGame(float dt);
 
+			GameWorld* getWorld() {
+				return world;
+			}
 		protected:
 			void InitialiseAssets();
 

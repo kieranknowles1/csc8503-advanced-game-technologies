@@ -109,7 +109,6 @@ namespace NCL {
 			void ProcessPacket(PlayerListPacket* payload);
 			void ProcessPacket(HelloPacket* payload);
 
-			void UpdateAsServer(float dt);
 			void UpdateAsClient(float dt);
 
 			void BroadcastSnapshot(bool deltaFrame);
@@ -118,14 +117,12 @@ namespace NCL {
 
 			Client* client;
 			Server* server;
+			NetworkWorld* networkWorld;
 
 			// TODO: Make this a Server class
 			// Tick every n seconds
 			float inverseTickRate = 1.0f / 60.0f;
-			// Send a snapshot every n ticks
-			int snapshotFrequency = 5;
 
-			NetworkWorld* networkWorld;
 
 			// TODO: Make this a Client class
 			GameClient* thisClient;
@@ -133,7 +130,6 @@ namespace NCL {
 			float connectionLength;
 
 			float timeToNextPacket;
-			int packetsToSnapshot;
 
 			int inputIndex = 0;
 
