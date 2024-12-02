@@ -112,6 +112,10 @@ namespace NCL {
 
 			// TODO: Make this a Server class
 			GameServer* thisServer;
+			// Tick every n seconds
+			float inverseTickRate = 1.0f / 60.0f;
+			// Send a snapshot every n ticks
+			int snapshotFrequency = 5;
 
 			NetworkWorld* networkWorld;
 

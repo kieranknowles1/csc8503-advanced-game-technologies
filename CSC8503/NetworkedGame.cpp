@@ -92,7 +92,7 @@ void NetworkedGame::UpdateGame(float dt) {
 		} else if (thisClient) {
 			UpdateAsClient(dt);
 		}
-		timeToNextPacket += 1.0f / 20.0f; //20hz server/client update
+		timeToNextPacket += inverseTickRate;
 	}
 
 	ProcessInput(dt);
@@ -133,7 +133,7 @@ void NetworkedGame::UpdateAsServer(float dt) {
 	packetsToSnapshot--;
 	if (packetsToSnapshot < 0) {
 		BroadcastSnapshot(false);
-		packetsToSnapshot = 5;
+		packetsToSnapshot = snapshotFrequency;
 	}
 	else {
 		BroadcastSnapshot(true);
