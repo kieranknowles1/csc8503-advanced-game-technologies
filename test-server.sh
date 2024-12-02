@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+set -euo pipefail
+
 EXE_PATH=./build/CSC8503/CSC8503
 # Run a multithreaded build, leaving two threads to avoid overloading the system
 THREADS=$(( $(nproc) - 2 ))
