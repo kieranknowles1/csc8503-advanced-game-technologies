@@ -72,6 +72,20 @@ namespace NCL {
 				elasticity = e;
 			}
 
+			float GetAngularDamping() const {
+				return angularDamping;
+			}
+			void SetAngularDamping(float d) {
+				angularDamping = d;
+			}
+
+			float GetLinearDamping() const {
+				return linearDamping;
+			}
+			void SetLinearDamping(float d) {
+				linearDamping = d;
+			}
+
 		protected:
 			const CollisionVolume* volume;
 			Transform*		transform;
@@ -79,6 +93,10 @@ namespace NCL {
 			float inverseMass;
 			float elasticity;
 			float friction;
+
+			// Damping values, multiplied by the global damping values
+			float angularDamping = 1.0f;
+			float linearDamping = 1.0f;
 
 			//linear stuff
 			Vector3 linearVelocity;

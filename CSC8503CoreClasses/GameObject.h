@@ -2,6 +2,7 @@
 #include "Transform.h"
 #include "CollisionVolume.h"
 #include "LayerMask.h"
+#include "PhysicsObject.h"
 
 using std::vector;
 
@@ -13,6 +14,15 @@ namespace NCL::CSC8503 {
 
 	class GameObject	{
 	public:
+		enum class PhysicsType {
+			// No physics object
+			None,
+			// Infinite mass, immovable
+			Static,
+			// Finite mass, movable
+			Dynamic,
+		};
+
 		GameObject(const std::string& name = "");
 		~GameObject();
 
@@ -26,6 +36,13 @@ namespace NCL::CSC8503 {
 
 		bool IsActive() const {
 			return isActive;
+		}
+
+		PhysicsType getPhysicsType() const {
+			if (physicsObject == nullptr || boundingVolume == nullptr) {
+				return PhysicsType::None;
+			}
+			return physicsObject->GetInverseMass() == 0.0f ? PhysicsType::Static : PhysicsType::Dynamic;
 		}
 
 		Transform& GetTransform() {

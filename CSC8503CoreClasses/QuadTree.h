@@ -27,6 +27,18 @@ namespace NCL {
 		class QuadTreeNode	{
 		public:
 			typedef std::function<void(std::list<QuadTreeEntry<T>>&)> QuadTreeFunc;
+
+			void OperateOnContents(QuadTreeFunc& func) {
+				if (children) {
+					for (int i = 0; i < 4; i++) {
+						children[i].OperateOnContents(func);
+					}
+				}
+				// Only leaf nodes track their contents
+				else if (!contents.empty()) {
+					func(contents);
+				}
+			}
 		protected:
 			friend class QuadTree<T>;
 
@@ -42,7 +54,34 @@ namespace NCL {
 				delete[] children;
 			}
 
+			// Get the smallest node that completely contains the given AABB
+			QuadTreeNode* GetContainingNode(const Vector3& objectPos, const Vector3& objectSize) {
+				// Shrink our size by the object size to filter out partial overlaps
+				Vector3 shrunkSize = Vector3(size.x - objectSize.x, 1000.0f, size.y - objectSize.y);
+
+				bool thisFits = CollisionDetection::AABBTest(objectPos, Vector3(position.x, 0, position.y), objectSize, shrunkSize);
+				if (!thisFits) {
+					// If we don't fit, then no children can fit either
+					return nullptr;
+				}
+
+				// See if it fits in any children
+				if (children) {
+					for (int i = 0; i < 4; i++) {
+						QuadTreeNode* node = children[i].GetContainingNode(objectPos, objectSize);
+						if (node) {
+							return node;
+						}
+					}
+				}
+
+				// If no children fit, then we are the smallest node that fits
+				return this;
+			}
+
+			// Insert an object into all leaves that it touches
 			void Insert(T& object, const Vector3& objectPos, const Vector3& objectSize, int depthLeft, int maxSize) {
+				// We want to check for any partial overlaps, so don't shrink the size
 				if (!CollisionDetection::AABBTest(objectPos, Vector3(position.x, 0, position.y), objectSize, Vector3(size.x, 1000.0f, size.y))) {
 					return; // Not in this quad
 				}
@@ -78,43 +117,31 @@ namespace NCL {
 				children[3] = QuadTreeNode<T>(position + Vector2(halfSize.x, -halfSize.y), halfSize);
 			}
 
-			void DebugDraw() {
+			void DebugDraw(Vector4 color) {
 				if (children) {
 					for (int i = 0; i < 4; i++) {
-						children[i].DebugDraw();
+						children[i].DebugDraw(color);
 					}
 				}
 				else {
 					// TODO: Debug::DrawBox?
 					// Bottom
-					Debug::DrawLine(Vector3(position.x, 0, position.y), Vector3(position.x + size.x, 0, position.y), Vector4(1, 0, 0, 1));
-					Debug::DrawLine(Vector3(position.x + size.x, 0, position.y), Vector3(position.x + size.x, 0, position.y + size.y), Vector4(1, 0, 0, 1));
-					Debug::DrawLine(Vector3(position.x + size.x, 0, position.y + size.y), Vector3(position.x, 0, position.y + size.y), Vector4(1, 0, 0, 1));
-					Debug::DrawLine(Vector3(position.x, 0, position.y + size.y), Vector3(position.x, 0, position.y), Vector4(1, 0, 0, 1));
+					Debug::DrawLine(Vector3(position.x, 0, position.y), Vector3(position.x + size.x, 0, position.y), color);
+					Debug::DrawLine(Vector3(position.x + size.x, 0, position.y), Vector3(position.x + size.x, 0, position.y + size.y), color);
+					Debug::DrawLine(Vector3(position.x + size.x, 0, position.y + size.y), Vector3(position.x, 0, position.y + size.y), color);
+					Debug::DrawLine(Vector3(position.x, 0, position.y + size.y), Vector3(position.x, 0, position.y), color);
 
 					// Top
-					Debug::DrawLine(Vector3(position.x, 1000, position.y), Vector3(position.x + size.x, 1000, position.y), Vector4(1, 0, 0, 1));
-					Debug::DrawLine(Vector3(position.x + size.x, 1000, position.y), Vector3(position.x + size.x, 1000, position.y + size.y), Vector4(1, 0, 0, 1));
-					Debug::DrawLine(Vector3(position.x + size.x, 1000, position.y + size.y), Vector3(position.x, 1000, position.y + size.y), Vector4(1, 0, 0, 1));
-					Debug::DrawLine(Vector3(position.x, 1000, position.y + size.y), Vector3(position.x, 1000, position.y), Vector4(1, 0, 0, 1));
+					Debug::DrawLine(Vector3(position.x, 1000, position.y), Vector3(position.x + size.x, 1000, position.y), color);
+					Debug::DrawLine(Vector3(position.x + size.x, 1000, position.y), Vector3(position.x + size.x, 1000, position.y + size.y), color);
+					Debug::DrawLine(Vector3(position.x + size.x, 1000, position.y + size.y), Vector3(position.x, 1000, position.y + size.y), color);
+					Debug::DrawLine(Vector3(position.x, 1000, position.y + size.y), Vector3(position.x, 1000, position.y), color);
 
 					// Sides
-					Debug::DrawLine(Vector3(position.x, 0, position.y), Vector3(position.x, 1000, position.y), Vector4(1, 0, 0, 1));
-					Debug::DrawLine(Vector3(position.x + size.x, 0, position.y), Vector3(position.x + size.x, 1000, position.y), Vector4(1, 0, 0, 1));
-					Debug::DrawLine(Vector3(position.x + size.x, 0, position.y + size.y), Vector3(position.x + size.x, 1000, position.y + size.y), Vector4(1, 0, 0, 1));
-					Debug::DrawLine(Vector3(position.x, 0, position.y + size.y), Vector3(position.x, 1000, position.y + size.y), Vector4(1, 0, 0, 1));
-				}
-			}
-
-			void OperateOnContents(QuadTreeFunc& func) {
-				if (children) {
-					for (int i = 0; i < 4; i++) {
-						children[i].OperateOnContents(func);
-					}
-				}
-				// Only leaf nodes track their contents
-				else if (!contents.empty()) {
-					func(contents);
+					Debug::DrawLine(Vector3(position.x, 0, position.y), Vector3(position.x, 1000, position.y), color);
+					Debug::DrawLine(Vector3(position.x + size.x, 0, position.y), Vector3(position.x + size.x, 1000, position.y), color);
+					Debug::DrawLine(Vector3(position.x + size.x, 0, position.y + size.y), Vector3(position.x + size.x, 1000, position.y + size.y), color);
+					Debug::DrawLine(Vector3(position.x, 0, position.y + size.y), Vector3(position.x, 1000, position.y + size.y), color);
 				}
 			}
 
@@ -149,12 +176,17 @@ namespace NCL {
 				root.Insert(object, pos, size, maxDepth, maxSize);
 			}
 
-			void DebugDraw() {
-				root.DebugDraw();
+			void DebugDraw(Vector4 color) {
+				root.DebugDraw(color);
 			}
 
-			void OperateOnContents(typename QuadTreeNode<T>::QuadTreeFunc  func) {
+			void OperateOnContents(typename QuadTreeNode<T>::QuadTreeFunc func) {
 				root.OperateOnContents(func);
+			}
+
+			// Get the smallest node that completely contains the given AABB
+			QuadTreeNode<T>& GetContainingNode(const Vector3& pos, const Vector3& size) {
+				return *root.GetContainingNode(pos, size);
 			}
 
 		protected:

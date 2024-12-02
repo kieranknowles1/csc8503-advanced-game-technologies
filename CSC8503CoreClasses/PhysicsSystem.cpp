@@ -12,10 +12,15 @@
 #include "Debug.h"
 #include "Window.h"
 #include <functional>
+
+#include "RenderObject.h"
+
 using namespace NCL;
 using namespace CSC8503;
 
-PhysicsSystem::PhysicsSystem(GameWorld& g) : gameWorld(g)	{
+PhysicsSystem::PhysicsSystem(GameWorld& g)
+	: gameWorld(g)
+{
 	dTOffset		= 0.0f;
 	globalDamping	= 0.9f;
 	SetGravity(Vector3(0.0f, -9.8f, 0.0f));
@@ -285,6 +290,24 @@ void PhysicsSystem::ImpulseResolveCollision(GameObject& a, GameObject& b, Collis
 	physB->ApplyAngularImpulse(Vector::Cross(p.localB, fullImpulse));
 }
 
+void PhysicsSystem::rebuildStaticsTree() {
+	std::vector<GameObject*>::const_iterator first;
+	std::vector<GameObject*>::const_iterator last;
+	gameWorld.GetObjectIterators(first, last);
+
+	staticsTree = std::make_unique<QuadTree<GameObject*>>(Vector2(1024, 1024), 7, 6);
+	for (auto i = first; i != last; i++) {
+		GameObject* object = *i;
+		if (object->getPhysicsType() != GameObject::PhysicsType::Static) {
+			continue;
+		}
+		Vector3 halfSizes;
+		object->GetBroadphaseAABB(halfSizes);
+		Vector3 pos = object->GetTransform().GetPosition();
+		staticsTree->Insert(object, pos, halfSizes);
+	}
+}
+
 /*
 
 Later, we replace the BasicCollisionDetection method with a broadphase
@@ -295,32 +318,50 @@ compare the collisions that we absolutely need to.
 */
 void PhysicsSystem::BroadPhase() {
 	broadphaseCollisions.clear();
+	if (staticsTree == nullptr) {
+		rebuildStaticsTree();
+	}
 	QuadTree<GameObject*> tree(Vector2(1024, 1024), 7, 6);
 
 	std::vector<GameObject*>::const_iterator first;
 	std::vector<GameObject*>::const_iterator last;
 	gameWorld.GetObjectIterators(first, last);
 	for (auto i = first; i != last; i++) {
-		Vector3 halfSizes;
-		if (!(*i)->GetBroadphaseAABB(halfSizes)) {
-			continue; // No broadphase collision volume
+		GameObject* object = *i;
+		if (object->getPhysicsType() != GameObject::PhysicsType::Dynamic) {
+			continue;
 		}
-		Vector3 pos = (*i)->GetTransform().GetPosition();
-		tree.Insert(*i, pos, halfSizes);
+
+		Vector3 halfSizes;
+		object->GetBroadphaseAABB(halfSizes);
+		Vector3 pos = object->GetTransform().GetPosition();
+		tree.Insert(object, pos, halfSizes);
 	}
 
+	// Dynamic objects can collide with statics in the same leaf
 	tree.OperateOnContents(
 		[&](std::list<QuadTreeEntry<GameObject*>>& data) {
 			CollisionDetection::CollisionInfo info;
 			for (auto i = data.begin(); i != data.end(); i++) {
+				// Each pair of objects is only added once
 				for (auto j = std::next(i); j != data.end(); j++) {
 					info.a = std::min((*i).object, (*j).object);
 					info.b = std::max((*i).object, (*j).object);
 					broadphaseCollisions.insert(info);
 				}
+
+				// Check for collisions with static objects
+				auto& staticsLeaf = staticsTree->GetContainingNode((*i).pos, (*i).size);
+				QuadTreeNode<GameObject*>::QuadTreeFunc func = [&](std::list<QuadTreeEntry<GameObject*>>& staticData) {
+					for (auto j = staticData.begin(); j != staticData.end(); j++) {
+						info.a = (*i).object;
+						info.b = (*j).object;
+						broadphaseCollisions.insert(info);
+					}
+				};
+				staticsLeaf.OperateOnContents(func);
 			}
 		});
-	//tree.DebugDraw();
 }
 
 /*
@@ -411,13 +452,16 @@ void PhysicsSystem::IntegrateVelocity(float dt) {
 }
 
 void PhysicsSystem::integrateObjectVelocity(Transform& transform, PhysicsObject& object, float dt, float dampenFactor) {
+	float linearDamping = dampenFactor * std::pow(object.GetLinearDamping(), dt);
+	float angularDamping = dampenFactor * std::pow(object.GetAngularDamping(), dt);
+
 	Vector3 position = transform.GetPosition();
 	Vector3 linearVelocity = object.GetLinearVelocity();
 	position += linearVelocity * dt;
 	transform.SetPosition(position);
 
 	// Dampen linear velocity
-	linearVelocity = linearVelocity * dampenFactor;
+	linearVelocity = linearVelocity * linearDamping;
 	object.SetLinearVelocity(linearVelocity);
 
 	Quaternion orientation = transform.GetOrientation();
@@ -430,7 +474,7 @@ void PhysicsSystem::integrateObjectVelocity(Transform& transform, PhysicsObject&
 	transform.SetOrientation(orientation);
 
 	// Dampen angular velocity
-	angularVelocity = angularVelocity * dampenFactor;
+	angularVelocity = angularVelocity * angularDamping;
 	object.SetAngularVelocity(angularVelocity);
 }
 

@@ -29,6 +29,13 @@ namespace NCL {
 			}
 
 			void SetGravity(const Vector3& g);
+
+			// Discard the statics tree and rebuild it next frame
+			// Use when adding/removing/moving static objects
+			// If an object will move frequently, it should be dynamic
+			void dirtyStaticsTree() {
+				staticsTree.reset();
+			}
 		protected:
 			void BasicCollisionDetection();
 			void BroadPhase();
@@ -56,6 +63,9 @@ namespace NCL {
 			float	globalDamping;
 
 			CollisionResolution resolutionType = CollisionResolution::Impulse;
+
+			void rebuildStaticsTree();
+			std::unique_ptr<QuadTree<GameObject*>> staticsTree;
 
 			std::set<CollisionDetection::CollisionInfo> allCollisions;
 			std::set<CollisionDetection::CollisionInfo> broadphaseCollisions;
