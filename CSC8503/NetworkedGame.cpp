@@ -8,6 +8,7 @@
 #include "NetworkObject.h"
 #include "GameServer.h"
 #include "GameClient.h"
+#include "Trapper.h"
 
 #define COLLISION_MSG 30
 
@@ -245,7 +246,7 @@ void NetworkedGame::ClearWorld() {
 	for (auto& player : allPlayers) {
 		player.second.player = nullptr;
 	}
-	delete maze;
+	delete maze; maze = nullptr;
 }
 
 void NetworkedGame::StartLevel() {
@@ -264,6 +265,10 @@ void NetworkedGame::StartLevel() {
 			AddCubeToWorld(node->position, Vector3(nodeSize/2, nodeSize, nodeSize/2), 0.0f, true);
 		}
 	}
+
+	auto trapper = new Trapper(enemyMesh, basicShader, maze);
+	world->AddGameObject(trapper);
+	networkWorld->trackObject(trapper);
 
 	physics->dirtyStaticsTree();
 	SpawnMissingPlayers();

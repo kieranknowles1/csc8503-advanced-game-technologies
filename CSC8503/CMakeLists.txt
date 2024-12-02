@@ -11,6 +11,7 @@ set(Header_Files
     "NetworkWorld.h"
     Resources.h
     "StateGameObject.h"
+    Trapper.h
     "TutorialGame.h"
 )
 source_group("Header Files" FILES ${Header_Files})
@@ -26,6 +27,7 @@ set(Source_Files
     "NetworkWorld.cpp"
     Resources.cpp
     "StateGameObject.cpp"
+    Trapper.cpp
     "TutorialGame.cpp"
 )
 
