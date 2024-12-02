@@ -1,5 +1,7 @@
 #pragma once
 
+#include "NetworkBase.h"
+
 // Helper to parse command line arguments
 // Throws std::runtime_error if an unknown argument is encountered
 // Exits the program if the help flag is found
@@ -18,7 +20,7 @@ public:
 	}
 private:
 	bool server = false;
-	uint32_t ip = (127 << 24) | (0 << 16) | (0 << 8) | 1;
+	uint32_t ip = NetworkBase::ipv4(127, 0, 0, 1); // Default to localhost
 
     void printUsage(char* programName) const;
 };

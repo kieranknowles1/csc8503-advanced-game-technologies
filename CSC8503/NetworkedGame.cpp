@@ -235,6 +235,7 @@ void NetworkedGame::SpawnMissingPlayers() {
 void NetworkedGame::ClearWorld() {
 	TutorialGame::ClearWorld();
 	networkWorld->reset();
+	physics->dirtyStaticsTree();
 
 	for (auto& player : allPlayers) {
 		player.second.player = nullptr;
@@ -244,7 +245,7 @@ void NetworkedGame::ClearWorld() {
 
 void NetworkedGame::StartLevel() {
 	ClearWorld();
-	
+
 	AddFloorToWorld(Vector3(0, 0, 0));
 
 	auto netCube = AddCubeToWorld(Vector3(0, 20, 0), Vector3(1, 1, 5), 0.5f);
@@ -259,6 +260,7 @@ void NetworkedGame::StartLevel() {
 		}
 	}
 
+	physics->dirtyStaticsTree();
 	SpawnMissingPlayers();
 }
 

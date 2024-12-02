@@ -110,6 +110,10 @@ public:
 		return 1234;
 	}
 
+	static constexpr uint32_t ipv4(unsigned char a, unsigned char b, unsigned char c, unsigned char d) {
+		return (d << 24) | (c << 16) | (b << 8) | a;
+	}
+
 	void RegisterPacketHandler(GamePacket::Type msgID, PacketReceiver* receiver) {
 		packetHandlers.insert(std::make_pair(msgID, receiver));
 	}

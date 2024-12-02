@@ -35,7 +35,7 @@ Cli::Cli(int argc, char** argv) {
             if (sscanf_s(ipStr.c_str(), "%hhu.%hhu.%hhu.%hhu", &a, &b, &c, &d) != 4) {
 				throw std::runtime_error("Invalid IP address: " + ipStr);
 			}
-            ip = (d << 24) | (c << 16) | (b << 8) | a;
+            ip = NetworkBase::ipv4(a, b, c, d);
         }
         else if (arg == "-s" || arg == "--server") {
             server = true;
