@@ -4,6 +4,10 @@
 #include <stdexcept>
 #include <iostream>
 
+#ifndef _WIN32
+#define sscanf_s sscanf
+#endif
+
 Cli::Cli(int argc, char** argv) {
     int i = 1; // Skip the first argument, which is the program name
     // Read and consume the next argument
