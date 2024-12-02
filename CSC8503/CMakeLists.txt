@@ -5,11 +5,13 @@ set(PROJECT_NAME CSC8503)
 ################################################################################
 set(Header_Files
     "Cli.h"
+    Client.h
     "GameTechRenderer.h"
     "NetworkedGame.h"
     "NetworkPlayer.h"
     "NetworkWorld.h"
     Resources.h
+    Server.h
     "StateGameObject.h"
     Trapper.h
     "TutorialGame.h"
@@ -20,12 +22,14 @@ source_group("Header Files" FILES ${Header_Files})
 
 set(Source_Files
     "Cli.cpp"
+    Client.cpp
     "GameTechRenderer.cpp"
     "Main.cpp"
     "NetworkedGame.cpp"
     "NetworkPlayer.cpp"
     "NetworkWorld.cpp"
     Resources.cpp
+    Server.cpp
     "StateGameObject.cpp"
     Trapper.cpp
     "TutorialGame.cpp"

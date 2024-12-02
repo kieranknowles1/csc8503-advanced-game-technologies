@@ -2,6 +2,9 @@
 
 #include <map>
 
+#include "Client.h"
+#include "Server.h"
+
 #include "Cli.h"
 #include "NavigationGrid.h"
 #include "TutorialGame.h"
@@ -26,7 +29,7 @@ namespace NCL {
 			char count;
 			PlayerState playerStates[MaxPlayers];
 
-			PlayerListPacket(std::map<int, LocalPlayerState>& players) : GamePacket(Type::PlayerList) {
+			PlayerListPacket(const std::map<int, LocalPlayerState>& players) : GamePacket(Type::PlayerList) {
 				size = sizeof(PlayerListPacket) - sizeof(GamePacket);
 				count = (char)players.size();
 
@@ -76,12 +79,14 @@ namespace NCL {
 			NetworkedGame(const Cli& cli);
 			~NetworkedGame();
 
-			void StartAsServer();
 			void StartAsClient(uint32_t addr);
 
 			void UpdateGame(float dt) override;
 
 			const static constexpr int PlayerIdStart = 100000;
+
+			NetworkPlayer* insertPlayer(int index);
+
 			NetworkPlayer* SpawnPlayer(int id);
 			void SpawnMissingPlayers();
 
@@ -92,6 +97,10 @@ namespace NCL {
 
 			void OnPlayerCollision(NetworkPlayer* a, NetworkPlayer* b);
 
+			const std::map<int, LocalPlayerState>& GetAllPlayers() const {
+				return allPlayers;
+			}
+
 		protected:
 			void ProcessInput(float dt);
 
@@ -100,11 +109,6 @@ namespace NCL {
 			void ProcessPacket(PlayerListPacket* payload);
 			void ProcessPacket(HelloPacket* payload);
 
-			void ProcessPacket(ClientPacket* payload, int source);
-
-			void ProcessPlayerConnect(int playerID);
-			void ProcessPlayerDisconnect(int playerID);
-
 			void UpdateAsServer(float dt);
 			void UpdateAsClient(float dt);
 
@@ -112,8 +116,10 @@ namespace NCL {
 			void UpdateMinimumState();
 			std::map<int, int> stateIDs;
 
+			Client* client;
+			Server* server;
+
 			// TODO: Make this a Server class
-			GameServer* thisServer;
 			// Tick every n seconds
 			float inverseTickRate = 1.0f / 60.0f;
 			// Send a snapshot every n ticks

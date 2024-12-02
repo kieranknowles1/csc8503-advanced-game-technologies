@@ -22,7 +22,8 @@ struct MessagePacket : public GamePacket {
 };
 
 NetworkedGame::NetworkedGame(const Cli& cli) {
-	thisServer = nullptr;
+	server = nullptr;
+	client = nullptr;
 	thisClient = nullptr;
 	maze = nullptr;
 
@@ -31,15 +32,14 @@ NetworkedGame::NetworkedGame(const Cli& cli) {
 	packetsToSnapshot = 0;
 
 	if (cli.isServer()) {
-		StartAsServer();
-	}
-	else {
+		server = new Server(this, MaxPlayers);
+	} else {
 		StartAsClient(cli.getIp());
 	}
 
-	networkWorld = new NetworkWorld(thisClient, thisServer);
+	networkWorld = new NetworkWorld(thisClient, server ? server->getServer() : nullptr);
 
-	if (thisServer) {
+	if (server) {
 		int playerId = -1;
 		auto obj = SpawnPlayer(PlayerIdStart + playerId);
 		localPlayer = PlayerState{ playerId, obj->GetNetworkObject()->getId() };
@@ -54,16 +54,9 @@ NetworkedGame::NetworkedGame(const Cli& cli) {
 
 NetworkedGame::~NetworkedGame()	{
 	ClearWorld();
-	delete thisServer;
+	delete server;
+	delete client;
 	delete thisClient;
-}
-
-void NetworkedGame::StartAsServer() {
-	thisServer = new GameServer(NetworkBase::GetDefaultPort(), MaxPlayers);
-
-	thisServer->RegisterPacketHandler(GamePacket::Type::ClientState, this);
-	thisServer->RegisterPacketHandler(GamePacket::Type::Server_ClientConnect, this);
-	thisServer->RegisterPacketHandler(GamePacket::Type::Server_ClientDisconnect, this);
 }
 
 void NetworkedGame::StartAsClient(uint32_t addr) {
@@ -71,9 +64,6 @@ void NetworkedGame::StartAsClient(uint32_t addr) {
 	thisClient = new GameClient();
 	thisClient->Connect(addr, NetworkBase::GetDefaultPort());
 
-	// TODO
-	//thisClient->RegisterPacketHandler(GamePacket::Type::Player_Connected, this);
-	//thisClient->RegisterPacketHandler(GamePacket::Type::Player_Disconnected, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::Reset, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerConnected, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerDisconnected, this);
@@ -83,13 +73,13 @@ void NetworkedGame::StartAsClient(uint32_t addr) {
 
 void NetworkedGame::UpdateGame(float dt) {
 	timeToNextPacket -= dt;
-	if (thisServer)
-		Debug::Print("This is a server with " + std::to_string(thisServer->getClientCount()) + " clients\n", Vector2(10, 10));
+	if (server)
+		Debug::Print("This is a server with " + std::to_string(server->getServer()->getClientCount()) + " clients\n", Vector2(10, 10));
 	if (thisClient)
 		Debug::Print("This is a client\n", Vector2(10, 20));
 
 	if (timeToNextPacket < 0) {
-		if (thisServer) {
+		if (server) {
 			UpdateAsServer(dt);
 		} else if (thisClient) {
 			UpdateAsClient(dt);
@@ -118,7 +108,7 @@ void NetworkedGame::ProcessInput(float dt) {
 	// Track the player with the camera
 	lockedObject = freeCam ? nullptr : playerObject;
 
-	if (thisServer) {
+	if (server) {
 		playerObject->setLastInput(input);
 	} else {
 		ClientPacket newPacket;
@@ -132,7 +122,7 @@ void NetworkedGame::ProcessInput(float dt) {
 void NetworkedGame::UpdateAsServer(float dt) {
 	if (Window::GetKeyboard()->KeyDown(KeyCodes::F11)) {
 		auto reset = GamePacket(GamePacket::Type::Reset);
-		thisServer->SendGlobalPacket(reset);
+		server->getServer()->SendGlobalPacket(reset);
 		StartLevel();
 	}
 
@@ -146,7 +136,7 @@ void NetworkedGame::UpdateAsServer(float dt) {
 	}
 
 	// Process any packets received and flush the send buffer
-	thisServer->UpdateServer();
+	server->getServer()->UpdateServer();
 }
 
 void NetworkedGame::UpdateAsClient(float dt) {
@@ -193,7 +183,7 @@ void NetworkedGame::BroadcastSnapshot(bool deltaFrame) {
 		int playerState = o->GetLastFullState().stateID;
 		GamePacket* newPacket = nullptr;
 		if (o->WritePacket(&newPacket, deltaFrame, playerState)) {
-			thisServer->SendGlobalPacket(*newPacket);
+			server->getServer()->SendGlobalPacket(*newPacket);
 			delete newPacket;
 		}
 	}
@@ -221,6 +211,15 @@ void NetworkedGame::UpdateMinimumState() {
 		}
 		o->UpdateStateHistory(minID); //clear out old states so they arent taking up memory...
 	}
+}
+
+NetworkPlayer* NetworkedGame::insertPlayer(int index) {
+	auto obj = SpawnPlayer(index + PlayerIdStart);
+	allPlayers[index] = {
+		PlayerState(index, obj->GetNetworkObject()->getId()),
+		obj
+	};
+	return obj;
 }
 
 NetworkPlayer* NetworkedGame::SpawnPlayer(int id) {
@@ -274,12 +273,6 @@ void NetworkedGame::StartLevel() {
 	SpawnMissingPlayers();
 }
 
-//void NetworkedGame::ProcessPacket(PlayerConnectedPacket* payload) {
-//	std::cout << "Player " << payload->playerID << " connected\n";
-//	auto obj = SpawnPlayer(payload->playerObjectID);
-//	allPlayers[payload->playerID] = obj;
-//}
-
 void NetworkedGame::ProcessPacket(PlayerDisconnectedPacket* payload) {
 	std::cout << "Player " << payload->playerID << " disconnected\n";
 }
@@ -302,53 +295,9 @@ void NetworkedGame::ProcessPacket(HelloPacket* payload) {
 	localPlayer = payload->whoAmI;
 }
 
-void NetworkedGame::ProcessPlayerConnect(int playerID)
-{
-	std::cout << "Player " << playerID << " connected\n";
-	// TODO: Implement
-	auto playerObject = SpawnPlayer(PlayerIdStart + playerID);
-	allPlayers[playerID] = LocalPlayerState{
-		PlayerState{playerID, playerObject->GetNetworkObject()->getId()},
-		playerObject
-	};
-
-	PlayerConnectedPacket newPacket(playerID, playerObject);
-	thisServer->SendGlobalPacket(newPacket);
-
-	PlayerListPacket listPacket(allPlayers);
-	thisServer->SendGlobalPacket(listPacket);
-
-	HelloPacket helloPacket{
-		PlayerState{playerID, playerObject->GetNetworkObject()->getId()}
-	};
-	thisServer->SendClientPacket(playerID, helloPacket);
-}
-
-void NetworkedGame::ProcessPacket(ClientPacket* payload, int source) {
-	std::cout << "Received packet " << payload->index << " from " << source << "\n";
-	auto it = allPlayers.find(source);
-	if (it != allPlayers.end()) {
-		it->second.player->setLastInput(payload->input);
-	}
-}
-
-void NetworkedGame::ProcessPlayerDisconnect(int playerID)
-{
-	std::cout << "Player " << playerID << " disconnected\n";
-	// TODO: Implement
-}
-
 void NetworkedGame::ReceivePacket(GamePacket::Type type, GamePacket* payload, int source) {
 	switch (type)
 	{
-	// Server events
-	case GamePacket::Type::Server_ClientConnect:
-		return ProcessPlayerConnect(source);
-	case GamePacket::Type::Server_ClientDisconnect:
-		return ProcessPlayerDisconnect(source);
-	case GamePacket::Type::ClientState:
-		return ProcessPacket((ClientPacket*)payload, source);
-
 	// Client events
 	case GamePacket::Type::PlayerConnected:
 	//	return ProcessPacket((PlayerConnectedPacket*)payload);
