@@ -261,7 +261,7 @@ void NetworkedGame::StartLevel() {
 	for (int i = 0; i < maze->getNodeCount(); i++) {
 		GridNode* node = maze->getNode(i);
 		if (node->type == WALL_NODE) {
-			AddCubeToWorld(node->position, Vector3(nodeSize/2, nodeSize, nodeSize/2), 0.0f);
+			AddCubeToWorld(node->position, Vector3(nodeSize/2, nodeSize, nodeSize/2), 0.0f, true);
 		}
 	}
 
