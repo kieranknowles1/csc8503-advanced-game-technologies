@@ -2,10 +2,10 @@
 
 #include <cstring>
 
-//#include "./enet/enet.h"
 struct _ENetHost;
 struct _ENetPeer;
 struct _ENetEvent;
+using enet_uint8 = unsigned char;
 
 struct GamePacket {
 	enum class Type : short {
@@ -117,6 +117,9 @@ protected:
 	~NetworkBase();
 
 	bool ProcessPacket(GamePacket* p, int peerID = -1);
+	// Process a list of packets that have been packed into a single data buffer
+	// This ensures they are processed in the order they were queued for sending
+	bool ProcessPackedPackets(std::span<enet_uint8> buffer, int peerID = -1);
 
 	using PacketHandlerMap = std::multimap<GamePacket::Type, PacketReceiver*>;
 	using PacketHandlerIterator = PacketHandlerMap::const_iterator;

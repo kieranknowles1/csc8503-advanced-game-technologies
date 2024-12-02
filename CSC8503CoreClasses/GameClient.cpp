@@ -48,8 +48,7 @@ void GameClient::UpdateClient() {
 			ProcessPacket(&p);
 			break;
 		} case ENET_EVENT_TYPE_RECEIVE: {
-			GamePacket* payload = (GamePacket*)event.packet->data;
-			ProcessPacket(payload);
+			ProcessPackedPackets(std::span(event.packet->data, event.packet->dataLength));
 			break;
 		} default:
 			std::cerr << "Unhandled network event type: " << event.type << std::endl;

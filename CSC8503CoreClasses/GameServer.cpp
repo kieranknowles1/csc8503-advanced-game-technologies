@@ -44,8 +44,10 @@ bool GameServer::SendGlobalPacket(GamePacket::Type msgID) {
 
 // Send a packet with a payload to all clients
 bool GameServer::SendGlobalPacket(GamePacket& packet) {
-	ENetPacket* enetPacket = enet_packet_create(&packet, packet.GetTotalSize(), 0);
-	enet_host_broadcast(netHandle, 0, enetPacket);
+	// Add the packet to the global send queue
+	globalSendQueue.resize(globalSendQueue.size() + packet.GetTotalSize());
+	auto next = globalSendQueue.end() - packet.GetTotalSize();
+	memcpy(&(*next), &packet, packet.GetTotalSize());
 	return true;
 }
 
@@ -62,6 +64,15 @@ void GameServer::UpdateServer() {
 		return;
 	}
 
+	// Send any global packets waiting in the queue,
+	// bundled into one to reduce network overhead
+	if (!globalSendQueue.empty()) {
+		ENetPacket* packet = enet_packet_create(globalSendQueue.data(), globalSendQueue.size(), 0);
+		enet_host_broadcast(netHandle, 0, packet);
+		globalSendQueue.clear();
+	}
+
+	// Receive incoming packets
 	ENetEvent event;
 	while (enet_host_service(netHandle, &event, 0) > 0) {
 		int type = event.type;

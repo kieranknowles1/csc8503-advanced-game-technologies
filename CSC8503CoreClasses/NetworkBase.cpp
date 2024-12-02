@@ -32,3 +32,24 @@ bool NetworkBase::ProcessPacket(GamePacket* packet, int peerID) {
 	}
 	return true;
 }
+
+bool NetworkBase::ProcessPackedPackets(std::span<enet_uint8> buffer, int peerID)
+{
+	int count = 0;
+	while (!buffer.empty()) {
+		// Safety checks - ensure we have enough data to read the packet in full
+		// If not, we have a buffer overrun and should stop processing
+		if (buffer.size() < sizeof(GamePacket)) {
+			throw std::runtime_error("Buffer overrun while reading packet header");
+		}
+		GamePacket* packet = reinterpret_cast<GamePacket*>(buffer.data());
+		// A well-formed packet will have its size set correctly
+		if (buffer.size() < packet->GetTotalSize()) {
+			throw std::runtime_error("Buffer overrun while reading packet payload");
+		}
+		ProcessPacket(packet, peerID);
+		buffer = buffer.subspan(packet->GetTotalSize());
+		count++;
+	}
+	return true;
+}

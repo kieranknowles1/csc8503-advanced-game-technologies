@@ -34,6 +34,11 @@ namespace NCL {
 
 			int incomingDataRate;
 			int outgoingDataRate;
+
+			// Packet payloads waiting to be sent to all clients
+			// To decode, cast to GamePacket and read type. Once
+			// processed, seek forward by GetTotalSize() bytes
+			std::vector<char> globalSendQueue;
 		};
 	}
 }
