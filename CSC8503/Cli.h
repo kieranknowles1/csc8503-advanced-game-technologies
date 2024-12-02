@@ -12,7 +12,7 @@ public:
 	bool isServer() const {
 		// TODO: Don't invert this
 		// TODO: Script to run both server and client
-		return server;
+		return !server;
 	}
 
 	uint32_t getIp() const {

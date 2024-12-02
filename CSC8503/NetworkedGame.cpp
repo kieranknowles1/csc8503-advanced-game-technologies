@@ -109,8 +109,12 @@ void NetworkedGame::ProcessInput(float dt) {
 
 	auto input = playerObject->processInput();
 
+	if (Window::GetKeyboard()->KeyPressed(KeyCodes::F2)) {
+		freeCam = !freeCam;
+	}
+
 	// Track the player with the camera
-	lockedObject = playerObject;
+	lockedObject = freeCam ? nullptr : playerObject;
 
 	if (thisServer) {
 		playerObject->setLastInput(input);

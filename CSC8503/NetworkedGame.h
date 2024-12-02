@@ -134,6 +134,8 @@ namespace NCL {
 			std::map<int, LocalPlayerState> allPlayers;
 			PlayerState localPlayer;
 
+			bool freeCam = false;
+
 			// World stuff
 			NavigationGrid* maze;
 		};
