@@ -23,6 +23,7 @@ struct MessagePacket : public GamePacket {
 NetworkedGame::NetworkedGame(const Cli& cli) {
 	thisServer = nullptr;
 	thisClient = nullptr;
+	maze = nullptr;
 
 	NetworkBase::Initialise();
 	timeToNextPacket  = 0.0f;

@@ -57,6 +57,7 @@
           libGL
           SDL2
           tmux
+          gdb
         ];
       in {
         # Per system type
