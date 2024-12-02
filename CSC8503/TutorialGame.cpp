@@ -371,11 +371,15 @@ NetworkPlayer* TutorialGame::AddPlayerToWorld(const Vector3& position) {
 		.SetPosition(position);
 
 	character->SetRenderObject(new RenderObject(&character->GetTransform(), catMesh, nullptr, basicShader));
+
 	character->SetPhysicsObject(new PhysicsObject(&character->GetTransform(), character->GetBoundingVolume()));
 	character->GetPhysicsObject()->SetElasticity(0.1f);
 
 	character->GetPhysicsObject()->SetInverseMass(inverseMass);
 	character->GetPhysicsObject()->InitSphereInertia();
+
+	character->GetPhysicsObject()->SetAngularDamping(0.5f);
+	character->GetPhysicsObject()->SetLinearDamping(0.5f);
 
 	world->AddGameObject(character);
 

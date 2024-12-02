@@ -15,6 +15,9 @@ bool GameClient::Connect(uint32_t addr, int portNum) {
 	ENetAddress address;
 	address.port = portNum;
 	address.host = addr;
+
+	std::cout << "Connecting to server on " << (int)(address.host & 0xff) << "." << (int)((address.host >> 8) & 0xff) << "." << (int)((address.host >> 16) & 0xff) << "." << (int)((address.host >> 24) & 0xff) << ":" << address.port << std::endl;
+
 	netPeer = enet_host_connect(netHandle, &address, 2, 0);
 
 	if (netPeer == nullptr) {
