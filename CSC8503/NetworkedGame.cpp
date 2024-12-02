@@ -124,8 +124,6 @@ void NetworkedGame::ProcessInput(float dt) {
 }
 
 void NetworkedGame::UpdateAsServer(float dt) {
-	thisServer->UpdateServer();
-
 	if (Window::GetKeyboard()->KeyDown(KeyCodes::F11)) {
 		auto reset = GamePacket(GamePacket::Type::Reset);
 		thisServer->SendGlobalPacket(reset);
@@ -140,6 +138,9 @@ void NetworkedGame::UpdateAsServer(float dt) {
 	else {
 		BroadcastSnapshot(true);
 	}
+
+	// Process any packets received and flush the send buffer
+	thisServer->UpdateServer();
 }
 
 void NetworkedGame::UpdateAsClient(float dt) {
@@ -181,7 +182,9 @@ void NetworkedGame::BroadcastSnapshot(bool deltaFrame) {
 		//and store the lastID somewhere. A map between player
 		//and an int could work, or it could be part of a
 		//NetworkPlayer struct.
-		int playerState = 0;
+
+		// TODO: Set to the last state that all players have acknowledged
+		int playerState = o->GetLastFullState().stateID;
 		GamePacket* newPacket = nullptr;
 		if (o->WritePacket(&newPacket, deltaFrame, playerState)) {
 			thisServer->SendGlobalPacket(*newPacket);

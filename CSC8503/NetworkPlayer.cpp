@@ -6,6 +6,7 @@
 
 namespace NCL::CSC8503 {
 	PlayerInput NetworkPlayer::processInput() {
+		// std::cout << transform.GetPosition().x << " " << transform.GetPosition().y << " " << transform.GetPosition().z << std::endl;
 		auto keyboard = Window::GetKeyboard();
 
 		PlayerInput input;

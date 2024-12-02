@@ -16,12 +16,19 @@ namespace NCL::CSC8503 {
 		}
 	};
 
+	// Divisor for delta position values, converts from fixed point to float
+	// Divide by this when reading, multiply by this when writing
+	// ~1mm resolution
+	const constexpr float DeltaPositionFactor = 1024;
+	const constexpr float DeltaOrientationFactor = 127;
 	struct DeltaPacket : public GamePacket {
+		using PositionType = short;
+
 		// The ID of the last full state
 		// Reject this delta if it doesn't match the last full state
 		int		fullID		= -1;
 		int		objectID	= -1;
-		char	pos[3];
+		PositionType	pos[3];
 		char	orientation[4];
 
 		DeltaPacket() : GamePacket(Type::Delta_State) {
@@ -47,6 +54,10 @@ namespace NCL::CSC8503 {
 		virtual bool WritePacket(GamePacket** p, bool deltaFrame, int stateID);
 
 		void UpdateStateHistory(int minID);
+
+		NetworkState& GetLastFullState() {
+			return lastFullState;
+		}
 
 	protected:
 

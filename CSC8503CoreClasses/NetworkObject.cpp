@@ -29,6 +29,7 @@ bool NetworkObject::WritePacket(GamePacket** p, bool deltaFrame, int stateID) {
 		if (!WriteDeltaPacket(p, stateID)) {
 			return WriteFullPacket(p);
 		}
+		return true;
 	}
 	// Send a full snapshot
 	return WriteFullPacket(p);
@@ -37,6 +38,7 @@ bool NetworkObject::WritePacket(GamePacket** p, bool deltaFrame, int stateID) {
 bool NetworkObject::ReadDeltaPacket(DeltaPacket &p) {
 	// This is relative to the wrong FullPacket
 	if (p.fullID != lastFullState.stateID) {
+		std::cout << "DeltaPacket for object " << networkID << " is out of date!\n";
 		return false;
 	}
 	UpdateStateHistory(p.fullID);
@@ -44,14 +46,14 @@ bool NetworkObject::ReadDeltaPacket(DeltaPacket &p) {
 	Vector3 fullPos = lastFullState.position;
 	Quaternion fullOr = lastFullState.orientation;
 
-	fullPos.x += p.pos[0];
-	fullPos.y += p.pos[1];
-	fullPos.z += p.pos[2];
+	fullPos.x += p.pos[0] / DeltaPositionFactor;
+	fullPos.y += p.pos[1] / DeltaPositionFactor;
+	fullPos.z += p.pos[2] / DeltaPositionFactor;
 
-	fullOr.x += ((float)p.orientation[0] / 127.0f);
-	fullOr.y += ((float)p.orientation[1] / 127.0f);
-	fullOr.z += ((float)p.orientation[2] / 127.0f);
-	fullOr.w += ((float)p.orientation[3] / 127.0f);
+	fullOr.x += ((float)p.orientation[0] / DeltaOrientationFactor);
+	fullOr.y += ((float)p.orientation[1] / DeltaOrientationFactor);
+	fullOr.z += ((float)p.orientation[2] / DeltaOrientationFactor);
+	fullOr.w += ((float)p.orientation[3] / DeltaOrientationFactor);
 
 	object.GetTransform().SetPosition(fullPos);
 	object.GetTransform().SetOrientation(fullOr);
@@ -86,25 +88,28 @@ bool NetworkObject::WriteDeltaPacket(GamePacket**p, int stateID) {
 	currentOr -= state.orientation;
 
 	// NOTE: We write deltas as integers to save bandwidth, we need occasional full updates to correct errors
-	dp->pos[0] = (char)(currentPos.x);
-	dp->pos[1] = (char)(currentPos.y);
-	dp->pos[2] = (char)(currentPos.z);
+	// TODO: Detect overflows and fail to send the delta packet
+	dp->pos[0] = (DeltaPacket::PositionType)(currentPos.x * DeltaPositionFactor);
+	dp->pos[1] = (DeltaPacket::PositionType)(currentPos.y * DeltaPositionFactor);
+	dp->pos[2] = (DeltaPacket::PositionType)(currentPos.z * DeltaPositionFactor);
 
-	dp->orientation[0] = (char)(currentOr.x * 127.0f);
-	dp->orientation[1] = (char)(currentOr.y * 127.0f);
-	dp->orientation[2] = (char)(currentOr.z * 127.0f);
-	dp->orientation[3] = (char)(currentOr.w * 127.0f);
+	dp->orientation[0] = (char)(currentOr.x * DeltaOrientationFactor);
+	dp->orientation[1] = (char)(currentOr.y * DeltaOrientationFactor);
+	dp->orientation[2] = (char)(currentOr.z * DeltaOrientationFactor);
+	dp->orientation[3] = (char)(currentOr.w * DeltaOrientationFactor);
 	*p = dp;
 	return true;
 }
 
 bool NetworkObject::WriteFullPacket(GamePacket**p) {
 	FullPacket* fp = new FullPacket();
+	lastFullState.stateID++;
 	fp->objectID = networkID;
 	fp->fullState.position = object.GetTransform().GetPosition();
 	fp->fullState.orientation = object.GetTransform().GetOrientation();
 	fp->fullState.stateID = lastFullState.stateID;
-	lastFullState.stateID++;
+	lastFullState = fp->fullState;
+	stateHistory.push_back(lastFullState);
 	*p = fp;
 	return true;
 }

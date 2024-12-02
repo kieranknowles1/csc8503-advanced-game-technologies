@@ -127,8 +127,6 @@ namespace NCL {
 
 			std::map<int, LocalPlayerState> allPlayers;
 			PlayerState localPlayer;
-			//std::map<int, GameObject*> allPlayers;
-			//GameObject* localPlayer;
 		};
 	}
 }
