@@ -56,6 +56,7 @@
         deps = with pkgs; [
           libGL
           SDL2
+          tmux
         ];
       in {
         # Per system type
