@@ -22,7 +22,6 @@
       inputs.factorio-blueprints.follows = "";
       inputs.firefox-addons.follows = "";
       inputs.flake-utils-plus.follows = "";
-      inputs.flake-utils.follows = "";
       inputs.home-manager.follows = "";
       inputs.nix-index-database.follows = "";
       inputs.nixos-cosmic.follows = "";
@@ -34,7 +33,6 @@
       inputs.sops-nix.follows = "";
       inputs.src-factorio-blueprint-decoder.follows = "";
       inputs.stylix.follows = "";
-      inputs.vscode-extensions.follows = "";
     };
   };
 
@@ -42,10 +40,7 @@
     flake-parts,
     nixcfg,
     ...
-  } @ inputs: let
-    cfgLib = nixcfg.lib;
-  in
-    flake-parts.lib.mkFlake {inherit inputs;} {
+  } @ inputs: flake-parts.lib.mkFlake {inherit inputs;} {
       systems = import inputs.systems;
 
       imports = [
@@ -57,44 +52,18 @@
         # Shared across all systems
       };
 
-      perSystem = {pkgs, ...}: let
+      perSystem = {pkgs, system, ...}: let
         deps = with pkgs; [
-          cmake
           libGL
           SDL2
-          gdb
-          clang # I find clang error more readable than gcc
         ];
       in {
         # Per system type
         devShells = {
           # Wrapper that sets the magic DEVSHELL variable, and preserves the user's default shell
           # Usage: `nix develop [.#name=default]`
-          default = cfgLib.shell.mkShellEx pkgs.mkShellNoCC {
-            name = "dev";
-            # Install all dependencies for the duration of the shell
-            packages = deps ++ [
-              pkgs.renderdoc
-              pkgs.tmux
-            ];
-
-            # Apply a more limited set of optimizations while including debug info
-            CMAKE_FLAGS = "-DCMAKE_BUILD_TYPE=RelWithDebInfo";
-
-            # Bash snippet that runs when entering the shell
-            # mkShelllEx execs into $SHELL after this, so
-            # aliases and functions will not be kept
-            shellHook = ''
-              # mkcd into build if not already
-              if [[ "$PWD" != *build ]]; then
-                mkdir "build"
-                cd "build"
-              fi
-
-              cmake ..
-              code ..
-              cd ..
-            '';
+          default = nixcfg.devShells.${system}.cmake.override {
+            libraries = deps;
           };
         };
 
