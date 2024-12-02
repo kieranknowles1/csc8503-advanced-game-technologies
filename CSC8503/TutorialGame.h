@@ -26,7 +26,7 @@ namespace NCL {
 			void InitCamera();
 			void UpdateKeys();
 
-			void ClearWorld();
+			virtual void ClearWorld();
 			void InitWorld();
 
 			/*

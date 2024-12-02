@@ -37,7 +37,7 @@ using namespace CSC8503;
 #include <sstream>
 
 NavigationPath TestPathfinding() {
-	NavigationGrid grid("maze.txt");
+	NavigationGrid grid("maze.txt", Vector3(32, 0, 32));
 	grid.debugDraw();
 	NavigationPath outPath;
 

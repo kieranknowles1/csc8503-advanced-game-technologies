@@ -51,6 +51,7 @@ NetworkedGame::NetworkedGame(const Cli& cli) {
 }
 
 NetworkedGame::~NetworkedGame()	{
+	ClearWorld();
 	delete thisServer;
 	delete thisClient;
 }
@@ -231,17 +232,32 @@ void NetworkedGame::SpawnMissingPlayers() {
 	}
 }
 
-void NetworkedGame::StartLevel() {
-	ClearWorld();
+void NetworkedGame::ClearWorld() {
+	TutorialGame::ClearWorld();
 	networkWorld->reset();
+
 	for (auto& player : allPlayers) {
 		player.second.player = nullptr;
 	}
+	delete maze;
+}
 
-	InitDefaultFloor();
+void NetworkedGame::StartLevel() {
+	ClearWorld();
+	
+	AddFloorToWorld(Vector3(0, 0, 0));
 
 	auto netCube = AddCubeToWorld(Vector3(0, 20, 0), Vector3(1, 1, 5), 0.5f);
 	networkWorld->trackObject(netCube);
+
+	maze = new NavigationGrid("maze.txt", Vector3(32, 0, 32));
+	int nodeSize = maze->getNodeSize();
+	for (int i = 0; i < maze->getNodeCount(); i++) {
+		GridNode* node = maze->getNode(i);
+		if (node->type == WALL_NODE) {
+			AddCubeToWorld(node->position, Vector3(nodeSize/2, nodeSize, nodeSize/2), 0.0f);
+		}
+	}
 
 	SpawnMissingPlayers();
 }

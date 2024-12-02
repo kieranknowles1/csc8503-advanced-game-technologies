@@ -3,6 +3,9 @@
 #include <string>
 namespace NCL {
 	namespace CSC8503 {
+		const constexpr char WALL_NODE = 'x';
+		const constexpr char FLOOR_NODE = '.';
+
 		struct GridNode {
 			GridNode* connected[4];
 			int		  costs[4];
@@ -46,8 +49,18 @@ namespace NCL {
 		class NavigationGrid : public NavigationMap	{
 		public:
 			NavigationGrid();
-			NavigationGrid(const std::string&filename);
+			NavigationGrid(const std::string&filename, Vector3 offset = Vector3());
 			~NavigationGrid();
+
+			int getNodeCount() const {
+				return gridWidth * gridHeight;
+			}
+			int getNodeSize() const {
+				return nodeSize;
+			}
+			GridNode* getNode(int idx) const {
+				return &allNodes[idx];
+			}
 
 			bool FindPath(const Vector3& from, const Vector3& to, NavigationPath& outPath) const override;
 

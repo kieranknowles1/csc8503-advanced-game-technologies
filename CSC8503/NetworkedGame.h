@@ -3,6 +3,7 @@
 #include <map>
 
 #include "Cli.h"
+#include "NavigationGrid.h"
 #include "TutorialGame.h"
 #include "NetworkBase.h"
 #include "NetworkObject.h"
@@ -84,6 +85,7 @@ namespace NCL {
 			NetworkPlayer* SpawnPlayer(int id);
 			void SpawnMissingPlayers();
 
+			void ClearWorld() override;
 			void StartLevel();
 
 			void ReceivePacket(GamePacket::Type type, GamePacket* payload, int source) override;
@@ -131,6 +133,9 @@ namespace NCL {
 
 			std::map<int, LocalPlayerState> allPlayers;
 			PlayerState localPlayer;
+
+			// World stuff
+			NavigationGrid* maze;
 		};
 	}
 }
