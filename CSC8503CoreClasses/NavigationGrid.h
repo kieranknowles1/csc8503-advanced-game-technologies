@@ -70,6 +70,7 @@ namespace NCL {
 			void debugDraw();
 		protected:
 			float		Heuristic(GridNode* hNode, GridNode* endNode) const;
+			Vector3 offset;
 			int nodeSize;
 			int gridWidth;
 			int gridHeight;

@@ -12,6 +12,8 @@
 #include "NetworkObject.h"
 #include "NetworkWorld.h"
 
+#include "Rng.h"
+
 namespace NCL {
 	namespace CSC8503 {
 		static const constexpr int MaxPlayers = 64;
@@ -140,6 +142,10 @@ namespace NCL {
 
 			// World stuff
 			NavigationGrid* maze;
+
+			// Only the server has authority to run RNG
+			// TODO: Make this part of the server class
+			Rng rng;
 		};
 	}
 }

@@ -244,7 +244,7 @@ void NetworkedGame::StartLevel() {
 		}
 	}
 
-	auto trapper = new Trapper(enemyMesh, basicShader, maze);
+	auto trapper = new Trapper(rng, enemyMesh, basicShader, maze);
 	world->AddGameObject(trapper);
 	networkWorld->trackObject(trapper);
 

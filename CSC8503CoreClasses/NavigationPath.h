@@ -9,6 +9,10 @@ namespace NCL {
 			NavigationPath() {}
 			~NavigationPath() {}
 
+			bool empty() const {
+				return waypoints.empty();
+			}
+
 			void	Clear() {
 				waypoints.clear();
 			}
@@ -16,7 +20,7 @@ namespace NCL {
 				waypoints.emplace_back(wp);
 			}
 			bool	PopWaypoint(Vector3& waypoint) {
-				if (waypoints.empty()) {
+				if (empty()) {
 					return false;
 				}
 				waypoint = waypoints.back();

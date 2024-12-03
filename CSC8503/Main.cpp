@@ -50,6 +50,7 @@ NavigationPath TestPathfinding() {
 }
 
 void DisplayPathfinding() {
+	return;
 	auto path = TestPathfinding();
 	std::vector<Vector3> nodes;
 	Vector3 pos;
@@ -67,11 +68,11 @@ void testStateMachine() {
 	StateMachine* machine = new StateMachine();
 	int data = 0;
 
-	State* a = new State([&](float dt)->void {
+	State* a = new FunctionState([&](float dt)->void {
 		std::cout << "Guten tag! Ich bin ein state A!" << std::endl;
 		data++;
 	});
-	State* b = new State([&](float dt)-> void {
+	State* b = new FunctionState([&](float dt)-> void {
 		std::cout << "Bonjour! Je suis un state B!" << std::endl;
 		data--;
 	});

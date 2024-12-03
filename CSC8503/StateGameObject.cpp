@@ -12,11 +12,11 @@ StateGameObject::StateGameObject()
 	, stateMachine(new StateMachine())
 {
 	// Lambdas can capture locals such as the `this` pointer
-	State* stateA = new State([&](float dt)->void {
+	State* stateA = new FunctionState([&](float dt)->void {
 		counter += dt;
 		MoveLeft(dt);
 	});
-	State* stateB = new State([&](float dt)->void {
+	State* stateB = new FunctionState([&](float dt)->void {
 		counter -= dt;
 		MoveRight(dt);
 	});
