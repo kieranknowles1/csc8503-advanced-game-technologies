@@ -22,7 +22,10 @@ namespace NCL::CSC8503 {
 
         void setTarget(Vector3 target) {
 			this->target = target;
+            // Force a pathfind
             path.Clear();
+            // Force a new waypoint to be selected
+            nextWaypoint = owner->GetTransform().GetPosition();
 		}
 
         float getDistanceThreshold() const {
@@ -32,8 +35,18 @@ namespace NCL::CSC8503 {
             return target;
         }
     private:
+        // Get the next waypoint to reach the target
+        // Will trigger a pathfind if the current path is empty
+        Vector3 getNextWaypoint();
+
         Vector3 target;
-        float distanceThreshold = 5.0f;
+        Vector3 nextWaypoint;
+        // Distance to target at which the state completes
+        float distanceThreshold = 10.0f;
+        // Distance to a waypoint at which the next waypoint is selected
+        float waypointThreshold = 8.0f;
+        // Target speed in mps
+        float speed = 5.0f;
 
         GameObject* owner;
         NavigationGrid* navMap;

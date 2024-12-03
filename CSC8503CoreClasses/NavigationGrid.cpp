@@ -98,7 +98,7 @@ bool NavigationGrid::FindPath(const Vector3& from, const Vector3& to, Navigation
 	GridNode* startNode = &allNodes[(fromZ * gridWidth) + fromX];
 	GridNode* endNode	= &allNodes[(toZ * gridWidth) + toX];
 
-	Debug::DrawLine(startNode->position, endNode->position, Debug::GREEN);
+	Debug::DrawLine(startNode->position, endNode->position, Debug::GREEN,30);
 
 	// All nodes we've seen, with their best parent and cost
 	// See `closedNodes` for nodes we've already expanded
