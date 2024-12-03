@@ -43,6 +43,15 @@ Cli::Cli(int argc, char** argv) {
         }
         else if (arg == "-s" || arg == "--server") {
             server = true;
+        } else if (arg == "-w" || arg == "--window") {
+            std::string xStr; std::string yStr;
+            consumeRequiredArg(xStr);
+            consumeRequiredArg(yStr);
+            int x; int y;
+            if (sscanf_s(xStr.c_str(), "%d", &x) != 1 || sscanf_s(yStr.c_str(), "%d", &y) != 1) {
+                throw std::runtime_error("Invalid window position: " + xStr + " " + yStr);
+            }
+            windowPos = NCL::Maths::Vector2i(x, y);
         } else {
             throw std::runtime_error("Unknown argument: " + arg + " (try -h for help)");
         }
@@ -54,5 +63,6 @@ void Cli::printUsage(char* programName) const {
         "Usage: " << programName << " [options]\n"
         "  -h, --help    Display this help message\n"
         "  -i, --ip [address]  Set the IP address to connect to\n"
-        "  -s, --server  Start the program as a server\n";
+        "  -s, --server  Start the program as a server\n"
+        "  -w, --window [x] [y]  Set the window position\n";
 }

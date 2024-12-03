@@ -399,10 +399,8 @@ int main(int argc, char** argv) {
 	initInfo.width		= 1280;
 	initInfo.height		= 720;
 	initInfo.windowTitle = "CSC8503 Game technology!";
-
-	if (cli->isServer()) {
-		initInfo.windowPositionX += 1280;
-	}
+	initInfo.windowPositionX = cli->getWindowPos().x;
+	initInfo.windowPositionY = cli->getWindowPos().y;
 
 	Window*w = Window::CreateGameWindow(initInfo);
 

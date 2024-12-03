@@ -5,4 +5,5 @@
 set EXE_PATH=./build/CSC8503/Debug/CSC8503.exe
 
 start %EXE_PATH% --server
-start %EXE_PATH%
+@REM Put the client on a different monitor
+start %EXE_PATH% --window 2000 0
