@@ -12,6 +12,10 @@ namespace NCL {
 
 			virtual void Update(float dt) = 0;
 
+			StateMachine* getParent() const {
+				return parent;
+			}
+
 		protected:
 			StateMachine* parent;
 		};
@@ -52,6 +56,10 @@ namespace NCL {
 
 			void Update(float dt) override {
 				child->Update(dt);
+			}
+
+			StateMachine* getChild() const {
+				return child;
 			}
 		protected:
 			StateMachine* child;

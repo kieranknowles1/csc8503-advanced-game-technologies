@@ -38,7 +38,7 @@ namespace NCL::CSC8503 {
 				return true;
             }));
 
-            idle->AddTransition(new StateTransition(wander, wait, [waitRemaining, wander, owner]() {
+            idle->AddTransition(new StateTransition(wander, wait, [waitRemaining, wander, owner]()->bool {
                 float distance = Vector::Length(wander->getTarget() - owner->GetTransform().GetPosition());
                 if (distance < wander->getDistanceThreshold()) {
 					std::cout << "Waiting" << std::endl;
@@ -52,7 +52,38 @@ namespace NCL::CSC8503 {
             idle->setStartingState(wait);
             idle->AddState(wander);
 
-            return idle;
+            // TODO: Temp
+            float* cooldown = new float(0);
+            auto dummy = new FunctionState(chase, [](float dt) {
+                std::cout << "Chasing" << std::endl;
+            });
+            chase->AddState(dummy);
+            chase->setStartingState(dummy);
+
+
+
+            auto idleState = new SubStateMachine(machine, idle);
+            auto chaseState = new SubStateMachine(machine, chase);
+            machine->AddState(idleState);
+            machine->setStartingState(idleState);
+            machine->AddState(chaseState);
+
+            machine->AddTransition(new StateTransition(idleState, chaseState, [cooldown]()->bool {
+                *cooldown -= 0.01f;
+				if (*cooldown > 0) return false;
+				*cooldown = 10;
+                std::cout << "Idle -> Chase" << std::endl;
+				return true;
+			}));
+            chase->AddTransition(new StateTransition(dummy, idleState, [cooldown]()->bool {
+                *cooldown -= 0.01f;
+				if (*cooldown > 0) return false;
+				*cooldown = 10;
+                std::cout << "Dummy -> Idle" << std::endl;
+				return true;
+			}));
+
+            return machine;
         }
     }
 

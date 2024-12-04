@@ -18,7 +18,7 @@ namespace NCL {
 			virtual ~StateMachine(); //made it virtual!
 
 			void AddState(State* s);
-			void setStartingState(State* s) { activeState = s; }
+			void setStartingState(State* s) { defaultState = s; activeState = s; }
 			void AddTransition(StateTransition* t);
 
 			virtual void Update(float dt); //made it virtual!
@@ -26,10 +26,12 @@ namespace NCL {
 			void setParent(StateMachine* p) {
 				// Not tested this, will probably break
 				assert(p->parent == nullptr && "Multiple nesting not supported");
+				parent = p;
 			}
 
 		protected:
 			StateMachine* parent = nullptr;
+			State* defaultState = nullptr;
 			State* activeState;
 
 			std::vector<State*> allStates;
