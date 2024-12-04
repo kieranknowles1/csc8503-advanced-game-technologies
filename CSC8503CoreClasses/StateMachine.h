@@ -22,6 +22,9 @@ namespace NCL {
 			void AddTransition(StateTransition* t);
 
 			virtual void Update(float dt); //made it virtual!
+			void setState(State* s);
+
+			State* getStartingState() const { return defaultState; }
 
 			void setParent(StateMachine* p) {
 				// Not tested this, will probably break

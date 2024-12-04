@@ -8,54 +8,97 @@
 
 namespace NCL::CSC8503 {
     namespace {
-        StateMachine* createStateMachine(GameObject* owner, NavigationGrid* nav, Rng& rng) {
+        class IdleState : public State {
+        public:
+            IdleState(StateMachine* parent, Rng& rng, WanderState* wander, Trapper* owner, float duration)
+				: State(parent)
+                , rng(rng)
+                , wander(wander)
+                , waitRemaining(0)
+                , duration(duration)
+				, owner(owner) {}
+
+            ~IdleState() override {}
+
+            void Update(float dt) override {
+                waitRemaining -= dt;
+                // Slow ourselves down
+                Vector3 velocity = owner->GetPhysicsObject()->GetLinearVelocity();
+                if (Vector::Length(velocity) > 0.1f) {
+					owner->GetPhysicsObject()->AddForce(-velocity * 50 * dt);
+				}
+            }
+
+            void OnBegin() override {
+                std::cout << "Begin Idle for " << duration << std::endl;
+                waitRemaining = duration;
+			}
+
+            void createFromTransition() {
+                // this->wander
+                // Trigger: TimePassed >= WaitDuration
+                // Action: Set wander target to a random floor node
+                parent->AddTransition(new StateTransition(this, wander, [this]()->bool {
+                    if (waitRemaining > 0) return false;
+
+                    // Configure the wander state
+                    auto nav = owner->getNavMap();
+                    std::uniform_int_distribution<int> dist(0, nav->getNodeCount());
+                    int i;
+                    do {
+                        i = dist(rng);
+                    } while (nav->getNode(i)->type != FLOOR_NODE);
+                    std::cout << "Wandering to " << nav->getNode(i)->position.x << ", " << nav->getNode(i)->position.y << ", " << nav->getNode(i)->position.z << std::endl;
+                    wander->setTarget(nav->getNode(i)->position);
+
+                    return true;
+                }));
+            }
+
+            void createToTransition() {
+                // wander->this
+                // Trigger: DistanceToTarget < DistanceThreshold
+                parent->AddTransition(new StateTransition(wander, this, [this]()->bool {
+                    auto distance = Vector::Length(wander->getTarget() - owner->GetTransform().GetPosition());
+                    if (distance < wander->getDistanceThreshold()) {
+						std::cout << "Waiting" << std::endl;
+						return true;
+					}
+                    return false;
+                }));
+            }
+        protected:
+            Rng& rng;
+            Trapper* owner;
+            WanderState* wander;
+            float duration;
+            float waitRemaining;
+
+        };
+
+        StateMachine* createStateMachine(Trapper* owner, NavigationGrid* nav, Rng& rng) {
             StateMachine* machine = new StateMachine();
             StateMachine* chase = new StateMachine();
             StateMachine* idle = new StateMachine();
 
             WanderState* wander = new WanderState(idle, owner, nav);
-            float* waitRemaining = new float(0); // TODO: Memory leak, should probably use a functor object
-            State* wait = new FunctionState(idle, [=](float dt) {
-				*waitRemaining -= dt;
 
-                // Slow ourselves down
-                Vector3 velocity = owner->GetPhysicsObject()->GetLinearVelocity();
-                if (Vector::Length(velocity) > 0.1f) {
-                    owner->GetPhysicsObject()->AddForce(-velocity * 50 * dt);
-                }
-			});
+            IdleState* wait = new IdleState(idle, rng, wander, owner, Trapper::WaitDuration);
+            wait->createFromTransition();
+            wait->createToTransition();
 
-            idle->AddTransition(new StateTransition(wait, wander, [waitRemaining,nav,wander,&rng]() {
-                if (*waitRemaining > 0) return false;
-
-                std::uniform_int_distribution<int> dist(0, nav->getNodeCount());
-                int i;
-                do {
-					i = dist(rng);
-				} while (nav->getNode(i)->type != FLOOR_NODE);
-                wander->setTarget(nav->getNode(i)->position);
-                std::cout << "Wandering to " << nav->getNode(i)->position.x << ", " << nav->getNode(i)->position.y << ", " << nav->getNode(i)->position.z << std::endl;
-				return true;
-            }));
-
-            idle->AddTransition(new StateTransition(wander, wait, [waitRemaining, wander, owner]()->bool {
-                float distance = Vector::Length(wander->getTarget() - owner->GetTransform().GetPosition());
-                if (distance < wander->getDistanceThreshold()) {
-					std::cout << "Waiting" << std::endl;
-                    *waitRemaining = Trapper::WaitDuration;
-					return true;
-				}
-                return false;
-            }));
+            IdleState* instantWait = new IdleState(idle, rng, wander, owner, 0);
+            instantWait->createFromTransition();
 
             idle->AddState(wait);
-            idle->setStartingState(wait);
+            idle->AddState(instantWait);
+            idle->setStartingState(instantWait);
             idle->AddState(wander);
 
             // TODO: Temp
             float* cooldown = new float(0);
             auto dummy = new FunctionState(chase, [](float dt) {
-                std::cout << "Chasing" << std::endl;
+                //std::cout << "Chasing" << std::endl;
             });
             chase->AddState(dummy);
             chase->setStartingState(dummy);
@@ -69,14 +112,14 @@ namespace NCL::CSC8503 {
             machine->AddState(chaseState);
 
             machine->AddTransition(new StateTransition(idleState, chaseState, [cooldown]()->bool {
-                *cooldown -= 0.01f;
+                *cooldown -= 0.1f;
 				if (*cooldown > 0) return false;
 				*cooldown = 10;
                 std::cout << "Idle -> Chase" << std::endl;
 				return true;
 			}));
             chase->AddTransition(new StateTransition(dummy, idleState, [cooldown]()->bool {
-                *cooldown -= 0.01f;
+                *cooldown -= 0.1f;
 				if (*cooldown > 0) return false;
 				*cooldown = 10;
                 std::cout << "Dummy -> Idle" << std::endl;
@@ -125,6 +168,17 @@ namespace NCL::CSC8503 {
         if (path.empty()) {
             std::cout << "Finding path" << std::endl;
             navMap->FindPath(owner->GetTransform().GetPosition(), target, path);
+
+#ifdef _DEBUG
+            NavigationPath path2;
+            navMap->FindPath(owner->GetTransform().GetPosition(), target, path2);
+            Vector3 next;
+            Vector3 prev = owner->GetTransform().GetPosition();
+            while (path2.PopWaypoint(next)) {
+				Debug::DrawLine(prev, next, Vector4(1, 0, 0, 1), 10);
+				prev = next;
+			}
+#endif // _DEBUG
         }
         Vector3 next;
         path.PopWaypoint(next);

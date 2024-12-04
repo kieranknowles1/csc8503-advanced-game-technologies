@@ -10,6 +10,8 @@ namespace NCL {
 				: parent(parent) {}
 			virtual ~State() {}
 
+			virtual void OnBegin() {}
+			virtual void OnEnd() {}
 			virtual void Update(float dt) = 0;
 
 			StateMachine* getParent() const {
@@ -56,6 +58,10 @@ namespace NCL {
 
 			void Update(float dt) override {
 				child->Update(dt);
+			}
+
+			void OnBegin() override {
+				child->setState(child->getStartingState());
 			}
 
 			StateMachine* getChild() const {

@@ -46,28 +46,26 @@ void StateMachine::Update(float dt) {
 			if (newState->getParent() == this) {
 				// Going from one state to another within the same state machine
 				// The new state could be a sub-machine
-				activeState = newState;
+				setState(newState);
 			}
 			else if (newState->getParent() == this->parent) {
 				// Going from a child state machine to a parent state machine
-				this->parent->activeState = newState;
-				this->activeState = defaultState;
+				this->parent->setState(newState); // Update the state in the parent
+				setState(newState); // Update the state in the child
 			}
 			else {
 				// The new state is disconnected from the current state machine
 				// Something has gone wrong
 				throw std::runtime_error("State machine transitioned to a state that is not connected to the current state machine");
 			}
-			//} else {
-			//	for (State* child : allStates) {
-			//		auto asSubMachine = dynamic_cast<SubStateMachine*>(child);
-			//		if (asSubMachine && asSubMachine->getChild() == newState) {
-			//			activeState = asSubMachine;
-			//		}
-			//	}
-			//}
-
-			//activeState = newState;
 		}
 	}
+}
+
+void StateMachine::setState(State* s) {
+	if (s == activeState) return;
+
+	activeState->OnEnd();
+	activeState = s;
+	activeState->OnBegin();
 }

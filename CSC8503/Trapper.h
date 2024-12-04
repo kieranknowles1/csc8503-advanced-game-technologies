@@ -19,14 +19,14 @@ namespace NCL::CSC8503 {
             , owner(owner)
             , navMap(navMap) {}
 
-        virtual void Update(float dt) override;
+        void Update(float dt) override;
+        void OnEnd() override {
+            reset();
+        }
 
         void setTarget(Vector3 target) {
+            reset();
 			this->target = target;
-            // Force a pathfind
-            path.Clear();
-            // Force a new waypoint to be selected
-            nextWaypoint = owner->GetTransform().GetPosition();
 		}
 
         float getDistanceThreshold() const {
@@ -36,6 +36,12 @@ namespace NCL::CSC8503 {
             return target;
         }
     private:
+        void reset() {
+            path.Clear();
+            nextWaypoint = owner->GetTransform().GetPosition();
+            target = owner->GetTransform().GetPosition();
+        }
+
         // Get the next waypoint to reach the target
         // Will trigger a pathfind if the current path is empty
         Vector3 getNextWaypoint();
@@ -63,6 +69,11 @@ namespace NCL::CSC8503 {
 
             void OnUpdate(float dt) override {
 				stateMachine->Update(dt);
+
+			}
+
+            NavigationGrid* getNavMap() const {
+				return navMap;
 			}
         protected:
             NavigationGrid* navMap;
