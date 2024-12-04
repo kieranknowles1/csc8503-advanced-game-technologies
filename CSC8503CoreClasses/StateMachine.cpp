@@ -22,9 +22,6 @@ StateMachine::~StateMachine()	{
 
 void StateMachine::AddState(State* s) {
 	allStates.emplace_back(s);
-	if (activeState == nullptr) {
-		setStartingState(s);
-	}
 }
 
 void StateMachine::AddTransition(StateTransition* t) {

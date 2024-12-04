@@ -6,6 +6,9 @@
 #include "RenderObject.h"
 #include "StateTransition.h"
 
+#include "GameWorld.h"
+#include "Ray.h"
+
 namespace NCL::CSC8503 {
     namespace {
         class IdleState : public State {
@@ -64,7 +67,7 @@ namespace NCL::CSC8503 {
 
         };
 
-        StateMachine* createStateMachine(Trapper* owner, NavigationGrid* nav, Rng& rng) {
+        StateMachine* createStateMachine(Trapper* owner, NavigationGrid* nav, Rng& rng, GameWorld* world) {
             StateMachine* machine = new StateMachine();
             StateMachine* chase = new StateMachine();
             StateMachine* idle = new StateMachine();
@@ -84,13 +87,10 @@ namespace NCL::CSC8503 {
             idle->AddState(wander);
 
             // TODO: Temp
-            float* cooldown = new float(0);
-            auto dummy = new FunctionState(chase, [](float dt) {
-                //std::cout << "Chasing" << std::endl;
-            });
-            chase->AddState(dummy);
-            chase->setStartingState(dummy);
 
+            auto chaseFollow = new ChaseState(chase, owner, nav, world);
+            chase->AddState(chaseFollow);
+            chase->setStartingState(chaseFollow);
 
 
             auto idleState = new SubStateMachine(machine, idle);
@@ -99,20 +99,25 @@ namespace NCL::CSC8503 {
             machine->setStartingState(idleState);
             machine->AddState(chaseState);
 
-            machine->AddTransition(new StateTransition(idleState, chaseState, [cooldown]()->bool {
-                *cooldown -= 0.1f;
-				if (*cooldown > 0) return false;
-				*cooldown = 10;
-                std::cout << "Idle -> Chase" << std::endl;
-				return true;
-			}));
-            chase->AddTransition(new StateTransition(dummy, idleState, [cooldown]()->bool {
-                *cooldown -= 0.1f;
-				if (*cooldown > 0) return false;
-				*cooldown = 10;
-                std::cout << "Dummy -> Idle" << std::endl;
-				return true;
-			}));
+            // TODO: Check for player trespass and set target
+            machine->AddTransition(new StateTransition(idleState, chaseState, [owner]()->bool {
+                return true;
+            }));
+
+            // machine->AddTransition(new StateTransition(idleState, chaseState, [cooldown]()->bool {
+            //     *cooldown -= 0.1f;
+			// 	if (*cooldown > 0) return false;
+			// 	*cooldown = 10;
+            //     std::cout << "Idle -> Chase" << std::endl;
+			// 	return true;
+			// }));
+            // chase->AddTransition(new StateTransition(dummy, idleState, [cooldown]()->bool {
+            //     *cooldown -= 0.1f;
+			// 	if (*cooldown > 0) return false;
+			// 	*cooldown = 10;
+            //     std::cout << "Dummy -> Idle" << std::endl;
+			// 	return true;
+			// }));
 
             return machine;
         }
@@ -127,11 +132,37 @@ namespace NCL::CSC8503 {
         return node->position;
     }
 
+    bool ChaseState::shouldRepickTarget() {
+        // TODO: Temp
+        if (targetObject == nullptr) {
+            targetObject = world->getObject(153); // Player 0
+        }
+
+        // Update the target if we have line of sight
+        // If not, keep going to the last known position
+        Vector3 direction = Vector::Normalise(
+            targetObject->GetTransform().GetPosition()
+            - owner->GetTransform().GetPosition()
+        );
+        Ray ray(owner->GetTransform().GetPosition(), direction);
+        RayCollision closest;
+
+
+        bool hit = world->Raycast(ray, closest, true, owner);
+        return true;
+        return hit && closest.node == targetObject;
+    }
+
+    Vector3 ChaseState::pickTarget() {
+        return targetObject->GetTransform().GetPosition();
+    }
+
     Trapper::Trapper(
         Rng& rng,
         Rendering::Mesh* mesh,
         Rendering::Shader* shader,
-        NavigationGrid* nav
+        NavigationGrid* nav,
+        GameWorld* world
     ) {
         navMap = nav;
 
@@ -158,58 +189,81 @@ namespace NCL::CSC8503 {
         ));
         GetPhysicsObject()->InitCubeInertia();
 
-        stateMachine = createStateMachine(this, nav, rng);
+        stateMachine = createStateMachine(this, nav, rng, world);
     }
 
     Vector3 MoveToTargetState::getNextWaypoint() {
         if (path.empty()) {
             std::cout << "Finding path" << std::endl;
-            navMap->FindPath(owner->GetTransform().GetPosition(), target, path);
-
+            bool ok = navMap->FindPath(owner->GetTransform().GetPosition(), target, path);
+            if (!ok) {
+				std::cout << "Failed to find path" << std::endl;
+				return owner->GetTransform().GetPosition();
+			}
 #ifdef _DEBUG
             NavigationPath path2;
             navMap->FindPath(owner->GetTransform().GetPosition(), target, path2);
             Vector3 next;
             Vector3 prev = owner->GetTransform().GetPosition();
             while (path2.PopWaypoint(next)) {
-				Debug::DrawLine(prev, next, Vector4(1, 0, 0, 1), 10);
+				Debug::DrawLine(prev, next, Vector4(1, 0, 0, 1));
 				prev = next;
 			}
 #endif // _DEBUG
         }
         Vector3 next;
-        path.PopWaypoint(next);
+        while (path.PopWaypoint(next) && Vector::Length(next - owner->GetTransform().GetPosition()) < waypointThreshold) {}
         return next;
 	}
 
     void MoveToTargetState::Update(float dt)
     {
+        if (shouldRepickTarget()) {
+            setTarget(pickTarget());
+        }
+
         float waypointDistance = Vector::Length(owner->GetTransform().GetPosition() - nextWaypoint);
         if (waypointDistance < waypointThreshold) {
 			nextWaypoint = getNextWaypoint();
 		}
 
-        // Apply a force to turn us towards the next waypoint
         Vector3 direction = nextWaypoint - owner->GetTransform().GetPosition();
-        // Stay upright
         direction.y = 0;
         direction = Vector::Normalise(direction);
-
         Vector3 facing = owner->GetTransform().GetOrientation() * Vector3(0, 0, 1);
         Vector3 deltaAngle = Vector::Cross(facing, direction);
+
+        // TODO: CMake option for this
+//#define AI_USE_FORCES
+#ifdef AI_USE_FORCES
+        // Apply a force to turn us towards the next waypoint
+        // Stay upright
+
         if (Vector::Length(deltaAngle) > 0.1f) {
             owner->GetPhysicsObject()->AddTorque(-deltaAngle * 100 * dt);
         }
 
         // Move towards the waypoint
+        // desiredVelocity = vector towards waypoint * speed
         Vector3 desiredVelocity = direction * speed;
         Vector3 actualVelocity = owner->GetPhysicsObject()->GetLinearVelocity();
 
         // What angle will get us closer to the desired velocity?
         Vector3 deltaVelocity = desiredVelocity - actualVelocity;
+        // Apply a force that will reduce the delta between the desired and actual velocity
         Vector3 forceDirection = Vector::Normalise(deltaVelocity);
 
         owner->GetPhysicsObject()->AddForce(forceDirection * 100 * dt);
+#else
+        // Directly set the velocity
+        // Quaternions are nasty, so only use the yaw angle. We don't want our actors to be drunk anyway
+        // C++ works in radians, convert to degrees as required for Rich's code
+        float yawAngleDegrees = atan2(direction.x, direction.z) * 180 / PI;
+        yawAngleDegrees += 180;
+        Quaternion q = Quaternion::EulerAnglesToQuaternion(0, yawAngleDegrees, 0);
+        owner->GetTransform().SetOrientation(q);
+        owner->GetTransform().SetPosition(owner->GetTransform().GetPosition() + direction * speed * dt);
+#endif
 
         Debug::DrawLine(owner->GetTransform().GetPosition(), nextWaypoint, Vector4(0, 1, 0, 1));
     }

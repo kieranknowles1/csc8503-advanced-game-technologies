@@ -46,6 +46,15 @@ namespace NCL {
 
 			void OperateOnContents(GameObjectFunc f);
 
+			GameObject* getObject(int id) const {
+				for (auto& i : gameObjects) {
+					if (i->GetWorldID() == id) {
+						return i;
+					}
+				}
+				return nullptr;
+			}
+
 			void GetObjectIterators(
 				GameObjectIterator& first,
 				GameObjectIterator& last) const;

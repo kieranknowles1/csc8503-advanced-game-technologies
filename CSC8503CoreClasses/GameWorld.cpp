@@ -88,6 +88,8 @@ bool GameWorld::Raycast(Ray& r, RayCollision& closestCollision, bool closestObje
 	//The simplest raycast just goes through each object and sees if there's a collision
 	RayCollision collision;
 
+	Debug::DrawLine(r.GetPosition(), r.GetPosition() + (r.GetDirection() * 20));
+
 	for (auto& i : gameObjects) {
 		if (!i->GetBoundingVolume()) { //objects might not be collideable etc...
 			continue;

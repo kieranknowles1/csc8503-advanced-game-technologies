@@ -79,11 +79,28 @@ NavigationGrid::~NavigationGrid()	{
 
 bool NavigationGrid::FindPath(const Vector3& from, const Vector3& to, NavigationPath& outPath) const {
 	//need to work out which node 'from' sits in, and 'to' sits in
-	int fromX = ((int)(from.x - offset.x) / nodeSize);
-	int fromZ = ((int)(from.z - offset.z) / nodeSize);
+	// The position of a node refers to its centre,
+	// so we need to transform from/to by the offset minus half the node size
+	// to get a grid aligned with the top-left of each node
+	// *-------+ <- TopLeft of bounding box
+	// |       |
+	// |   *   | <- node position
+	// |       | <- Any from/to in this box will return this node
+	// +-------+
 
-	int toX = ((int)(to.x - offset.x) / nodeSize);
-	int toZ = ((int)(to.z - offset.z) / nodeSize);
+	// Fun fact: ASCII art line drawings in comments are less cursed than
+	// UML diagrams in comments
+
+
+	Vector2 offsetPlusHalfSize =
+		Vector2(offset.x, offset.z)
+		- Vector2(nodeSize / 2, nodeSize / 2);
+
+	int fromX = ((int)(from.x - offsetPlusHalfSize.x) / nodeSize);
+	int fromZ = ((int)(from.z - offsetPlusHalfSize.y) / nodeSize);
+
+	int toX = ((int)(to.x - offsetPlusHalfSize.x) / nodeSize);
+	int toZ = ((int)(to.z - offsetPlusHalfSize.y) / nodeSize);
 
 	if (fromX < 0 || fromX > gridWidth - 1 ||
 		fromZ < 0 || fromZ > gridHeight - 1) {
@@ -98,7 +115,7 @@ bool NavigationGrid::FindPath(const Vector3& from, const Vector3& to, Navigation
 	GridNode* startNode = &allNodes[(fromZ * gridWidth) + fromX];
 	GridNode* endNode	= &allNodes[(toZ * gridWidth) + toX];
 
-	Debug::DrawLine(startNode->position, endNode->position, Debug::GREEN,30);
+	Debug::DrawLine(startNode->position, endNode->position, Debug::GREEN);
 
 	// All nodes we've seen, with their best parent and cost
 	// See `closedNodes` for nodes we've already expanded
