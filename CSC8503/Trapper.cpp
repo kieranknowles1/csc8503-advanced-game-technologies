@@ -10,7 +10,7 @@ namespace NCL::CSC8503 {
     namespace {
         class IdleState : public State {
         public:
-            IdleState(StateMachine* parent, Rng& rng, WanderState* wander, Trapper* owner, float duration)
+            IdleState(StateMachine* parent, Rng& rng, MoveToTargetState* wander, Trapper* owner, float duration)
 				: State(parent)
                 , rng(rng)
                 , wander(wander)
@@ -39,19 +39,7 @@ namespace NCL::CSC8503 {
                 // Trigger: TimePassed >= WaitDuration
                 // Action: Set wander target to a random floor node
                 parent->AddTransition(new StateTransition(this, wander, [this]()->bool {
-                    if (waitRemaining > 0) return false;
-
-                    // Configure the wander state
-                    auto nav = owner->getNavMap();
-                    std::uniform_int_distribution<int> dist(0, nav->getNodeCount());
-                    int i;
-                    do {
-                        i = dist(rng);
-                    } while (nav->getNode(i)->type != FLOOR_NODE);
-                    std::cout << "Wandering to " << nav->getNode(i)->position.x << ", " << nav->getNode(i)->position.y << ", " << nav->getNode(i)->position.z << std::endl;
-                    wander->setTarget(nav->getNode(i)->position);
-
-                    return true;
+                    return waitRemaining <= 0;
                 }));
             }
 
@@ -70,7 +58,7 @@ namespace NCL::CSC8503 {
         protected:
             Rng& rng;
             Trapper* owner;
-            WanderState* wander;
+            MoveToTargetState* wander;
             float duration;
             float waitRemaining;
 
@@ -81,7 +69,7 @@ namespace NCL::CSC8503 {
             StateMachine* chase = new StateMachine();
             StateMachine* idle = new StateMachine();
 
-            WanderState* wander = new WanderState(idle, owner, nav);
+            RandomMoveState* wander = new RandomMoveState(idle, owner, nav, rng);
 
             IdleState* wait = new IdleState(idle, rng, wander, owner, Trapper::WaitDuration);
             wait->createFromTransition();
@@ -130,6 +118,15 @@ namespace NCL::CSC8503 {
         }
     }
 
+    Vector3 RandomMoveState::pickTarget() {
+        std::uniform_int_distribution<int> dist(0, navMap->getNodeCount());
+        GridNode* node;
+        do {
+            node = navMap->getNode(dist(rng));
+        } while (node->type != FLOOR_NODE);
+        return node->position;
+    }
+
     Trapper::Trapper(
         Rng& rng,
         Rendering::Mesh* mesh,
@@ -164,7 +161,7 @@ namespace NCL::CSC8503 {
         stateMachine = createStateMachine(this, nav, rng);
     }
 
-    Vector3 WanderState::getNextWaypoint() {
+    Vector3 MoveToTargetState::getNextWaypoint() {
         if (path.empty()) {
             std::cout << "Finding path" << std::endl;
             navMap->FindPath(owner->GetTransform().GetPosition(), target, path);
@@ -185,7 +182,7 @@ namespace NCL::CSC8503 {
         return next;
 	}
 
-    void WanderState::Update(float dt)
+    void MoveToTargetState::Update(float dt)
     {
         float waypointDistance = Vector::Length(owner->GetTransform().GetPosition() - nextWaypoint);
         if (waypointDistance < waypointThreshold) {
@@ -197,7 +194,7 @@ namespace NCL::CSC8503 {
         // Stay upright
         direction.y = 0;
         direction = Vector::Normalise(direction);
-        
+
         Vector3 facing = owner->GetTransform().GetOrientation() * Vector3(0, 0, 1);
         Vector3 deltaAngle = Vector::Cross(facing, direction);
         if (Vector::Length(deltaAngle) > 0.1f) {

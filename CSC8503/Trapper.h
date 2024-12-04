@@ -10,54 +10,62 @@
 #include "Rng.h"
 
 namespace NCL::CSC8503 {
-    // State to wander towards a target
-    // Completes when close enough to the target
-    class WanderState : public State {
+    // Base class for states that move towards a target
+    class MoveToTargetState : public State {
     public:
-        WanderState(StateMachine* parent, GameObject* owner, NavigationGrid* navMap)
-            : State(parent)
-            , owner(owner)
-            , navMap(navMap) {}
+    MoveToTargetState(StateMachine* parent, GameObject* owner, NavigationGrid* navMap)
+        : State(parent)
+        , owner(owner)
+        , navMap(navMap) {}
 
-        void Update(float dt) override;
-        void OnEnd() override {
-            reset();
-        }
+    void Update(float dt) override;
+    void OnBegin() override {
+        std::cout << "Begin moving to target" << std::endl;
+        target = pickTarget();
+        nextWaypoint = getNextWaypoint();
+        path.Clear();
+    }
 
-        void setTarget(Vector3 target) {
-            reset();
-			this->target = target;
-		}
+    Vector3 getTarget() const {
+        return target;
+    }
+    float getDistanceThreshold() const {
+        return distanceThreshold;
+    }
 
-        float getDistanceThreshold() const {
-			return distanceThreshold;
-		}
-        Vector3 getTarget() const {
-            return target;
-        }
-    private:
-        void reset() {
-            path.Clear();
-            nextWaypoint = owner->GetTransform().GetPosition();
-            target = owner->GetTransform().GetPosition();
-        }
+    protected:
+        virtual Vector3 pickTarget() = 0;
 
-        // Get the next waypoint to reach the target
-        // Will trigger a pathfind if the current path is empty
-        Vector3 getNextWaypoint();
+        NavigationGrid* navMap;
+        GameObject* owner;
 
-        Vector3 target;
-        Vector3 nextWaypoint;
-        // Distance to target at which the state completes
+        // Target speed in mps
+        float speed = 5.0f;
+        // Distance to the target at which the state completes
         float distanceThreshold = 10.0f;
         // Distance to a waypoint at which the next waypoint is selected
         float waypointThreshold = 8.0f;
-        // Target speed in mps
-        float speed = 5.0f;
+    private:
+        // Get the next waypoint to reach the target
+        // Pops a waypoint or triggers a pathfind as needed
+        Vector3 getNextWaypoint();
 
-        GameObject* owner;
-        NavigationGrid* navMap;
+        Vector3 nextWaypoint;
+        Vector3 target;
+
         NavigationPath path;
+    };
+
+    // Selects a random target within the navigation grid, and moves towards it
+    class RandomMoveState : public MoveToTargetState {
+    public:
+        RandomMoveState(StateMachine* parent, GameObject* owner, NavigationGrid* navMap, Rng& rng)
+            : MoveToTargetState(parent, owner, navMap)
+            , rng(rng) {}
+    protected:
+        Vector3 pickTarget() override;
+    private:
+        Rng& rng;
     };
 
     class Trapper : public GameObject {
