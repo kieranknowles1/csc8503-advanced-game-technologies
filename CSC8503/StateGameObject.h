@@ -1,3 +1,4 @@
+#if false
 #pragma once
 #include "GameObject.h"
 
@@ -20,3 +21,4 @@ namespace NCL {
         };
     }
 }
+#endif

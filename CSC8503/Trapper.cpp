@@ -13,9 +13,9 @@ namespace NCL::CSC8503 {
             StateMachine* chase = new StateMachine();
             StateMachine* idle = new StateMachine();
 
-            WanderState* wander = new WanderState(owner, nav);
+            WanderState* wander = new WanderState(idle, owner, nav);
             float* waitRemaining = new float(0); // TODO: Memory leak, should probably use a functor object
-            State* wait = new FunctionState([=](float dt) {
+            State* wait = new FunctionState(idle, [=](float dt) {
 				*waitRemaining -= dt;
 
                 // Slow ourselves down

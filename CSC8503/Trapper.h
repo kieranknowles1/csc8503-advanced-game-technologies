@@ -14,8 +14,9 @@ namespace NCL::CSC8503 {
     // Completes when close enough to the target
     class WanderState : public State {
     public:
-        WanderState(GameObject* owner, NavigationGrid* navMap)
-            : owner(owner)
+        WanderState(StateMachine* parent, GameObject* owner, NavigationGrid* navMap)
+            : State(parent)
+            , owner(owner)
             , navMap(navMap) {}
 
         virtual void Update(float dt) override;
