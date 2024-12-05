@@ -14,6 +14,11 @@ namespace NCL::CSC8503 {
 
 	class GameObject	{
 	public:
+		enum class Tag {
+			None,
+			Player,
+		};
+
 		enum class PhysicsType {
 			// No physics object
 			None,
@@ -87,6 +92,11 @@ namespace NCL::CSC8503 {
 
 		virtual void OnUpdate(float dt) {
 			//std::cout << "OnUpdate event occured!\n";
+		}
+
+		// Get the overall type of this object. Should return the same value for the object's entire lifetime
+		virtual Tag getTag() const {
+			return Tag::None;
 		}
 
 		bool GetBroadphaseAABB(Vector3&outsize) const;

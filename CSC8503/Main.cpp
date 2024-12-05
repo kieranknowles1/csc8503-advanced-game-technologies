@@ -36,6 +36,7 @@ using namespace CSC8503;
 #include <thread>
 #include <sstream>
 
+#if false
 NavigationPath TestPathfinding() {
 	NavigationGrid grid("maze.txt", Vector3(32, 0, 32));
 	grid.debugDraw();
@@ -373,6 +374,8 @@ void testNetworking() {
 	NetworkBase::Destroy();
 }
 
+#endif
+
 /*
 
 The main function should look pretty familar to you!
@@ -430,7 +433,7 @@ int main(int argc, char** argv) {
 		w->SetTitle("Gametech frame time:" + std::to_string(1000.0f * dt));
 
 		g->UpdateGame(dt);
-		DisplayPathfinding();
+		//DisplayPathfinding();
 	}
 	Window::DestroyGameWindow();
 }

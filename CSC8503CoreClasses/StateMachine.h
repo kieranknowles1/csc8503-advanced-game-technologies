@@ -1,5 +1,9 @@
 #pragma once
 
+#include <cassert>
+#include <vector>
+#include <map>
+
 namespace NCL {
 	namespace CSC8503 {
 		class State;
@@ -14,13 +18,24 @@ namespace NCL {
 			virtual ~StateMachine(); //made it virtual!
 
 			void AddState(State* s);
-			void setStartingState(State* s) { activeState = s; }
+			void setStartingState(State* s) { defaultState = s; activeState = s; }
 			void AddTransition(StateTransition* t);
 
 			virtual void Update(float dt); //made it virtual!
+			void setState(State* s);
+
+			State* getStartingState() const { return defaultState; }
+
+			void setParent(StateMachine* p) {
+				// Not tested this, will probably break
+				assert(p->parent == nullptr && "Multiple nesting not supported");
+				parent = p;
+			}
 
 		protected:
-			State * activeState;
+			StateMachine* parent = nullptr;
+			State* defaultState = nullptr;
+			State* activeState;
 
 			std::vector<State*> allStates;
 			TransitionContainer allTransitions;

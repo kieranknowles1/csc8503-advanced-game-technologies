@@ -22,9 +22,6 @@ StateMachine::~StateMachine()	{
 
 void StateMachine::AddState(State* s) {
 	allStates.emplace_back(s);
-	if (activeState == nullptr) {
-		activeState = s;
-	}
 }
 
 void StateMachine::AddTransition(StateTransition* t) {
@@ -42,7 +39,30 @@ void StateMachine::Update(float dt) {
 	for (auto& i = range.first; i != range.second; ++i) {
 		if (i->second->CanTransition()) {
 			State* newState = i->second->GetDestinationState();
-			activeState = newState;
+
+			if (newState->getParent() == this) {
+				// Going from one state to another within the same state machine
+				// The new state could be a sub-machine
+				setState(newState);
+			}
+			else if (newState->getParent() == this->parent) {
+				// Going from a child state machine to a parent state machine
+				this->parent->setState(newState); // Update the state in the parent
+				setState(newState); // Update the state in the child
+			}
+			else {
+				// The new state is disconnected from the current state machine
+				// Something has gone wrong
+				throw std::runtime_error("State machine transitioned to a state that is not connected to the current state machine");
+			}
 		}
 	}
+}
+
+void StateMachine::setState(State* s) {
+	if (s == activeState) return;
+
+	activeState->OnEnd();
+	activeState = s;
+	activeState->OnBegin();
 }

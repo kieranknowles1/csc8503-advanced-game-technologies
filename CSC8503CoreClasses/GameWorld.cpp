@@ -23,6 +23,7 @@ void GameWorld::Clear() {
 	constraints.clear();
 	worldIDCounter		= 0;
 	worldStateCounter	= 0;
+	taggedObjects.clear();
 }
 
 void GameWorld::ClearAndErase() {
@@ -37,6 +38,7 @@ void GameWorld::ClearAndErase() {
 
 void GameWorld::AddGameObject(GameObject* o) {
 	gameObjects.emplace_back(o);
+	taggedObjects.insert(std::make_pair(o->getTag(), o));
 	o->SetWorld(this);
 	o->SetWorldID(worldIDCounter++);
 	worldStateCounter++;
@@ -88,6 +90,8 @@ bool GameWorld::Raycast(Ray& r, RayCollision& closestCollision, bool closestObje
 	//The simplest raycast just goes through each object and sees if there's a collision
 	RayCollision collision;
 
+	Debug::DrawLine(r.GetPosition(), r.GetPosition() + (r.GetDirection() * 20));
+
 	for (auto& i : gameObjects) {
 		if (!i->GetBoundingVolume()) { //objects might not be collideable etc...
 			continue;
@@ -121,6 +125,17 @@ bool GameWorld::Raycast(Ray& r, RayCollision& closestCollision, bool closestObje
 		return true;
 	}
 	return false;
+}
+
+bool GameWorld::hasLineOfSight(GameObject* from, GameObject* to) const
+{
+	Vector3 direction = Vector::Normalise(
+		to->GetTransform().GetPosition() - from->GetTransform().GetPosition()
+	);
+	Ray ray(from->GetTransform().GetPosition(), direction);
+	RayCollision closest;
+	bool hit = Raycast(ray, closest, true, from);
+	return hit && closest.node == to;
 }
 
 

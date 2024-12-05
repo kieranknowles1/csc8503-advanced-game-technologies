@@ -121,8 +121,8 @@ void TutorialGame::UpdateGame(float dt) {
 		}
 	}
 
-	if (stateObject)
-		stateObject->Update(dt);
+	//if (stateObject)
+	//	stateObject->Update(dt);
 
 	SelectObject();
 	MoveSelectedObject(dt);
@@ -240,7 +240,7 @@ void TutorialGame::ClearWorld() {
 	world->ClearAndErase();
 	physics->Clear();
 
-	stateObject = nullptr;
+	//stateObject = nullptr;
 	lockedObject = nullptr;
 	selectionObject = nullptr;
 	selectionVisibleObject = nullptr;
@@ -261,12 +261,14 @@ void TutorialGame::InitWorld() {
 	// Floor, 20m below the origin
 	InitDefaultFloor();
 
+#if false
 	stateObject = new StateGameObject();
 	stateObject->GetTransform().SetScale(Vector3(5.0f, 5.0f, 5.0f));
 	stateObject->SetRenderObject(new RenderObject(&stateObject->GetTransform(), catMesh, nullptr, basicShader));
 	stateObject->SetPhysicsObject(new PhysicsObject(&stateObject->GetTransform(), stateObject->GetBoundingVolume()));
 	stateObject->GetPhysicsObject()->SetInverseMass(0.1f); // She's a chonky girl
 	world->AddGameObject(stateObject);
+#endif
 }
 
 /*
@@ -285,6 +287,7 @@ GameObject* TutorialGame::AddFloorToWorld(const Vector3& position) {
 		.SetPosition(position);
 
 	floor->SetRenderObject(new RenderObject(&floor->GetTransform(), cubeMesh, basicTex, basicShader));
+	floor->GetRenderObject()->SetColour(Vector4(0.2f, 0.2f, 0.2f, 1.0f));
 	floor->SetPhysicsObject(new PhysicsObject(&floor->GetTransform(), floor->GetBoundingVolume()));
 
 	floor->GetPhysicsObject()->SetInverseMass(0);

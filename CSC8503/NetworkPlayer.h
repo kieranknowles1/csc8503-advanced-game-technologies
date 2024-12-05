@@ -33,6 +33,10 @@ namespace NCL::CSC8503 {
 		}
 
 		void OnUpdate(float dt) override;
+
+		Tag getTag() const override {
+			return Tag::Player;
+		}
 	private:
 		PlayerInput lastInput;
 

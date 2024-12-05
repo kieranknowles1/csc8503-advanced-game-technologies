@@ -1,3 +1,5 @@
+#if false
+
 #include "StateGameObject.h"
 #include "StateTransition.h"
 #include "StateMachine.h"
@@ -47,3 +49,4 @@ void StateGameObject::MoveLeft(float dt) {
 void StateGameObject::MoveRight(float dt) {
 	GetPhysicsObject()->AddForce({ 100, 0, 0 });
 }
+#endif

@@ -12,8 +12,6 @@
 #include "NetworkObject.h"
 #include "NetworkWorld.h"
 
-#include "Rng.h"
-
 namespace NCL {
 	namespace CSC8503 {
 		static const constexpr int MaxPlayers = 64;
