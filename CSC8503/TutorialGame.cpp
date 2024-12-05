@@ -81,7 +81,17 @@ void TutorialGame::UpdateGame(float dt) {
 	}
 	if (lockedObject != nullptr) {
 		Vector3 objPos = lockedObject->GetTransform().GetPosition();
-		Vector3 camPos = objPos + lockedOffset;
+
+		lockedAngle.x -= controller.GetNamedAxis("XLook") * 100.0f * dt;
+		lockedAngle.y -= controller.GetNamedAxis("YLook") * 100.0f * dt;
+		lockedAngle.y = std::max(-89.0f, std::min(89.0f, lockedAngle.y));
+
+		float scroll = Window::GetMouse()->GetWheelMovement() * 0.1f;
+		lockedOffset -= lockedOffset * scroll;
+
+		Vector3 offset = Quaternion::EulerAnglesToQuaternion(lockedAngle.y, lockedAngle.x, lockedAngle.z) * lockedOffset;
+
+		Vector3 camPos = objPos + offset;
 
 		Matrix4 temp = Matrix::View(camPos, objPos, Vector3(0,1,0));
 
