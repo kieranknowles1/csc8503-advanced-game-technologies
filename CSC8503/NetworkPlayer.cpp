@@ -44,6 +44,11 @@ namespace NCL::CSC8503 {
 		}
 		lastInput.jump = false;
 		jumpCooldown -= dt;
+
+		// Reset the player if they fall off the map
+		if (GetTransform().GetPosition().y < -10) {
+			Reset();
+		}
 	}
 
 	void NetworkPlayer::OnCollisionBegin(GameObject* other) {
