@@ -86,8 +86,6 @@ namespace NCL::CSC8503 {
             idle->setStartingState(instantWait);
             idle->AddState(wander);
 
-            // TODO: Temp
-
             auto chaseFollow = new ChaseState(chase, owner, nav, world);
             chase->AddState(chaseFollow);
             chase->setStartingState(chaseFollow);
@@ -99,10 +97,23 @@ namespace NCL::CSC8503 {
             machine->setStartingState(idleState);
             machine->AddState(chaseState);
 
-            // TODO: Check for player trespass and set target
-            machine->AddTransition(new StateTransition(idleState, chaseState, [world, owner]()->bool {
-                return true;
+            machine->AddTransition(new StateTransition(idleState, chaseState, [world, owner, chaseFollow]()->bool {
+                TaggedObjects::iterator begin; TaggedObjects::iterator end;
+                world->getTaggedObjects(GameObject::Tag::Player, begin, end);
+
+                for (auto i = begin; i != end; i++) {
+                    GameObject* player = i->second;
+                    // TODO: Only chase if trespassing
+                    if (world->hasLineOfSight(owner, player)) {
+                        chaseFollow->setTargetObject(player);
+                        return true;
+                    }
+                }
+                return false;
             }));
+
+            // TODO: Return to wander when reaching last known position
+            // TODO: Penalty if the player is caught
 
             return machine;
         }
@@ -118,11 +129,6 @@ namespace NCL::CSC8503 {
     }
 
     bool ChaseState::shouldRepickTarget() {
-        // TODO: Temp
-        if (targetObject == nullptr) {
-            targetObject = world->getObject(153); // Player 0
-        }
-
         // Update the target if we have line of sight
         // If not, keep going to the last known position
         Vector3 direction = Vector::Normalise(
@@ -158,7 +164,7 @@ namespace NCL::CSC8503 {
         ));
         GetTransform()
             .SetScale(Vector3(scale, scale, scale))
-            .SetPosition(Vector3(30, 5, 45));
+            .SetPosition(Vector3(60, 5, 45));
 
         SetRenderObject(new RenderObject(
             &GetTransform(),

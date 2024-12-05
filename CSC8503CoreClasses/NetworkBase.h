@@ -9,6 +9,12 @@ struct _ENetEvent;
 using enet_uint8 = unsigned char;
 
 struct GamePacket {
+	// Strongly typed enum for packet types
+	// This makes NetworkBase in the engine more coupled to the game
+	// But I consider this a minor tradeoff for type safety and
+	// guarantees of no ID conflicts
+	// Have no checks for conflicts between builds, but a game can assume
+	// everyone uses the same build
 	enum class Type : short {
 		// Null terminated string
 		// @see: StringPacket

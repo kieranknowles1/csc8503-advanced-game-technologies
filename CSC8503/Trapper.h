@@ -112,7 +112,6 @@ namespace NCL::CSC8503 {
 
             void OnUpdate(float dt) override {
 				stateMachine->Update(dt);
-
 			}
 
             NavigationGrid* getNavMap() const {
