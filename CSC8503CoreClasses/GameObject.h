@@ -131,22 +131,35 @@ namespace NCL::CSC8503 {
 		void SetTrigger(bool state) {
 			trigger = state;
 		}
+
+		void SetDefaultTransform(const Transform& t) {
+			defaultTransform = t;
+		}
+
+		virtual void Reset() {
+			transform = defaultTransform;
+			if (physicsObject) {
+				physicsObject->SetLinearVelocity(Vector3());
+				physicsObject->SetAngularVelocity(Vector3());
+			}
+		}
 	protected:
-		Transform			transform;
+		Transform transform;
+		Transform defaultTransform;
 
-		GameWorld*			world;
+		GameWorld* world;
 
-		CollisionVolume*	boundingVolume;
-		PhysicsObject*		physicsObject;
-		RenderObject*		renderObject;
-		NetworkObject*		networkObject;
+		CollisionVolume* boundingVolume;
+		PhysicsObject* physicsObject;
+		RenderObject* renderObject;
+		NetworkObject* networkObject;
 
 		// If true, this object will not respond to collisions but still cause/recieve events
 		bool trigger = false;
 		LayerMask::Index layer = LayerMask::Index::Default;
 
-		bool		isActive;
-		int			worldID;
+		bool isActive;
+		int worldID;
 		std::string	name;
 
 		Vector3 broadphaseAABB;

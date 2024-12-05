@@ -170,6 +170,7 @@ namespace NCL::CSC8503 {
         GetTransform()
             .SetScale(Vector3(scale, scale, scale))
             .SetPosition(Vector3(60, 5, 45));
+        SetDefaultTransform(GetTransform());
 
         SetRenderObject(new RenderObject(
             &GetTransform(),

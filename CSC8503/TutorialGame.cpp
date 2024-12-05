@@ -373,6 +373,7 @@ NetworkPlayer* TutorialGame::AddPlayerToWorld(const Vector3& position) {
 	character->GetTransform()
 		.SetScale(Vector3(meshSize, meshSize, meshSize))
 		.SetPosition(position);
+	character->SetDefaultTransform(character->GetTransform());
 
 	character->SetRenderObject(new RenderObject(&character->GetTransform(), catMesh, nullptr, basicShader));
 

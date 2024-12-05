@@ -3,6 +3,7 @@
 #include "PhysicsObject.h"
 
 #include "NetworkedGame.h"
+#include "Trapper.h"
 
 namespace NCL::CSC8503 {
 	PlayerInput NetworkPlayer::processInput() {
@@ -14,7 +15,7 @@ namespace NCL::CSC8503 {
 		input.backward = keyboard->KeyDown(KeyCodes::S);
 		input.left     = keyboard->KeyDown(KeyCodes::A);
 		input.right    = keyboard->KeyDown(KeyCodes::D);
-		// Always jump for one frame
+		// Always jump for one frame. |= the input in case processInput is called multiple times in one frame
 		input.jump = lastInput.jump || keyboard->KeyPressed(KeyCodes::SPACE);
 		input.action   = keyboard->KeyDown(KeyCodes::F);
 		return input;
@@ -43,6 +44,13 @@ namespace NCL::CSC8503 {
 		}
 		lastInput.jump = false;
 		jumpCooldown -= dt;
+	}
+
+	void NetworkPlayer::OnCollisionBegin(GameObject* other) {
+		if (dynamic_cast<Trapper*>(other)) {
+			std::cout << "Player hit a trapper!" << std::endl;
+			Reset();
+		}
 	}
 
 	bool NetworkPlayer::canJump() {
