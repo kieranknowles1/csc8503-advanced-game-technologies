@@ -2,6 +2,25 @@
 
 My coursework for the Advanced Game Technologies module at Newcastle University.
 
+## Usage
+
+### Controls
+
+As any player:
+- `WASD` - Move
+- `Space` - Jump
+- `Mouse` - Look
+- `Scroll` - Zoom
+- `F2` - Toggle free camera
+
+As the server:
+- `F11` - Restart the game
+
+### Command Line Arguments
+
+The game will launch as a server by default. To launch as a client, pass the
+`--client` argument. For a complete list of arguments, run with `--help`.
+
 ## Included Scripts
 
 `test-server.sh` and `test-server.bat` are included to launch a server and a
