@@ -51,8 +51,11 @@ set(Collision_Detection
     "CapsuleVolume.cpp"
     "CollisionDetection.h"
     "CollisionDetection.cpp"
-     "CollisionVolume.h"
-    "OBBVolume.h"
+    CollisionVolume.h
+    OBBVolume.h
+    AABBVolume.h
+    CapsuleVolume.h
+    SphereVolume.h
     "QuadTree.h"
     "QuadTree.cpp"
     "Ray.h"
