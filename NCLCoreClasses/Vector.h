@@ -296,6 +296,11 @@ namespace NCL::Maths {
         }
 
         template <typename T, uint32_t n>
+        T Distance(const VectorTemplate<T, n>& a, const VectorTemplate<T, n>& b) {
+            return Length(a - b);
+        }
+
+        template <typename T, uint32_t n>
         constexpr VectorTemplate<T, n> Normalise(const VectorTemplate<T, n>& a) {
             VectorTemplate<T, n> result;
             T l = Vector::Length(a);

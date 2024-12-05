@@ -93,6 +93,18 @@ void TutorialGame::UpdateGame(float dt) {
 
 		Vector3 camPos = objPos + offset;
 
+		// If an object would be in the way of the camera, move the camera forwards
+		Vector3 direction = Vector::Normalise(camPos - objPos);
+		Ray ray = Ray(objPos, direction);
+		RayCollision closestCollision;
+		bool hit = world->Raycast(ray, closestCollision, true, lockedObject);
+		if (hit && Vector::Distance(closestCollision.collidedAt, objPos) < Vector::Distance(camPos, objPos)) {
+			// Bias slightly towards the tracked object to compensate for the
+			// near plane of the camera
+			float bias = 0.5f;
+			camPos = closestCollision.collidedAt - direction * bias;
+		}
+
 		Matrix4 temp = Matrix::View(camPos, objPos, Vector3(0,1,0));
 
 		Matrix4 modelMat = Matrix::Inverse(temp);
