@@ -41,7 +41,7 @@ namespace NCL::CSC8503 {
                 // this->wander
                 // Trigger: TimePassed >= WaitDuration
                 // Action: Set wander target to a random floor node
-                parent->AddTransition(new StateTransition(this, wander, [this]()->bool {
+                parent->AddTransition(new FunctionStateTransition(this, wander, [this](float)->bool {
                     return waitRemaining <= 0;
                 }));
             }
@@ -49,7 +49,7 @@ namespace NCL::CSC8503 {
             void createToTransition() {
                 // wander->this
                 // Trigger: DistanceToTarget < DistanceThreshold
-                parent->AddTransition(new StateTransition(wander, this, [this]()->bool {
+                parent->AddTransition(new FunctionStateTransition(wander, this, [this](float)->bool {
                     auto distance = Vector::Length(wander->getTarget() - owner->GetTransform().GetPosition());
                     if (distance < wander->getDistanceThreshold()) {
 						std::cout << "Waiting" << std::endl;
@@ -69,7 +69,6 @@ namespace NCL::CSC8503 {
 
         StateMachine* createStateMachine(Trapper* owner, NavigationGrid* nav, Rng& rng, GameWorld* world) {
             StateMachine* machine = new StateMachine();
-            StateMachine* chase = new StateMachine();
             StateMachine* idle = new StateMachine();
 
             RandomMoveState* wander = new RandomMoveState(idle, owner, nav, rng);
@@ -86,18 +85,17 @@ namespace NCL::CSC8503 {
             idle->setStartingState(instantWait);
             idle->AddState(wander);
 
-            auto chaseFollow = new ChaseState(chase, owner, nav, world);
-            chase->AddState(chaseFollow);
-            chase->setStartingState(chaseFollow);
+            auto chaseFollow = new ChaseState(machine, owner, nav, world);
 
 
             auto idleState = new SubStateMachine(machine, idle);
-            auto chaseState = new SubStateMachine(machine, chase);
+            //auto chaseState = new SubStateMachine(machine, chase);
             machine->AddState(idleState);
             machine->setStartingState(idleState);
-            machine->AddState(chaseState);
+            machine->AddState(chaseFollow);
 
-            machine->AddTransition(new StateTransition(idleState, chaseState, [world, owner, chaseFollow]()->bool {
+            // Idle -> Chase when player is in sight
+            machine->AddTransition(new FunctionStateTransition(idleState, chaseFollow, [world, owner, chaseFollow](float)->bool {
                 TaggedObjects::iterator begin; TaggedObjects::iterator end;
                 world->getTaggedObjects(GameObject::Tag::Player, begin, end);
 
@@ -112,7 +110,14 @@ namespace NCL::CSC8503 {
                 return false;
             }));
 
-            // TODO: Return to wander when reaching last known position
+            // Chase -> Idle after losing sight for a while
+            machine->AddTransition(new FunctionStateTransition(chaseFollow, idleState, [world, owner, chaseFollow](float)->bool {
+                auto target = chaseFollow->getTargetObject();
+                return !world->hasLineOfSight(owner, target);
+                // Condition must hold for 10 seconds
+                // This + the line of sight check for updating the path simulates the farmer continuing to look before losing interest
+            }, 10.0f));
+
             // TODO: Penalty if the player is caught
 
             return machine;

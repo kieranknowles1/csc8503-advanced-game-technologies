@@ -94,6 +94,9 @@ namespace NCL::CSC8503 {
         void setTargetObject(GameObject* target) {
             targetObject = target;
         }
+        GameObject* getTargetObject() const {
+			return targetObject;
+		}
     protected:
         bool shouldRepickTarget() override;
         Vector3 pickTarget() override;

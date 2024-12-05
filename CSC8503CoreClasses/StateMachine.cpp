@@ -37,7 +37,7 @@ void StateMachine::Update(float dt) {
 
 	// If any transitions have been triggered, then we should change state
 	for (auto& i = range.first; i != range.second; ++i) {
-		if (i->second->CanTransition()) {
+		if (i->second->CanTransition(dt)) {
 			State* newState = i->second->GetDestinationState();
 
 			if (newState->getParent() == this) {
