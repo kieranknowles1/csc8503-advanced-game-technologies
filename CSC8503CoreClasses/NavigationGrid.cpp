@@ -168,12 +168,14 @@ bool NavigationGrid::FindPath(const Vector3& from, const Vector3& to, Navigation
 
 		if (currentBestNode.node == endNode) {			//we've found the path!
 			SearchNode node = currentBestNode;
+			// Add the end position
+			outPath.PushWaypoint(to);
 			while (node.parent != nullptr) {
 				outPath.PushWaypoint(node.node->position);
 				node = seenNodes.find(node.parent)->second;
 			}
-			// Add the start node
-			outPath.PushWaypoint(node.node->position);
+			// Add the start position
+			outPath.PushWaypoint(from);
 			return true;
 		}
 		else {
