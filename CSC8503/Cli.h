@@ -10,9 +10,8 @@ class Cli {
 public:
 	Cli(int argc, char** argv);
 
-	bool isServer() const {
-		// TODO: Don't invert this
-		return !server;
+	bool isClient() const {
+		return client;
 	}
 
 	uint32_t getIp() const {
@@ -23,7 +22,7 @@ public:
 		return windowPos;
 	}
 private:
-	bool server = false;
+	bool client = false;
 	uint32_t ip = NetworkBase::ipv4(127, 0, 0, 1); // Default to localhost
 
 	NCL::Maths::Vector2i windowPos = NCL::Maths::Vector2i(0, 0);

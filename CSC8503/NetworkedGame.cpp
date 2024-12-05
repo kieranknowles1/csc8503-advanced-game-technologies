@@ -30,10 +30,10 @@ NetworkedGame::NetworkedGame(const Cli& cli) {
 	NetworkBase::Initialise();
 	timeToNextPacket  = 0.0f;
 
-	if (cli.isServer()) {
-		server = new Server(this, MaxPlayers);
-	} else {
+	if (cli.isClient()) {
 		StartAsClient(cli.getIp());
+	} else {
+		server = new Server(this, MaxPlayers);
 	}
 
 	networkWorld = new NetworkWorld(thisClient, server ? server->getServer() : nullptr);

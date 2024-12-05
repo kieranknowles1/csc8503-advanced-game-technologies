@@ -41,8 +41,8 @@ Cli::Cli(int argc, char** argv) {
 			}
             ip = NetworkBase::ipv4(a, b, c, d);
         }
-        else if (arg == "-s" || arg == "--server") {
-            server = true;
+        else if (arg == "-c" || arg == "--client") {
+            client = true;
         } else if (arg == "-w" || arg == "--window") {
             std::string xStr; std::string yStr;
             consumeRequiredArg(xStr);
@@ -61,8 +61,8 @@ Cli::Cli(int argc, char** argv) {
 void Cli::printUsage(char* programName) const {
     std::cout <<
         "Usage: " << programName << " [options]\n"
-        "  -h, --help    Display this help message\n"
-        "  -i, --ip [address]  Set the IP address to connect to\n"
-        "  -s, --server  Start the program as a server\n"
-        "  -w, --window [x] [y]  Set the window position\n";
+        "  -h, --help                    Display this help message\n"
+        "  -i, --ip [address=127.0.0.1]  Set the IP address to connect to\n"
+        "  -c, --client = false          Run the program as a client\n"
+        "  -w, --window [x=0] [y=0]      Set the window position\n";
 }
