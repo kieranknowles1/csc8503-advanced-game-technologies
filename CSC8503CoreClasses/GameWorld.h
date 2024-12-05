@@ -1,10 +1,15 @@
 #pragma once
 #include <random>
 
+
 #include "Ray.h"
 #include "CollisionDetection.h"
 #include "QuadTree.h"
 namespace NCL {
+		// Declare RNG here as an alias, so that changing it would be easy
+		// mt19937 is a common standard, but quite large to transfer over the network
+		using Rng = std::mt19937;
+
 		class Camera;
 		using Maths::Ray;
 	namespace CSC8503 {

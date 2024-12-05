@@ -100,24 +100,9 @@ namespace NCL::CSC8503 {
             machine->AddState(chaseState);
 
             // TODO: Check for player trespass and set target
-            machine->AddTransition(new StateTransition(idleState, chaseState, [owner]()->bool {
+            machine->AddTransition(new StateTransition(idleState, chaseState, [world, owner]()->bool {
                 return true;
             }));
-
-            // machine->AddTransition(new StateTransition(idleState, chaseState, [cooldown]()->bool {
-            //     *cooldown -= 0.1f;
-			// 	if (*cooldown > 0) return false;
-			// 	*cooldown = 10;
-            //     std::cout << "Idle -> Chase" << std::endl;
-			// 	return true;
-			// }));
-            // chase->AddTransition(new StateTransition(dummy, idleState, [cooldown]()->bool {
-            //     *cooldown -= 0.1f;
-			// 	if (*cooldown > 0) return false;
-			// 	*cooldown = 10;
-            //     std::cout << "Dummy -> Idle" << std::endl;
-			// 	return true;
-			// }));
 
             return machine;
         }
@@ -149,7 +134,6 @@ namespace NCL::CSC8503 {
 
 
         bool hit = world->Raycast(ray, closest, true, owner);
-        return true;
         return hit && closest.node == targetObject;
     }
 

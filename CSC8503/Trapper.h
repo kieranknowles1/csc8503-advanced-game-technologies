@@ -6,8 +6,7 @@
 #include "Shader.h"
 #include "NavigationGrid.h"
 #include "GameObject.h"
-
-#include "Rng.h"
+#include "GameWorld.h"
 
 namespace NCL::CSC8503 {
     // Base class for states that move towards a target
