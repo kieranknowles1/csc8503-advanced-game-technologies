@@ -6,8 +6,7 @@ namespace NCL {
 	class AABBVolume : public CollisionVolume
 	{
 	public:
-		AABBVolume(const Vector3& halfDims) {
-			type		= VolumeType::AABB;
+		AABBVolume(const Vector3& halfDims) : CollisionVolume(VolumeType::AABB) {
 			halfSizes	= halfDims;
 		}
 		~AABBVolume() {

@@ -5,8 +5,7 @@ namespace NCL {
 	class SphereVolume : public CollisionVolume
 	{
 	public:
-		SphereVolume(float sphereRadius = 1.0f) {
-			type	= VolumeType::Sphere;
+		SphereVolume(float sphereRadius = 1.0f) : CollisionVolume(VolumeType::Sphere) {
 			radius	= sphereRadius;
 		}
 		~SphereVolume() {}

@@ -5,8 +5,7 @@ namespace NCL {
 	class OBBVolume : public CollisionVolume
 	{
 	public:
-		OBBVolume(const Maths::Vector3& halfDims) {
-			type		= VolumeType::OBB;
+		OBBVolume(const Maths::Vector3& halfDims) : CollisionVolume(VolumeType::OBB) {
 			halfSizes	= halfDims;
 		}
 		~OBBVolume() {}
