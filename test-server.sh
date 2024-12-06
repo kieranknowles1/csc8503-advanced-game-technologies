@@ -11,8 +11,8 @@ make --directory build -j$THREADS
 # Run two instances - one as server and one as client
 # Display both outputs through tmux
 # Position windows on separate monitors
-tmux new-session -d -s "server" "$EXE_PATH --window 2000 0"
-tmux split-window -h "$EXE_PATH --client"
+tmux new-session -d -s "server" "$EXE_PATH --no-capture"
+tmux split-window -h "$EXE_PATH --client --window 2000 0"
 
 # Display outputs of both instances
 tmux attach-session -t "server"

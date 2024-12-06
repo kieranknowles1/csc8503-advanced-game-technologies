@@ -407,8 +407,10 @@ int main(int argc, char** argv) {
 	initInfo.windowPositionY = cli->getWindowPos().y;
 
 	Window*w = Window::CreateGameWindow(initInfo);
-	w->LockMouseToWindow(true);
-	w->ShowOSPointer(false);
+	if (cli->shouldCaptureMouse()) {
+		w->LockMouseToWindow(true);
+		w->ShowOSPointer(false);
+	}
 
 /*	testPushdownAutomata(w);
 	return 0*/;

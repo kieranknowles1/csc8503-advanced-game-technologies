@@ -43,6 +43,8 @@ Cli::Cli(int argc, char** argv) {
         }
         else if (arg == "-c" || arg == "--client") {
             client = true;
+        } else if (arg == "-C" || arg == "--no-capture") {
+            captureMouse = false;
         } else if (arg == "-w" || arg == "--window") {
             std::string xStr; std::string yStr;
             consumeRequiredArg(xStr);
@@ -63,6 +65,7 @@ void Cli::printUsage(char* programName) const {
         "Usage: " << programName << " [options]\n"
         "  -h, --help                    Display this help message\n"
         "  -i, --ip [address=127.0.0.1]  Set the IP address to connect to\n"
-        "  -c, --client = false          Run the program as a client\n"
+        "  -c, --client                  Run the program as a client\n"
+        "  -C, --no-capture              Don't capture the mouse\n"
         "  -w, --window [x=0] [y=0]      Set the window position\n";
 }
