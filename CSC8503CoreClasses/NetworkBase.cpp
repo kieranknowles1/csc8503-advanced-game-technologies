@@ -53,6 +53,6 @@ bool NetworkBase::ProcessPackedPackets(std::span<enet_uint8> buffer, int peerID)
 		count++;
 	}
 
-	std::cout << "Processed " << count << " packets in " << totalSize << " bytes\n";
+	//std::cout << "Processed " << count << " packets in " << totalSize << " bytes\n";
 	return true;
 }
