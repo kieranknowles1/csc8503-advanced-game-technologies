@@ -2,7 +2,7 @@
 17
 17
 xxxxxxxxxxxxxxxxx
-...e......x....bx
+b..e......x....bx
 x.xxx.x.xxx.x.xxx
 x.....x.....x...x
 x.x.xxx.xxx.xxx.x

@@ -4,6 +4,7 @@ set(PROJECT_NAME CSC8503)
 # Source groups
 ################################################################################
 set(Header_Files
+    Bonus.h
     "Cli.h"
     Client.h
     "GameTechRenderer.h"
@@ -21,6 +22,7 @@ source_group("Header Files" FILES ${Header_Files})
 
 
 set(Source_Files
+    Bonus.cpp
     "Cli.cpp"
     Client.cpp
     "GameTechRenderer.cpp"
