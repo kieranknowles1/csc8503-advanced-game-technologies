@@ -17,7 +17,9 @@ namespace NCL::CSC8503 {
 
     NetworkObject* NetworkWorld::trackObject(GameObject* obj) {
         if (nextId >= ManualIdStart) {
-            throw std::runtime_error("Too many network objects");
+            // We have 2 billion IDs to play with, this would require multi-terrabit
+            // network connections to even track
+            throw std::runtime_error("Too many network objects. You're doing it wrong.");
 		}
 
         NetworkObject* netObj = new NetworkObject(*obj, nextId);
@@ -32,6 +34,9 @@ namespace NCL::CSC8503 {
         if (id < ManualIdStart) {
 			throw std::runtime_error("Manual ID must be greater than " + std::to_string(ManualIdStart));
 		}
+        if (networkObjects.find(id) != networkObjects.end()) {
+            throw std::runtime_error("Network object with ID " + std::to_string(id) + " already exists");
+        }
 
         NetworkObject* netObj = new NetworkObject(*obj, id);
 		obj->SetNetworkObject(netObj);

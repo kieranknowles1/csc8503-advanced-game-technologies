@@ -40,6 +40,7 @@ namespace NCL::CSC8503 {
 	class NetworkObject		{
 	public:
 		using Id = unsigned int;
+		const static constexpr Id MaxId = std::numeric_limits<Id>::max();
 
 		NetworkObject(GameObject& o, Id id);
 		virtual ~NetworkObject();

@@ -11,7 +11,9 @@ namespace NCL::CSC8503 {
     // The state of the game over the network, synchronises held objects
     class NetworkWorld : public PacketReceiver {
     public:
-        static const constexpr NetworkObject::Id ManualIdStart = 65536;
+        // Reserve IDs below this for level loading
+        // IDs above this can be assigned manually
+        static const constexpr NetworkObject::Id ManualIdStart = NetworkObject::MaxId >> 1;
 
         NetworkWorld(GameClient* client, GameServer* server);
 
@@ -23,6 +25,8 @@ namespace NCL::CSC8503 {
         NetworkObject* trackObject(GameObject* obj);
 
         // Start tracking a GameObject over the network with a specific ID
+        // This may be called in any order, but the ID must be unique and
+        // represent the same object on all clients and servers
         NetworkObject* trackObjectManual(GameObject* obj, NetworkObject::Id id);
 
         // Get the GameObject associated with a network ID
