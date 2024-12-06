@@ -96,6 +96,7 @@ void TutorialGame::UpdateGame(float dt) {
 		// If an object would be in the way of the camera, move the camera forwards
 		Vector3 direction = Vector::Normalise(camPos - objPos);
 		Ray ray = Ray(objPos, direction);
+		ray.setMask(~LayerMask({ LayerMask::Index::Item, LayerMask::Index::Actor }));
 		RayCollision closestCollision;
 		bool hit = world->Raycast(ray, closestCollision, true, lockedObject);
 		if (hit && Vector::Distance(closestCollision.collidedAt, objPos) < Vector::Distance(camPos, objPos)) {
@@ -329,7 +330,6 @@ physics worlds. You'll probably need another function for the creation of OBB cu
 */
 GameObject* TutorialGame::AddSphereToWorld(const Vector3& position, float radius, float inverseMass) {
 	GameObject* sphere = new GameObject();
-	sphere->setLayer(LayerMask::Index::Spheres);
 
 	Vector3 sphereSize = Vector3(radius, radius, radius);
 	SphereVolume* volume = new SphereVolume(radius);

@@ -26,9 +26,7 @@ namespace NCL::CSC8503 {
 
 	class NetworkPlayer : public GameObject {
 	public:
-		NetworkPlayer(int clientId) : clientId(clientId) {
-			name = "Player " + std::to_string(clientId);
-		}
+		NetworkPlayer(int clientId);
 
 		PlayerInput processInput();
 

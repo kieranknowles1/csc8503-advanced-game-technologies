@@ -159,6 +159,7 @@ namespace NCL::CSC8503 {
         NavigationGrid* nav,
         GameWorld* world
     ) {
+        setLayer(LayerMask::Index::Actor);
         navMap = nav;
 
         float scale = 3.0f;

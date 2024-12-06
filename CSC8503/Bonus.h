@@ -8,7 +8,9 @@ namespace NCL::CSC8503 {
     public:
         Bonus(NetworkedGame* game, int value)
             : game(game)
-            , value(value) {}
+            , value(value) {
+            setLayer(LayerMask::Index::Item);
+        }
 
         void OnCollisionBegin(GameObject* other) override;
     private:
