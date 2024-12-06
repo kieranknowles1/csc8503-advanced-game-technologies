@@ -83,7 +83,7 @@ namespace NCL {
 
 			void UpdateGame(float dt) override;
 
-			const static constexpr int PlayerIdStart = 100000;
+			const static constexpr int PlayerIdStart = NetworkWorld::ManualIdStart + 1000;
 
 			NetworkPlayer* insertPlayer(int index);
 
