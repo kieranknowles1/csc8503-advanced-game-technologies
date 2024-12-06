@@ -56,11 +56,20 @@ namespace NCL::CSC8503 {
 
 		void UpdateStateHistory(int minID);
 
+		// Get how far the current state is from the last full state
+		// Fairly arbitary metric, intended to detect what kind of state to send,
+		// if any
+		int getDeltaError(const NetworkState& from) const;
+
 		NetworkState& GetLastFullState() {
 			return lastFullState;
 		}
+		NetworkState& GetLastDeltaState() {
+			return lastDeltaState;
+		}
 
 	protected:
+		NetworkState createNetworkState(int id);
 
 		NetworkState& GetLatestNetworkState();
 
@@ -75,6 +84,7 @@ namespace NCL::CSC8503 {
 		GameObject& object;
 
 		NetworkState lastFullState;
+		NetworkState lastDeltaState;
 
 		std::vector<NetworkState> stateHistory;
 

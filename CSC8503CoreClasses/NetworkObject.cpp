@@ -98,17 +98,23 @@ bool NetworkObject::WriteDeltaPacket(GamePacket**p, int stateID) {
 	dp->orientation[2] = (char)(currentOr.z * DeltaOrientationFactor);
 	dp->orientation[3] = (char)(currentOr.w * DeltaOrientationFactor);
 	*p = dp;
+	lastDeltaState = createNetworkState(stateID);
 	return true;
+}
+
+NetworkState NetworkObject::createNetworkState(int id) {
+	NetworkState state;
+	state.position = object.GetTransform().GetPosition();
+	state.orientation = object.GetTransform().GetOrientation();
+	state.stateID = id;
+	return state;
 }
 
 bool NetworkObject::WriteFullPacket(GamePacket**p) {
 	FullPacket* fp = new FullPacket();
-	lastFullState.stateID++;
+	lastFullState = createNetworkState(lastFullState.stateID + 1);
+	fp->fullState = lastFullState;
 	fp->objectID = networkID;
-	fp->fullState.position = object.GetTransform().GetPosition();
-	fp->fullState.orientation = object.GetTransform().GetOrientation();
-	fp->fullState.stateID = lastFullState.stateID;
-	lastFullState = fp->fullState;
 	stateHistory.push_back(lastFullState);
 	*p = fp;
 	return true;
@@ -134,4 +140,19 @@ void NetworkObject::UpdateStateHistory(int minID) {
 	std::erase_if(stateHistory, [&](NetworkState& state) {
 		return state.stateID < minID;
 	});
+}
+
+int NetworkObject::getDeltaError(const NetworkState& from) const {
+	// We're a new object, so we should always send a full state
+	if (from.stateID == 0) {
+		return std::numeric_limits<int>::max();
+	}
+
+	Vector3 posError = object.GetTransform().GetPosition() - from.position;
+	Quaternion orError = object.GetTransform().GetOrientation() - from.orientation;
+	
+	int posFactor = Vector::Length(posError) * DeltaPositionFactor;
+	int orFactor = Vector::Length(Vector3(orError.x, orError.y, orError.z)) * DeltaOrientationFactor * 32;
+
+	return posFactor + orFactor;
 }

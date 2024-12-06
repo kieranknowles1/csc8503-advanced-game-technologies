@@ -17,7 +17,7 @@ namespace NCL {
 		static const constexpr int MaxPlayers = 64;
 
 		struct PlayerState {
-			int id;
+			int id; // From enet_peer->peerId
 			NetworkObject::Id netObjectID;
 		};
 		struct LocalPlayerState {
@@ -111,7 +111,6 @@ namespace NCL {
 
 			void UpdateAsClient(float dt);
 
-			void BroadcastSnapshot(bool deltaFrame);
 			void UpdateMinimumState();
 			std::map<int, int> stateIDs;
 

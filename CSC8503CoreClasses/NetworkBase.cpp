@@ -36,6 +36,7 @@ bool NetworkBase::ProcessPacket(GamePacket* packet, int peerID) {
 bool NetworkBase::ProcessPackedPackets(std::span<enet_uint8> buffer, int peerID)
 {
 	int count = 0;
+	auto totalSize = buffer.size();
 	while (!buffer.empty()) {
 		// Safety checks - ensure we have enough data to read the packet in full
 		// If not, we have a buffer overrun and should stop processing
@@ -51,5 +52,7 @@ bool NetworkBase::ProcessPackedPackets(std::span<enet_uint8> buffer, int peerID)
 		buffer = buffer.subspan(packet->GetTotalSize());
 		count++;
 	}
+
+	std::cout << "Processed " << count << " packets in " << totalSize << " bytes\n";
 	return true;
 }

@@ -141,33 +141,6 @@ void NetworkedGame::UpdateAsClient(float dt) {
 	// thisClient->SendPacket(newPacket);
 }
 
-void NetworkedGame::BroadcastSnapshot(bool deltaFrame) {
-	std::vector<GameObject*>::const_iterator first;
-	std::vector<GameObject*>::const_iterator last;
-
-	world->GetObjectIterators(first, last);
-
-	for (auto i = first; i != last; ++i) {
-		NetworkObject* o = (*i)->GetNetworkObject();
-		if (!o) {
-			continue;
-		}
-		//TODO - you'll need some way of determining
-		//when a player has sent the server an acknowledgement
-		//and store the lastID somewhere. A map between player
-		//and an int could work, or it could be part of a
-		//NetworkPlayer struct.
-
-		// TODO: Set to the last state that all players have acknowledged
-		int playerState = o->GetLastFullState().stateID;
-		GamePacket* newPacket = nullptr;
-		if (o->WritePacket(&newPacket, deltaFrame, playerState)) {
-			server->getServer()->SendGlobalPacket(*newPacket);
-			delete newPacket;
-		}
-	}
-}
-
 void NetworkedGame::UpdateMinimumState() {
 	//Periodically remove old data from the server
 	int minID = INT_MAX;

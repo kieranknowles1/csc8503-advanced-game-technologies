@@ -21,12 +21,7 @@ namespace NCL::CSC8503 {
             game->StartLevel();
         }
 
-        packetsToSnapshot--;
-        bool delta = packetsToSnapshot >= 0;
-        if (!delta) {
-			packetsToSnapshot = snapshotFrequency;
-		}
-        broadcastSnapshot(delta);
+        broadcastDeltas();
 
         // Process any packets received and flush the send buffer
 		server->UpdateServer();
@@ -74,13 +69,12 @@ namespace NCL::CSC8503 {
 			it->second.player->setLastInput(packet->input);
 		}
     }
-    void Server::broadcastSnapshot(bool deltaFrame)
+    void Server::broadcastDeltas()
     {
         std::vector<GameObject*>::const_iterator first;
         std::vector<GameObject*>::const_iterator last;
 
         game->getWorld()->GetObjectIterators(first, last);
-
         for (auto i = first; i != last; ++i) {
             NetworkObject* o = (*i)->GetNetworkObject();
             if (!o) {
@@ -92,12 +86,28 @@ namespace NCL::CSC8503 {
             //and an int could work, or it could be part of a
             //NetworkPlayer struct.
 
+            const constexpr int SendDeltaThreshold = 50;
+            const constexpr int SendFullThreshold = 1000;
+
             // TODO: Set to the last state that all players have acknowledged
             int playerState = o->GetLastFullState().stateID;
             GamePacket* newPacket = nullptr;
-            if (o->WritePacket(&newPacket, deltaFrame, playerState)) {
-                server->SendGlobalPacket(*newPacket);
-                delete newPacket;
+            
+            // Get an approximation of how much the state has changed since
+            // the last packet of each type was sent
+            // These values are very approximate and could be tuned if needed
+            int fromLastDelta = o->getDeltaError(o->GetLastDeltaState());
+            int fromLastFull = o->getDeltaError(o->GetLastFullState());
+
+            // If we've moved too far from the last full, send a new full
+            bool sendFull = fromLastFull > SendFullThreshold;
+            // Don't send anything if the delta is still good enough
+            if (fromLastDelta > SendDeltaThreshold || sendFull) {
+                GamePacket* newPacket = nullptr;
+                if (o->WritePacket(&newPacket, !sendFull, playerState)) {
+                    server->SendGlobalPacket(*newPacket);
+                    delete newPacket;
+                }
             }
         }
     }
