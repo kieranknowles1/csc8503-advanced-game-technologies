@@ -45,7 +45,14 @@ void GameWorld::AddGameObject(GameObject* o) {
 }
 
 void GameWorld::RemoveGameObject(GameObject* o, bool andDelete) {
-	gameObjects.erase(std::remove(gameObjects.begin(), gameObjects.end(), o), gameObjects.end());
+	gameObjects.erase(std::find(gameObjects.begin(), gameObjects.end(), o));
+	auto range = taggedObjects.equal_range(o->getTag());
+	for (auto i = range.first; i != range.second; ++i) {
+		if (i->second == o) {
+			taggedObjects.erase(i);
+			break;
+		}
+	}
 	o->SetWorld(nullptr);
 	if (andDelete) {
 		delete o;

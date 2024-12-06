@@ -8,7 +8,7 @@
 #include "OrientationConstraint.h"
 #include "StateGameObject.h"
 
-
+#include "Bonus.h"
 
 using namespace NCL;
 using namespace CSC8503;
@@ -373,11 +373,11 @@ GameObject* TutorialGame::AddCubeToWorld(const Vector3& position, Vector3 dimens
 	return cube;
 }
 
-NetworkPlayer* TutorialGame::AddPlayerToWorld(const Vector3& position) {
+NetworkPlayer* TutorialGame::AddPlayerToWorld(const Vector3& position, int id) {
 	float meshSize		= 1.0f;
 	float inverseMass	= 0.5f;
 
-	NetworkPlayer* character = new NetworkPlayer();
+	NetworkPlayer* character = new NetworkPlayer(id);
 	SphereVolume* volume  = new SphereVolume(1.0f);
 
 	character->SetBoundingVolume((CollisionVolume*)volume);
@@ -428,9 +428,10 @@ GameObject* TutorialGame::AddEnemyToWorld(const Vector3& position) {
 }
 
 GameObject* TutorialGame::AddBonusToWorld(const Vector3& position) {
-	GameObject* apple = new GameObject();
+	GameObject* apple = new Bonus((NetworkedGame*)this, 100);
+	apple->SetTrigger(true);
 
-	SphereVolume* volume = new SphereVolume(0.5f);
+	SphereVolume* volume = new SphereVolume(1.5f);
 	apple->SetBoundingVolume((CollisionVolume*)volume);
 	apple->GetTransform()
 		.SetScale(Vector3(2, 2, 2))
@@ -439,7 +440,7 @@ GameObject* TutorialGame::AddBonusToWorld(const Vector3& position) {
 	apple->SetRenderObject(new RenderObject(&apple->GetTransform(), bonusMesh, nullptr, basicShader));
 	apple->SetPhysicsObject(new PhysicsObject(&apple->GetTransform(), apple->GetBoundingVolume()));
 
-	apple->GetPhysicsObject()->SetInverseMass(1.0f);
+	apple->GetPhysicsObject()->SetInverseMass(0.0f);
 	apple->GetPhysicsObject()->InitSphereInertia();
 
 	world->AddGameObject(apple);
@@ -480,7 +481,7 @@ void TutorialGame::InitDefaultFloor() {
 }
 
 void TutorialGame::InitGameExamples() {
-	AddPlayerToWorld(Vector3(0, 5, 0));
+	//AddPlayerToWorld(Vector3(0, 5, 0));
 	AddEnemyToWorld(Vector3(5, 5, 0));
 	AddBonusToWorld(Vector3(10, 5, 0));
 }

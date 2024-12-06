@@ -18,6 +18,7 @@ namespace NCL {
 
 		struct PlayerState {
 			int id; // From enet_peer->peerId
+			int score = 0;
 			NetworkObject::Id netObjectID;
 		};
 		struct LocalPlayerState {
@@ -79,6 +80,10 @@ namespace NCL {
 			NetworkedGame(const Cli& cli);
 			~NetworkedGame();
 
+			bool isServer() { return server != nullptr; }
+			Server* getServer() { return server; }
+			Client* getClient() { return client; }
+
 			void StartAsClient(uint32_t addr);
 
 			void UpdateGame(float dt) override;
@@ -87,7 +92,7 @@ namespace NCL {
 
 			NetworkPlayer* insertPlayer(int index);
 
-			NetworkPlayer* SpawnPlayer(int id);
+			NetworkPlayer* SpawnPlayer(int clientId, NetworkObject::Id networkId);
 			void SpawnMissingPlayers();
 
 			void ClearWorld() override;
@@ -101,6 +106,23 @@ namespace NCL {
 				return allPlayers;
 			}
 
+			int getPlayerScore(int id) {
+				auto player = allPlayers.find(id);
+				if (player != allPlayers.end()) {
+					return player->second.netState.score;
+				}
+				return 0;
+			}
+			void setPlayerScore(int id, int score) {
+				auto player = allPlayers.find(id);
+				if (player != allPlayers.end()) {
+					player->second.netState.score = score;
+				}
+			}
+
+			// Remove an object from the game world
+			// Delayed until the end of the frame
+			void removeObject(GameObject* obj);
 		protected:
 			void ProcessInput(float dt);
 
@@ -133,7 +155,9 @@ namespace NCL {
 			int inputIndex = 0;
 
 			std::map<int, LocalPlayerState> allPlayers;
-			PlayerState localPlayer;
+			const static constexpr int InvalidPlayerId = -2;
+			const static constexpr int HostPlayerId = -1;
+			int localPlayerId = InvalidPlayerId;
 
 			bool freeCam = false;
 
@@ -143,6 +167,10 @@ namespace NCL {
 			// Only the server has authority to run RNG
 			// TODO: Make this part of the server class
 			Rng rng;
+
+			// Objects to be deleted at the end of the frame
+			std::vector<GameObject*> graveyard;
+			void clearGraveyard();
 		};
 	}
 }

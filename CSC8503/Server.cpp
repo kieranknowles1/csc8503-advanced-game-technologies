@@ -39,6 +39,12 @@ namespace NCL::CSC8503 {
         }
     }
 
+    void Server::sendPlayerList()
+    {
+        PlayerListPacket listPacket(game->GetAllPlayers());
+        server->SendGlobalPacket(listPacket);
+    }
+
     void Server::processPlayerConnect(int source)
     {
         std::cout << "Player " << source << " has connected!" << std::endl;
@@ -47,11 +53,10 @@ namespace NCL::CSC8503 {
         PlayerConnectedPacket newPacket(source, playerObj);
         server->SendGlobalPacket(newPacket);
 
-        PlayerListPacket listPacket(game->GetAllPlayers());
-        server->SendGlobalPacket(listPacket);
+        sendPlayerList();
 
         HelloPacket helloPacket{
-            PlayerState{source, playerObj->GetNetworkObject()->getId()}
+            PlayerState{source, 0, playerObj->GetNetworkObject()->getId()}
         };
         server->SendClientPacket(source, helloPacket);
     }

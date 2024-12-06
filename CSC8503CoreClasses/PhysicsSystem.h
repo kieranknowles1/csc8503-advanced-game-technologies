@@ -36,6 +36,8 @@ namespace NCL {
 			void dirtyStaticsTree() {
 				staticsTree.reset();
 			}
+
+			void removeObject(GameObject* object);
 		protected:
 			void BasicCollisionDetection();
 			void BroadPhase();

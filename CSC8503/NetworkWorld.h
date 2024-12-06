@@ -33,6 +33,10 @@ namespace NCL::CSC8503 {
         GameObject* getTrackedObject(NetworkObject::Id id);
 
         void ReceivePacket(GamePacket::Type type, GamePacket* payload, int source) override;
+
+        void removeObject(GameObject* obj) {
+			networkObjects.erase(obj->GetNetworkObject()->getId());
+		}
     private:
         void ProcessPacket(DeltaPacket* payload, int source);
         void ProcessPacket(FullPacket* payload, int source);

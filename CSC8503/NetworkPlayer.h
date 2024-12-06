@@ -26,6 +26,10 @@ namespace NCL::CSC8503 {
 
 	class NetworkPlayer : public GameObject {
 	public:
+		NetworkPlayer(int clientId) : clientId(clientId) {
+			name = "Player " + std::to_string(clientId);
+		}
+
 		PlayerInput processInput();
 
 		void setLastInput(const PlayerInput& input) {
@@ -38,7 +42,12 @@ namespace NCL::CSC8503 {
 		Tag getTag() const override {
 			return Tag::Player;
 		}
+
+		int getClientID() const {
+			return clientId;
+		}
 	private:
+		int clientId;
 		PlayerInput lastInput;
 
 		const constexpr static float JumpCooldown = 0.2f;

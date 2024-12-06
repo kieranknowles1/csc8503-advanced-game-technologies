@@ -188,6 +188,16 @@ void PhysicsSystem::UpdateObjectAABBs() {
 	);
 }
 
+void PhysicsSystem::removeObject(GameObject* object)
+{
+	if (object->getPhysicsType() == GameObject::PhysicsType::Static) {
+		dirtyStaticsTree();
+	}
+	std::erase_if(allCollisions, [&](const CollisionDetection::CollisionInfo& info) {
+		return info.a == object || info.b == object;
+	});
+}
+
 /*
 
 This is how we'll be doing collision detection in tutorial 4.

@@ -39,11 +39,14 @@ NetworkedGame::NetworkedGame(const Cli& cli) {
 	networkWorld = new NetworkWorld(thisClient, server ? server->getServer() : nullptr);
 
 	if (server) {
-		int playerId = -1;
-		auto obj = SpawnPlayer(PlayerIdStart + playerId);
-		localPlayer = PlayerState{ playerId, obj->GetNetworkObject()->getId() };
-		allPlayers[playerId] = {
-			localPlayer,
+		localPlayerId = HostPlayerId;
+		auto obj = SpawnPlayer(localPlayerId, PlayerIdStart + localPlayerId);
+		allPlayers[localPlayerId] = {
+			PlayerState{
+				localPlayerId,
+				0,
+				obj->GetNetworkObject()->getId()
+			},
 			obj
 		};
 	}
@@ -77,6 +80,10 @@ void NetworkedGame::UpdateGame(float dt) {
 	if (thisClient)
 		Debug::Print("This is a client\n", Vector2(10, 20));
 
+	if (localPlayerId != InvalidPlayerId) {
+		Debug::Print("Score: " + std::to_string(allPlayers[localPlayerId].netState.score), Vector2(10, 10));
+	}
+
 	if (timeToNextPacket < 0) {
 		if (server) {
 			server->update(dt);
@@ -89,10 +96,28 @@ void NetworkedGame::UpdateGame(float dt) {
 	ProcessInput(dt);
 
 	TutorialGame::UpdateGame(dt);
+
+	clearGraveyard();
+}
+
+void NetworkedGame::removeObject(GameObject* obj)
+{
+	graveyard.push_back(obj);
+}
+
+void NetworkedGame::clearGraveyard() {
+	for (auto obj : graveyard) {
+		// TODO: If server, broadcast removal
+
+		networkWorld->removeObject(obj);
+		physics->removeObject(obj);
+		world->RemoveGameObject(obj, true);
+	}
+	graveyard.clear();
 }
 
 void NetworkedGame::ProcessInput(float dt) {
-	auto it = allPlayers.find(localPlayer.id);
+	auto it = allPlayers.find(localPlayerId);
 	if (it == allPlayers.end()) {
 		return;
 	}
@@ -166,30 +191,31 @@ void NetworkedGame::UpdateMinimumState() {
 }
 
 NetworkPlayer* NetworkedGame::insertPlayer(int index) {
-	auto obj = SpawnPlayer(index + PlayerIdStart);
+	auto obj = SpawnPlayer(index, index + PlayerIdStart);
 	allPlayers[index] = {
-		PlayerState(index, obj->GetNetworkObject()->getId()),
+		PlayerState(index, 0, obj->GetNetworkObject()->getId()),
 		obj
 	};
 	return obj;
 }
 
-NetworkPlayer* NetworkedGame::SpawnPlayer(int id) {
-	auto obj = AddPlayerToWorld(Vector3(0, 5, 0));
-	networkWorld->trackObjectManual(obj, id);
+NetworkPlayer* NetworkedGame::SpawnPlayer(int clientId, NetworkObject::Id networkId) {
+	auto obj = AddPlayerToWorld(Vector3(0, 5, 0), clientId);
+	networkWorld->trackObjectManual(obj, networkId);
 
 	return obj;
 }
 
 void NetworkedGame::SpawnMissingPlayers() {
-	for (auto& [playerID, playerState] : allPlayers) {
+	for (auto& [playerId, playerState] : allPlayers) {
 		if (playerState.player == nullptr) {
-			playerState.player = SpawnPlayer(playerState.netState.netObjectID);
+			playerState.player = SpawnPlayer(playerId, playerState.netState.netObjectID);
 		}
 	}
 }
 
 void NetworkedGame::ClearWorld() {
+	clearGraveyard();
 	TutorialGame::ClearWorld();
 	networkWorld->reset();
 	physics->dirtyStaticsTree();
@@ -217,7 +243,7 @@ void NetworkedGame::StartLevel() {
 			AddCubeToWorld(node->position + Vector3(0, 10, 0), Vector3(nodeSize / 2, 10, nodeSize / 2), 0.0f, true);
 			break;
 		case GridNode::Type::Bonus: {
-			auto bonus = AddBonusToWorld(node->position + Vector3(0, 5, 0));
+			auto bonus = AddBonusToWorld(node->position + Vector3(0, 2.5, 0));
 			networkWorld->trackObject(bonus);
 			// TODO: Reward for collecting
 			break;
@@ -250,13 +276,18 @@ void NetworkedGame::ProcessPacket(PlayerListPacket* payload) {
 			std::cout << "Spawning player " << player.id << "\n";
 			allPlayers[player.id] = { player, nullptr };
 		}
+		else {
+			std::cout << "Updating player state for " << player.id << "\n";
+			allPlayers[player.id].netState = player;
+		}
 	}
 	SpawnMissingPlayers();
 }
 
 void NetworkedGame::ProcessPacket(HelloPacket* payload) {
 	std::cout << "Received hello packet. We are player " << payload->whoAmI.id << "\n";
-	localPlayer = payload->whoAmI;
+	localPlayerId = payload->whoAmI.id;
+	allPlayers[localPlayerId] = { payload->whoAmI, nullptr };
 }
 
 void NetworkedGame::ReceivePacket(GamePacket::Type type, GamePacket* payload, int source) {

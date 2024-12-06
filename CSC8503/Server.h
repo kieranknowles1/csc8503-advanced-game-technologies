@@ -18,6 +18,8 @@ namespace NCL::CSC8503 {
         void update(float dt);
 
         void ReceivePacket(GamePacket::Type type, GamePacket* payload, int source = -1) override;
+
+        void sendPlayerList();
     private:
         NetworkedGame* game;
         GameServer* server;
