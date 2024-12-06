@@ -45,6 +45,12 @@ namespace NCL::CSC8503 {
         server->SendGlobalPacket(listPacket);
     }
 
+    void Server::broadcastObjectDestroy(NetworkObject::Id id)
+    {
+        DestroyPacket destroyPacket(id);
+		server->SendGlobalPacket(destroyPacket);
+    }
+
     void Server::processPlayerConnect(int source)
     {
         std::cout << "Player " << source << " has connected!" << std::endl;

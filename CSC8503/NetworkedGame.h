@@ -62,11 +62,25 @@ namespace NCL {
 			}
 		};
 
+		// Sent by the server to a client to tell them who they are
+		// Includes the ID of the object they should control
+		// Separate from PlayerConnectedPacket as the client doesn't know who they
+		// are. Relying on the first PlayerConnectedPacket would introduce a race condition
+		// where if two clients connect at the same time, they could both think they are the same player
 		struct HelloPacket : public GamePacket {
 			PlayerState whoAmI;
 			HelloPacket(PlayerState state) : GamePacket(Type::Hello) {
 				size = sizeof(HelloPacket) - sizeof(GamePacket);
 				whoAmI = state;
+			}
+		};
+
+		// Sent by the server to all clients to destroy an object
+		struct DestroyPacket : public GamePacket {
+			NetworkObject::Id id;
+			DestroyPacket(NetworkObject::Id id) : GamePacket(Type::ObjectDestroy) {
+				size = sizeof(DestroyPacket) - sizeof(GamePacket);
+				this->id = id;
 			}
 		};
 
@@ -93,6 +107,7 @@ namespace NCL {
 			NetworkPlayer* insertPlayer(int index);
 
 			NetworkPlayer* SpawnPlayer(int clientId, NetworkObject::Id networkId);
+			// Spawn player objects for all clients that don't have one
 			void SpawnMissingPlayers();
 
 			void ClearWorld() override;
@@ -130,6 +145,7 @@ namespace NCL {
 			void ProcessPacket(PlayerDisconnectedPacket* payload);
 			void ProcessPacket(PlayerListPacket* payload);
 			void ProcessPacket(HelloPacket* payload);
+			void ProcessPacket(DestroyPacket* payload);
 
 			void UpdateAsClient(float dt);
 

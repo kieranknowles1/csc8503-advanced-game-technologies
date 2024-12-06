@@ -25,6 +25,9 @@ struct GamePacket {
 		// Full state of a network object
 		// @see: FullPacket
 		Full_State,
+		// An object has been destroyed
+		// @see: DestroyPacket
+		ObjectDestroy,
 		// Client input state
 		// @see: ClientPacket
 		ClientState,

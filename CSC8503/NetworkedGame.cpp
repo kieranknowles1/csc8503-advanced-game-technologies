@@ -71,6 +71,7 @@ void NetworkedGame::StartAsClient(uint32_t addr) {
 	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerDisconnected, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerList, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::Hello, this);
+	thisClient->RegisterPacketHandler(GamePacket::Type::ObjectDestroy, this);
 }
 
 void NetworkedGame::UpdateGame(float dt) {
@@ -78,10 +79,10 @@ void NetworkedGame::UpdateGame(float dt) {
 	if (server)
 		Debug::Print("This is a server with " + std::to_string(server->getServer()->getClientCount()) + " clients\n", Vector2(10, 10));
 	if (thisClient)
-		Debug::Print("This is a client\n", Vector2(10, 20));
+		Debug::Print("This is a client\n", Vector2(10, 10));
 
 	if (localPlayerId != InvalidPlayerId) {
-		Debug::Print("Score: " + std::to_string(allPlayers[localPlayerId].netState.score), Vector2(10, 10));
+		Debug::Print("Score: " + std::to_string(allPlayers[localPlayerId].netState.score), Vector2(10, 20));
 	}
 
 	if (timeToNextPacket < 0) {
@@ -107,7 +108,9 @@ void NetworkedGame::removeObject(GameObject* obj)
 
 void NetworkedGame::clearGraveyard() {
 	for (auto obj : graveyard) {
-		// TODO: If server, broadcast removal
+		if (server) {
+			server->broadcastObjectDestroy(obj->GetNetworkObject()->getId());
+		}
 
 		networkWorld->removeObject(obj);
 		physics->removeObject(obj);
@@ -231,8 +234,11 @@ void NetworkedGame::StartLevel() {
 
 	AddFloorToWorld(Vector3(0, 0, 0));
 
-	auto netCube = AddCubeToWorld(Vector3(0, 20, 0), Vector3(1, 1, 5), 0.5f);
+	auto netCube = AddCubeToWorld(Vector3(-10, 20, 0), Vector3(1, 1, 5), 0.5f);
 	networkWorld->trackObject(netCube);
+
+	auto bonus = AddBonusToWorld(Vector3(10, 2.5, 0));
+	networkWorld->trackObject(bonus);
 
 	maze = new NavigationGrid("maze.txt", Vector3(32, 0, 32));
 	int nodeSize = maze->getNodeSize();
@@ -290,6 +296,11 @@ void NetworkedGame::ProcessPacket(HelloPacket* payload) {
 	allPlayers[localPlayerId] = { payload->whoAmI, nullptr };
 }
 
+void NCL::CSC8503::NetworkedGame::ProcessPacket(DestroyPacket* payload)
+{
+	removeObject(networkWorld->getTrackedObject(payload->id));
+}
+
 void NetworkedGame::ReceivePacket(GamePacket::Type type, GamePacket* payload, int source) {
 	switch (type)
 	{
@@ -302,6 +313,8 @@ void NetworkedGame::ReceivePacket(GamePacket::Type type, GamePacket* payload, in
 		return ProcessPacket((PlayerListPacket*)payload);
 	case GamePacket::Type::Hello:
 		return ProcessPacket((HelloPacket*)payload);
+	case GamePacket::Type::ObjectDestroy:
+		return ProcessPacket((DestroyPacket*)payload);
 	case GamePacket::Type::Reset:
 		StartLevel();
 		break;

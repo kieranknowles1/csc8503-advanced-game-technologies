@@ -3,6 +3,7 @@
 #include "GameServer.h"
 
 #include "NetworkPlayer.h"
+#include "NetworkObject.h"
 
 namespace NCL::CSC8503 {
     class NetworkedGame;
@@ -20,6 +21,8 @@ namespace NCL::CSC8503 {
         void ReceivePacket(GamePacket::Type type, GamePacket* payload, int source = -1) override;
 
         void sendPlayerList();
+
+        void broadcastObjectDestroy(NetworkObject::Id id);
     private:
         NetworkedGame* game;
         GameServer* server;
