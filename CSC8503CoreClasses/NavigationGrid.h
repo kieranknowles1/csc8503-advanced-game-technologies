@@ -3,23 +3,35 @@
 #include <string>
 namespace NCL {
 	namespace CSC8503 {
-		const constexpr char WALL_NODE = 'x';
-		const constexpr char FLOOR_NODE = '.';
-
 		struct GridNode {
+			// Either a wall, floor, or something special
+			enum class Type : char {
+				None = 0,
+				Wall = 'x',
+				Bonus = 'b',
+				Enemy = 'e',
+				Floor = '.',
+			};
+
 			GridNode* connected[4];
 			int		  costs[4];
 
 			Vector3		position;
 
-			int type;
+			Type type;
+			bool isWall() const {
+				return type == Type::Wall;
+			}
+			bool isFloor() const {
+				return type != Type::Wall;
+			}
 
 			GridNode() {
 				for (int i = 0; i < 4; ++i) {
 					connected[i] = nullptr;
 					costs[i] = 0;
 				}
-				type = 0;
+				type = Type::None;
 			}
 			~GridNode() {	}
 		};

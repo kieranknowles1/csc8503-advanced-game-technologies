@@ -239,14 +239,26 @@ void NetworkedGame::StartLevel() {
 	int nodeSize = maze->getNodeSize();
 	for (int i = 0; i < maze->getNodeCount(); i++) {
 		GridNode* node = maze->getNode(i);
-		if (node->type == WALL_NODE) {
-			AddCubeToWorld(node->position, Vector3(nodeSize/2, nodeSize*2, nodeSize/2), 0.0f, true);
+		switch (node->type) {
+		case GridNode::Type::Wall:
+			AddCubeToWorld(node->position + Vector3(0, 10, 0), Vector3(nodeSize / 2, 10, nodeSize / 2), 0.0f, true);
+			break;
+		case GridNode::Type::Bonus: {
+			auto bonus = AddBonusToWorld(node->position + Vector3(0, 5, 0));
+			networkWorld->trackObject(bonus);
+			// TODO: Reward for collecting
+			break;
+		} case GridNode::Type::Enemy: {
+			auto enemy = new Trapper(rng, enemyMesh, basicShader, maze, world);
+			enemy->GetTransform().SetPosition(node->position);
+			enemy->SetDefaultTransform(enemy->GetTransform());
+			world->AddGameObject(enemy);
+			networkWorld->trackObject(enemy);
+			break;
+		} default:
+			break;
 		}
 	}
-
-	auto trapper = new Trapper(rng, enemyMesh, basicShader, maze, world);
-	world->AddGameObject(trapper);
-	networkWorld->trackObject(trapper);
 
 	physics->dirtyStaticsTree();
 	SpawnMissingPlayers();

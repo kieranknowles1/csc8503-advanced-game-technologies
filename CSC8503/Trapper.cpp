@@ -129,7 +129,7 @@ namespace NCL::CSC8503 {
         GridNode* node;
         do {
             node = navMap->getNode(dist(rng));
-        } while (node->type != FLOOR_NODE);
+        } while (node->isWall());
         return node->position;
     }
 
@@ -168,9 +168,7 @@ namespace NCL::CSC8503 {
             Vector3(0.3f, 0.9f, 0.3f) * scale
         ));
         GetTransform()
-            .SetScale(Vector3(scale, scale, scale))
-            .SetPosition(Vector3(60, 5, 45));
-        SetDefaultTransform(GetTransform());
+            .SetScale(Vector3(scale, scale, scale));
 
         SetRenderObject(new RenderObject(
             &GetTransform(),

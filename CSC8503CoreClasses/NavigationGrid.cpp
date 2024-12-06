@@ -37,7 +37,7 @@ NavigationGrid::NavigationGrid(const std::string&filename, Vector3 offset) : Nav
 			GridNode&n = allNodes[(gridWidth * y) + x];
 			char type = 0;
 			infile >> type;
-			n.type = type;
+			n.type = (GridNode::Type)type;
 			n.position = Vector3((float)(x * nodeSize), 0, (float)(y * nodeSize)) + offset;
 		}
 	}
@@ -61,11 +61,10 @@ NavigationGrid::NavigationGrid(const std::string&filename, Vector3 offset) : Nav
 			}
 			for (int i = 0; i < 4; ++i) {
 				if (n.connected[i]) {
-					if (n.connected[i]->type == '.') {
-						n.costs[i]		= 1;
-					}
-					if (n.connected[i]->type == 'x') {
+					if (n.connected[i]->isWall()) {
 						n.connected[i] = nullptr; //actually a wall, disconnect!
+					} else {
+						n.costs[i] = 1;
 					}
 				}
 			}
@@ -224,7 +223,7 @@ void NavigationGrid::debugDraw()
 	int numNodes = gridWidth * gridHeight;
 	for (int i = 0; i < numNodes; i++) {
 		GridNode& node = allNodes[i];
-		if (node.type == WALL_NODE) {
+		if (node.isWall()) {
 			Vector3 halfSize(nodeSize / 2, 0, nodeSize / 2);
 			Vector3 topLeft = node.position - halfSize;
 			Vector3 bottomRight = node.position + halfSize;
