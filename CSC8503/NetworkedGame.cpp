@@ -125,6 +125,9 @@ void NetworkedGame::ProcessInput(float dt) {
 		return;
 	}
 	auto playerObject = it->second.player;
+	if (playerObject == nullptr) {
+		return;
+	}
 
 	auto input = playerObject->processInput();
 
