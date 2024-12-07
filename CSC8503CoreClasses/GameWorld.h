@@ -7,6 +7,8 @@
 #include "Ray.h"
 #include "CollisionDetection.h"
 #include "QuadTree.h"
+#include "GameObject.h"
+
 namespace NCL {
 		// Declare RNG here as an alias, so that changing it would be easy
 		// mt19937 is a common standard, but quite large to transfer over the network
@@ -15,8 +17,6 @@ namespace NCL {
 		class Camera;
 		using Maths::Ray;
 	namespace CSC8503 {
-		class GameObject;
-		enum class GameObject::Tag;
 		class Constraint;
 
 		typedef std::function<void(GameObject*)> GameObjectFunc;
