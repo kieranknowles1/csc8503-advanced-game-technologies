@@ -5,10 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "GDB",
+            "name": "GDB - Server",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/CSC8503/CSC8503",
+            "args": ["--no-capture"],
+            "cwd": "${workspaceFolder}",
+        },
+        {
+            "name": "GDB - Client",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/CSC8503/CSC8503",
+            "args": ["--client", "--no-capture"],
             "cwd": "${workspaceFolder}",
         }
     ]
