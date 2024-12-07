@@ -150,9 +150,9 @@ int NetworkObject::getDeltaError(const NetworkState& from) const {
 
 	Vector3 posError = object.GetTransform().GetPosition() - from.position;
 	Quaternion orError = object.GetTransform().GetOrientation() - from.orientation;
-	
+
 	int posFactor = Vector::Length(posError) * DeltaPositionFactor;
-	int orFactor = Vector::Length(Vector3(orError.x, orError.y, orError.z)) * DeltaOrientationFactor * 32;
+	int orFactor = Vector::Length(Vector3(orError.x, orError.y, orError.z)) * DeltaOrientationFactor * 128;
 
 	return posFactor + orFactor;
 }
