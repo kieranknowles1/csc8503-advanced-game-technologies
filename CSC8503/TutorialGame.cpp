@@ -1,4 +1,7 @@
 #include "TutorialGame.h"
+
+#include <array>
+
 #include "GameWorld.h"
 #include "PhysicsObject.h"
 #include "RenderObject.h"
@@ -12,6 +15,19 @@
 
 using namespace NCL;
 using namespace CSC8503;
+
+std::array<Vector4, 5> CatColors = {
+	Vector4(44.0f/255.0f, 44.0f/255.0f, 44.0f/255.0f, 1.0f), // Black - Cookie shaded but can't be bothered with tuxedo
+	Vector4(168.0f/255.0f, 137.0f/255.0f, 50.0f/255.0f, 1.0f), // Millie shaded, again can't be bothered with tabby
+	Vector4(200.0f/255.0f, 200.0f/255.0f, 200.0f/255.0f, 1.0f), // White
+	Vector4(0.0f, 0.0f, 200.0f/255.0f, 1.0f), // Blue (Inigo best follower)
+	Vector4(255.0f/255.0f, 128.0f/255.0f, 0.0f, 1.0f), // Orange
+};
+
+Vector4 TutorialGame::generateCatColor() {
+	auto dist = std::uniform_int_distribution<int>(0, CatColors.size() - 1);
+	return CatColors[dist(rng)];
+}
 
 TutorialGame::TutorialGame() : controller(*Window::GetWindow()->GetKeyboard(), *Window::GetWindow()->GetMouse()) {
 	world		= new GameWorld();
@@ -388,6 +404,7 @@ NetworkPlayer* TutorialGame::AddPlayerToWorld(const Vector3& position, int id) {
 	character->SetDefaultTransform(character->GetTransform());
 
 	character->SetRenderObject(new RenderObject(&character->GetTransform(), catMesh, nullptr, basicShader));
+	character->GetRenderObject()->SetColour(generateCatColor());
 
 	character->SetPhysicsObject(new PhysicsObject(&character->GetTransform(), character->GetBoundingVolume()));
 	character->GetPhysicsObject()->SetElasticity(0.1f);

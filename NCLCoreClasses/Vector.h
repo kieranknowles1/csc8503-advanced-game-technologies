@@ -128,16 +128,16 @@ namespace NCL::Maths {
             };
         };
 
-        VectorTemplate<T, 4>() : x(0), y(0), z(0), w(0) {
+        constexpr VectorTemplate<T, 4>() : x(0), y(0), z(0), w(0) {
         }
 
-        VectorTemplate<T, 4>(T inX, T inY, T inZ, T inW) : x(inX), y(inY), z(inZ), w(inW) {
+        constexpr VectorTemplate<T, 4>(T inX, T inY, T inZ, T inW) : x(inX), y(inY), z(inZ), w(inW) {
         }
 
-        VectorTemplate<T, 4>(VectorTemplate<T, 2> v, T inZ, T inW) : x(v.array[0]), y(v.array[1]), z(inZ), w(inW) {
+        constexpr VectorTemplate<T, 4>(VectorTemplate<T, 2> v, T inZ, T inW) : x(v.array[0]), y(v.array[1]), z(inZ), w(inW) {
         }
 
-        VectorTemplate<T, 4>(VectorTemplate<T, 3> v, T inW) : x(v.array[0]), y(v.array[1]), z(v.array[2]), w(inW) {
+        constexpr VectorTemplate<T, 4>(VectorTemplate<T, 3> v, T inW) : x(v.array[0]), y(v.array[1]), z(v.array[2]), w(inW) {
         }
 
         T operator[](int i) const {
@@ -146,6 +146,11 @@ namespace NCL::Maths {
         T& operator[](int i) {
             return ((T*)this)[i];
         }
+
+        friend std::ostream& operator<<(std::ostream& o, const VectorTemplate<T, 4>& v) {
+			o << "Vector4(" << v.x << "," << v.y << "," << v.z << "," << v.w << ")";
+			return o;
+		}
     };
 
 

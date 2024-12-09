@@ -62,7 +62,7 @@ namespace NCL::CSC8503 {
         sendPlayerList();
 
         HelloPacket helloPacket{
-            PlayerState{source, 0, playerObj->GetNetworkObject()->getId()}
+            PlayerState(source, playerObj),
         };
         server->SendClientPacket(source, helloPacket);
     }

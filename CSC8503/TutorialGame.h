@@ -60,6 +60,8 @@ namespace NCL {
 
 			void AddBridgeToWorld();
 
+			Vector4 generateCatColor();
+
 #ifdef USEVULKAN
 			GameTechVulkanRenderer*	renderer;
 #else
@@ -102,6 +104,10 @@ namespace NCL {
 			}
 
 			GameObject* objClosest = nullptr;
+
+			// Only the server has authority to run RNG
+			// TODO: Make this part of the server class
+			Rng rng = Rng(0);
 		};
 	}
 }

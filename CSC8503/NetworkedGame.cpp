@@ -8,9 +8,18 @@
 #include "NetworkObject.h"
 #include "GameServer.h"
 #include "GameClient.h"
+#include "RenderObject.h"
 #include "Trapper.h"
 
 #define COLLISION_MSG 30
+
+PlayerState::PlayerState(int id, NetworkPlayer* player)
+	: id(id)
+	, score(0)
+	, netObjectID(player ? player->GetNetworkObject()->getId() : 0)
+	, colour(player ? player->GetRenderObject()->GetColour() : Vector4(1, 1, 1, 1)) {
+
+}
 
 struct MessagePacket : public GamePacket {
 	short playerID;
@@ -42,11 +51,7 @@ NetworkedGame::NetworkedGame(const Cli& cli) {
 		localPlayerId = HostPlayerId;
 		auto obj = SpawnPlayer(localPlayerId, PlayerIdStart + localPlayerId);
 		allPlayers[localPlayerId] = {
-			PlayerState{
-				localPlayerId,
-				0,
-				obj->GetNetworkObject()->getId()
-			},
+			PlayerState(localPlayerId, obj),
 			obj
 		};
 	}
@@ -199,7 +204,7 @@ void NetworkedGame::UpdateMinimumState() {
 NetworkPlayer* NetworkedGame::insertPlayer(int index) {
 	auto obj = SpawnPlayer(index, index + PlayerIdStart);
 	allPlayers[index] = {
-		PlayerState(index, 0, obj->GetNetworkObject()->getId()),
+		PlayerState(index, obj),
 		obj
 	};
 	return obj;
@@ -216,6 +221,7 @@ void NetworkedGame::SpawnMissingPlayers() {
 	for (auto& [playerId, playerState] : allPlayers) {
 		if (playerState.player == nullptr) {
 			playerState.player = SpawnPlayer(playerId, playerState.netState.netObjectID);
+			playerState.player->GetRenderObject()->SetColour(playerState.netState.colour);
 		}
 	}
 }
@@ -283,6 +289,7 @@ void NetworkedGame::ProcessPacket(PlayerListPacket* payload) {
 		std::cout << "Player " << player.id << " has object ID " << player.netObjectID << "\n";
 		if (allPlayers.find(player.id) == allPlayers.end()) {
 			std::cout << "Spawning player " << player.id << "\n";
+			std::cout << "Player has colour " << player.colour << "\n";
 			allPlayers[player.id] = { player, nullptr };
 		}
 		else {

@@ -20,6 +20,10 @@ namespace NCL {
 			int id; // From enet_peer->peerId
 			int score = 0;
 			NetworkObject::Id netObjectID;
+			Vector4 colour;
+
+			PlayerState(int playerId, NetworkPlayer* player);
+			PlayerState() {}
 		};
 		struct LocalPlayerState {
 			PlayerState netState;
@@ -179,10 +183,6 @@ namespace NCL {
 
 			// World stuff
 			NavigationGrid* maze;
-
-			// Only the server has authority to run RNG
-			// TODO: Make this part of the server class
-			Rng rng;
 
 			// Objects to be deleted at the end of the frame
 			std::vector<GameObject*> graveyard;
