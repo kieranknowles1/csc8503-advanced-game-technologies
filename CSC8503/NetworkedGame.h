@@ -15,15 +15,21 @@
 namespace NCL {
 	namespace CSC8503 {
 		static const constexpr int MaxPlayers = 64;
+		static const constexpr int MaxNameLength = 32;
 
 		struct PlayerState {
 			int id; // From enet_peer->peerId
 			int score = 0;
 			NetworkObject::Id netObjectID;
 			Vector4 colour;
+			unsigned char nameLength;
+			char name[MaxNameLength]; // Length prefixed string
 
 			PlayerState(int playerId, NetworkPlayer* player);
 			PlayerState() {}
+
+			// Bounds checked getter for name
+			std::string_view getName() const;
 		};
 		struct LocalPlayerState {
 			PlayerState netState;

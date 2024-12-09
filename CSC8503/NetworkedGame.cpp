@@ -18,7 +18,22 @@ PlayerState::PlayerState(int id, NetworkPlayer* player)
 	, score(0)
 	, netObjectID(player ? player->GetNetworkObject()->getId() : 0)
 	, colour(player ? player->GetRenderObject()->GetColour() : Vector4(1, 1, 1, 1)) {
+	if (player == nullptr) return;
 
+	auto& name = player->GetName();
+	if (name.length() > MaxNameLength) {
+		throw std::runtime_error("Player name too long");
+	}
+	nameLength = (char)name.length();
+	memset(this->name, 0, MaxNameLength);
+	std::copy(name.begin(), name.end(), this->name);
+}
+
+std::string_view PlayerState::getName() const {
+	if (nameLength > MaxNameLength) { // Malformed packet
+		throw std::runtime_error("Player name too long");
+	}
+	return std::string_view(name, nameLength);
 }
 
 struct MessagePacket : public GamePacket {
@@ -222,6 +237,7 @@ void NetworkedGame::SpawnMissingPlayers() {
 		if (playerState.player == nullptr) {
 			playerState.player = SpawnPlayer(playerId, playerState.netState.netObjectID);
 			playerState.player->GetRenderObject()->SetColour(playerState.netState.colour);
+			playerState.player->SetName(playerState.netState.getName());
 		}
 	}
 }
@@ -288,12 +304,12 @@ void NetworkedGame::ProcessPacket(PlayerListPacket* payload) {
 		auto player = payload->playerStates[i];
 		std::cout << "Player " << player.id << " has object ID " << player.netObjectID << "\n";
 		if (allPlayers.find(player.id) == allPlayers.end()) {
-			std::cout << "Spawning player " << player.id << "\n";
+			std::cout << "Spawning player " << player.getName() << "\n";
 			std::cout << "Player has colour " << player.colour << "\n";
 			allPlayers[player.id] = { player, nullptr };
 		}
 		else {
-			std::cout << "Updating player state for " << player.id << "\n";
+			std::cout << "Updating player state for " << player.getName() << "\n";
 			allPlayers[player.id].netState = player;
 		}
 	}

@@ -54,6 +54,10 @@ namespace NCL::CSC8503 {
 			return transform;
 		}
 
+		void SetName(std::string_view value) {
+			name = value;
+		}
+
 		RenderObject* GetRenderObject() const {
 			return renderObject;
 		}
