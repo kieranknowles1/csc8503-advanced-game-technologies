@@ -1,25 +1,13 @@
 stateDiagram-v2
-	direction LR
-	state Idle {
-    	Pick : Choose random point in maze
-        Travel : Travel to chosen point
-        Wait : Wait in current position
+direction LR
+state Idle {
+    Wait
+    	WanderRandom : Travel to random position in maze
         
-        Pick-->Travel
-        Travel-->Wait : Point reached
-        Wait-->Pick : 5 seconds passed
+        WanderRandom-->Wait : Target reached
+        Wait-->WanderRandom : 5 seconds passed
     }
     
-    state Chase {
-    	ChasePlayer : Run to current player position
-        Search : Travel to last known position
-        LookAround : Look around current position
-        
-        Search-->ChasePlayer : Player visible
-        LookAround-->ChasePlayer : Player visible
-        
-        ChasePlayer-->Search : Player not seen
-        Search-->LookAround : Last known position reached
-    }
-    LookAround-->Pick : 5 seconds passed
-    Idle-->ChasePlayer : Player visible
+    Chase : Chase last known player position
+    Idle-->Chase : Player visible
+    Chase-->WanderRandom : Player not seen for 10 seconds
