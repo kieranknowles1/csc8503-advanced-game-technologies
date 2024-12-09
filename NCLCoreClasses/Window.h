@@ -30,6 +30,7 @@ namespace NCL {
 	struct WindowInitialisation {
 		uint32_t width;
 		uint32_t height;
+		// If true, the window will be borderless and take up the whole screen
 		bool	 fullScreen			= false;
 		uint32_t refreshRate		= 60;
 
@@ -37,6 +38,7 @@ namespace NCL {
 
 		uint32_t windowPositionX	= 0;
 		uint32_t windowPositionY	= 0;
+		// Only used on Windows
 		uint32_t consolePositionX	= 0;
 		uint32_t consolePositionY	= 0;
 	};
