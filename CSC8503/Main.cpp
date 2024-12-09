@@ -402,6 +402,7 @@ int main(int argc, char** argv) {
 	WindowInitialisation initInfo;
 	initInfo.width		= 1280;
 	initInfo.height		= 720;
+	initInfo.fullScreen = cli->isFullscreen();
 	initInfo.windowTitle = "CSC8503 Game technology!";
 	initInfo.windowPositionX = cli->getWindowPos().x;
 	initInfo.windowPositionY = cli->getWindowPos().y;

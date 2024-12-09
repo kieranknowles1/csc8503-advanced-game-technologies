@@ -18,6 +18,10 @@ public:
 		return captureMouse;
 	}
 
+	bool isFullscreen() const {
+		return fullscreen;
+	}
+
 	uint32_t getIp() const {
 		return ip;
 	}
@@ -28,6 +32,7 @@ public:
 private:
 	bool client = false;
 	bool captureMouse = true;
+	bool fullscreen = false;
 	uint32_t ip = NetworkBase::ipv4(127, 0, 0, 1); // Default to localhost
 
 	NCL::Maths::Vector2i windowPos = NCL::Maths::Vector2i(0, 0);

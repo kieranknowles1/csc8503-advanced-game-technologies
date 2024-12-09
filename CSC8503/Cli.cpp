@@ -45,6 +45,8 @@ Cli::Cli(int argc, char** argv) {
             client = true;
         } else if (arg == "-C" || arg == "--no-capture") {
             captureMouse = false;
+        } else if (arg == "-f" || arg == "--fullscreen") {
+            fullscreen = true;
         } else if (arg == "-w" || arg == "--window") {
             std::string xStr; std::string yStr;
             consumeRequiredArg(xStr);
@@ -69,5 +71,6 @@ void Cli::printUsage(char* programName) const {
         "  -i, --ip [address=127.0.0.1]  Set the IP address to connect to\n"
         "  -c, --client                  Run the program as a client\n"
         "  -C, --no-capture              Don't capture the mouse\n"
+        "  -f, --fullscreen              Run the program in fullscreen\n"
         "  -w, --window [x=0] [y=0]      Set the window position\n";
 }
