@@ -13,27 +13,20 @@
 
 #define COLLISION_MSG 30
 
-PlayerState::PlayerState(int id, NetworkPlayer* player)
-	: id(id)
-	, score(0)
-	, netObjectID(player ? player->GetNetworkObject()->getId() : 0)
-	, colour(player ? player->GetRenderObject()->GetColour() : Vector4(1, 1, 1, 1)) {
-	if (player == nullptr) return;
+std::string_view PlayerState::getName() const {
+	if (nameLength > MaxNameLength) { // Malformed packet
+		throw std::runtime_error("Player name too long");
+	}
+	return std::string_view(name, nameLength);
+}
 
-	auto& name = player->GetName();
+void PlayerState::setName(std::string_view name) {
 	if (name.length() > MaxNameLength) {
 		throw std::runtime_error("Player name too long");
 	}
 	nameLength = (char)name.length();
 	memset(this->name, 0, MaxNameLength);
 	std::copy(name.begin(), name.end(), this->name);
-}
-
-std::string_view PlayerState::getName() const {
-	if (nameLength > MaxNameLength) { // Malformed packet
-		throw std::runtime_error("Player name too long");
-	}
-	return std::string_view(name, nameLength);
 }
 
 struct MessagePacket : public GamePacket {
@@ -64,11 +57,8 @@ NetworkedGame::NetworkedGame(const Cli& cli) {
 
 	if (server) {
 		localPlayerId = HostPlayerId;
-		auto obj = SpawnPlayer(localPlayerId, PlayerIdStart + localPlayerId);
-		allPlayers[localPlayerId] = {
-			PlayerState(localPlayerId, obj),
-			obj
-		};
+		auto state = generateNetworkState(localPlayerId);
+		allPlayers.emplace(localPlayerId, LocalPlayerState(state));
 	}
 
 	StartLevel();
@@ -87,7 +77,6 @@ void NetworkedGame::StartAsClient(uint32_t addr) {
 	thisClient->Connect(addr, NetworkBase::GetDefaultPort());
 
 	thisClient->RegisterPacketHandler(GamePacket::Type::Reset, this);
-	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerConnected, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerDisconnected, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerList, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::Hello, this);
@@ -132,6 +121,17 @@ void NetworkedGame::UpdateGame(float dt) {
 void NetworkedGame::removeObject(GameObject* obj)
 {
 	graveyard.push_back(obj);
+}
+
+PlayerState NetworkedGame::generateNetworkState(int clientId)
+{
+	PlayerState state;
+	state.colour = generateCatColor();
+	state.id = clientId;
+	state.setName("Player " + std::to_string(clientId));
+	state.netObjectID = clientId + PlayerIdStart;
+	state.score = 0;
+	return state;
 }
 
 void NetworkedGame::clearGraveyard() {
@@ -224,18 +224,11 @@ void NetworkedGame::UpdateMinimumState() {
 	}
 }
 
-NetworkPlayer* NetworkedGame::insertPlayer(int index) {
-	auto obj = SpawnPlayer(index, index + PlayerIdStart);
-	allPlayers[index] = {
-		PlayerState(index, obj),
-		obj
-	};
-	return obj;
-}
-
-NetworkPlayer* NetworkedGame::SpawnPlayer(int clientId, NetworkObject::Id networkId) {
-	auto obj = AddPlayerToWorld(Vector3(0, 5, 0), clientId);
-	networkWorld->trackObjectManual(obj, networkId);
+NetworkPlayer* NetworkedGame::SpawnPlayer(PlayerState state) {
+	auto obj = AddPlayerToWorld(Vector3(0, 5, 0), state.id);
+	obj->GetRenderObject()->SetColour(state.colour);
+	obj->SetName(state.getName());
+	networkWorld->trackObjectManual(obj, state.netObjectID);
 
 	return obj;
 }
@@ -243,9 +236,7 @@ NetworkPlayer* NetworkedGame::SpawnPlayer(int clientId, NetworkObject::Id networ
 void NetworkedGame::SpawnMissingPlayers() {
 	for (auto& [playerId, playerState] : allPlayers) {
 		if (playerState.player == nullptr) {
-			playerState.player = SpawnPlayer(playerId, playerState.netState.netObjectID);
-			playerState.player->GetRenderObject()->SetColour(playerState.netState.colour);
-			playerState.player->SetName(playerState.netState.getName());
+			playerState.player = SpawnPlayer(playerState.netState);
 		}
 	}
 }
@@ -309,16 +300,17 @@ void NetworkedGame::ProcessPacket(PlayerDisconnectedPacket* payload) {
 void NetworkedGame::ProcessPacket(PlayerListPacket* payload) {
 	std::cout << "Received list of " << (int)payload->count << " players\n";
 	for (int i = 0; i < payload->count; i++) {
-		auto player = payload->playerStates[i];
-		std::cout << "Player " << player.id << " has object ID " << player.netObjectID << "\n";
-		if (allPlayers.find(player.id) == allPlayers.end()) {
-			std::cout << "Spawning player " << player.getName() << "\n";
-			std::cout << "Player has colour " << player.colour << "\n";
-			allPlayers[player.id] = { player, nullptr };
+		auto state = payload->playerStates[i];
+		std::cout << "Player " << state.id << " has object ID " << state.netObjectID << "\n";
+		auto it = allPlayers.find(state.id);
+		if (it == allPlayers.end()) {
+			std::cout << "Spawning player " << state.getName() << "\n";
+			std::cout << "Player has colour " << state.colour << "\n";
+			allPlayers.emplace(state.id, LocalPlayerState(state));
 		}
 		else {
-			std::cout << "Updating player state for " << player.getName() << "\n";
-			allPlayers[player.id].netState = player;
+			std::cout << "Updating player state for " << state.getName() << "\n";
+			it->second.netState = state;
 		}
 	}
 	SpawnMissingPlayers();
@@ -326,8 +318,9 @@ void NetworkedGame::ProcessPacket(PlayerListPacket* payload) {
 
 void NetworkedGame::ProcessPacket(HelloPacket* payload) {
 	std::cout << "Received hello packet. We are player " << payload->whoAmI.id << "\n";
+	std::cout << "Our colour is " << payload->whoAmI.colour << "\n";
 	localPlayerId = payload->whoAmI.id;
-	allPlayers[localPlayerId] = { payload->whoAmI, nullptr };
+	allPlayers.emplace(localPlayerId, LocalPlayerState(payload->whoAmI));
 }
 
 void NCL::CSC8503::NetworkedGame::ProcessPacket(DestroyPacket* payload)
@@ -338,10 +331,7 @@ void NCL::CSC8503::NetworkedGame::ProcessPacket(DestroyPacket* payload)
 void NetworkedGame::ReceivePacket(GamePacket::Type type, GamePacket* payload, int source) {
 	switch (type)
 	{
-	// Client events
-	case GamePacket::Type::PlayerConnected:
-	//	return ProcessPacket((PlayerConnectedPacket*)payload);
-	//case GamePacket::Type::PlayerDisconnected:
+	case GamePacket::Type::PlayerDisconnected:
 		return ProcessPacket((PlayerDisconnectedPacket*)payload);
 	case GamePacket::Type::PlayerList:
 		return ProcessPacket((PlayerListPacket*)payload);

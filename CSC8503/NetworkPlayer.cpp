@@ -8,7 +8,6 @@
 namespace NCL::CSC8503 {
 	NetworkPlayer::NetworkPlayer(int clientId) : clientId(clientId) {
 		setLayer(LayerMask::Index::Actor);
-		name = "Player " + std::to_string(clientId);
 	}
 
 	PlayerInput NetworkPlayer::processInput() {

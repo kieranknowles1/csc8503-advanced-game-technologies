@@ -34,9 +34,6 @@ struct GamePacket {
 		// Payloadless message intended for a specific player
 		Message,
 
-		// A new player has connected
-		// @see: PlayerConnectedPacket
-		PlayerConnected,
 		// A player has disconnected
 		// @see: PlayerDisconnectedPacket
 		PlayerDisconnected,

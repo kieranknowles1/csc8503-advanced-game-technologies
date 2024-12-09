@@ -404,7 +404,6 @@ NetworkPlayer* TutorialGame::AddPlayerToWorld(const Vector3& position, int id) {
 	character->SetDefaultTransform(character->GetTransform());
 
 	character->SetRenderObject(new RenderObject(&character->GetTransform(), catMesh, nullptr, basicShader));
-	character->GetRenderObject()->SetColour(generateCatColor());
 
 	character->SetPhysicsObject(new PhysicsObject(&character->GetTransform(), character->GetBoundingVolume()));
 	character->GetPhysicsObject()->SetElasticity(0.1f);

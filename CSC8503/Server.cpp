@@ -54,17 +54,17 @@ namespace NCL::CSC8503 {
     void Server::processPlayerConnect(int source)
     {
         std::cout << "Player " << source << " has connected!" << std::endl;
-        auto playerObj = game->insertPlayer(source);
-
-        PlayerConnectedPacket newPacket(source, playerObj);
-        server->SendGlobalPacket(newPacket);
+        auto netState = game->generateNetworkState(source);
 
         sendPlayerList();
 
         HelloPacket helloPacket{
-            PlayerState(source, playerObj),
+            netState
         };
         server->SendClientPacket(source, helloPacket);
+
+        game->GetAllPlayers().emplace(source, LocalPlayerState{netState});
+        game->SpawnMissingPlayers();
     }
 
     void Server::processPlayerDisconnect(int source)
@@ -103,7 +103,7 @@ namespace NCL::CSC8503 {
             // TODO: Set to the last state that all players have acknowledged
             int playerState = o->GetLastFullState().stateID;
             GamePacket* newPacket = nullptr;
-            
+
             // Get an approximation of how much the state has changed since
             // the last packet of each type was sent
             // These values are very approximate and could be tuned if needed

@@ -25,15 +25,15 @@ namespace NCL {
 			unsigned char nameLength;
 			char name[MaxNameLength]; // Length prefixed string
 
-			PlayerState(int playerId, NetworkPlayer* player);
-			PlayerState() {}
-
 			// Bounds checked getter for name
 			std::string_view getName() const;
+			void setName(std::string_view name);
 		};
 		struct LocalPlayerState {
 			PlayerState netState;
 			NetworkPlayer* player;
+
+			LocalPlayerState(PlayerState netState) : netState(netState), player(nullptr) {}
 		};
 
 		struct PlayerListPacket : public GamePacket {
@@ -49,17 +49,6 @@ namespace NCL {
 					playerStates[i] = player.second.netState;
 					i++;
 				}
-			}
-		};
-
-		struct PlayerConnectedPacket : public GamePacket {
-			int playerID;
-			NetworkObject::Id playerObjectID;
-
-			PlayerConnectedPacket(int id, GameObject* playerObject) : GamePacket(Type::PlayerConnected) {
-				size = sizeof(PlayerConnectedPacket) - sizeof(GamePacket);
-				playerID = id;
-				playerObjectID = playerObject->GetNetworkObject()->getId();
 			}
 		};
 
@@ -114,9 +103,7 @@ namespace NCL {
 
 			const static constexpr int PlayerIdStart = NetworkWorld::ManualIdStart + 1000;
 
-			NetworkPlayer* insertPlayer(int index);
-
-			NetworkPlayer* SpawnPlayer(int clientId, NetworkObject::Id networkId);
+			NetworkPlayer* SpawnPlayer(PlayerState state);
 			// Spawn player objects for all clients that don't have one
 			void SpawnMissingPlayers();
 
@@ -127,7 +114,7 @@ namespace NCL {
 
 			void OnPlayerCollision(NetworkPlayer* a, NetworkPlayer* b);
 
-			const std::map<int, LocalPlayerState>& GetAllPlayers() const {
+			std::map<int, LocalPlayerState>& GetAllPlayers() {
 				return allPlayers;
 			}
 
@@ -148,6 +135,8 @@ namespace NCL {
 			// Remove an object from the game world
 			// Delayed until the end of the frame
 			void removeObject(GameObject* obj);
+
+			PlayerState generateNetworkState(int clientId);
 		protected:
 			void ProcessInput(float dt);
 
