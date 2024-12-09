@@ -20,7 +20,7 @@ std::array<Vector4, 5> CatColors = {
 	Vector4(44.0f/255.0f, 44.0f/255.0f, 44.0f/255.0f, 1.0f), // Black - Cookie shaded but can't be bothered with tuxedo
 	Vector4(168.0f/255.0f, 137.0f/255.0f, 50.0f/255.0f, 1.0f), // Millie shaded, again can't be bothered with tabby
 	Vector4(200.0f/255.0f, 200.0f/255.0f, 200.0f/255.0f, 1.0f), // White
-	Vector4(0.0f, 0.0f, 200.0f/255.0f, 1.0f), // Blue (Inigo best follower)
+	Vector4(0.0f, 0.0f, 175.0f/255.0f, 1.0f), // Blue (Inigo best follower, and could be a regular cat, source: https://en.uesp.net/wiki/Lore:Alfiq)
 	Vector4(255.0f/255.0f, 128.0f/255.0f, 0.0f, 1.0f), // Orange
 };
 

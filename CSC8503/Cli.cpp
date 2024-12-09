@@ -60,6 +60,8 @@ Cli::Cli(int argc, char** argv) {
     }
 }
 
+// Naming convention for arguments: single char flag with single hyphen, multi char flag with double hyphen
+// Negations are done with "no-" prefix and a caputalized flag name
 void Cli::printUsage(char* programName) const {
     std::cout <<
         "Usage: " << programName << " [options]\n"

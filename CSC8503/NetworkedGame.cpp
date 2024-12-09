@@ -101,8 +101,16 @@ void NetworkedGame::UpdateGame(float dt) {
 	if (thisClient)
 		Debug::Print("This is a client\n", Vector2(10, 10));
 
-	if (localPlayerId != InvalidPlayerId) {
-		Debug::Print("Score: " + std::to_string(allPlayers[localPlayerId].netState.score), Vector2(10, 20));
+	if (Window::GetKeyboard()->KeyDown(KeyCodes::TAB)) {
+		float yPos = 20;
+		for (auto& [id, player] : allPlayers) {
+			// string_view doesn't support concatenation :(
+			std::string name(player.netState.getName());
+			std::string score = std::to_string(player.netState.score);
+			Vector4 color = id == localPlayerId ? Vector4(1, 1, 1, 1) : Vector4(0.5, 0.5, 0.5, 1);
+			Debug::Print(name + ": " + score, Vector2(10, yPos), color);
+			yPos += 5;
+		}
 	}
 
 	if (timeToNextPacket < 0) {
