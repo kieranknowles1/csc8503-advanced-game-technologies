@@ -34,4 +34,10 @@ namespace NCL::Maths {
 	float SignedAreaof2DTri(const Vector3 &a, const Vector3 &b, const Vector3 & c);
 
 	float AreaofTri3D(const Vector3 &a, const Vector3 &b, const Vector3 & c);
+
+	// Volume of a box of size `v`
+	float boxVolume(const Vector3& v);
+
+	// Convert an instantaneous impulse of N into a force of N applied over dt seconds
+	float impulseToForce(float impulse, float dt);
 }

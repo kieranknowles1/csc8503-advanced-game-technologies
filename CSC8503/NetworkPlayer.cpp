@@ -43,14 +43,23 @@ namespace NCL::CSC8503 {
 		}
 
 		if (lastInput.jump && canJump()) {
-			GetPhysicsObject()->AddForce({ 0, JumpForce, 0 });
+			jumpTicksRemaining = JumpTicks;
 			jumpCooldown = JumpCooldown;
+			GetTransform().SetPosition(GetTransform().GetPosition() + JumpNudge);
+		}
+		if (jumpTicksRemaining > 0) {
+			jumpTicksRemaining--;
+			// How many kg/seconds to apply
+			float thisTickImpulse = JumpImpulse / JumpTicks;
+
+			float force = impulseToForce(thisTickImpulse, dt);
+			GetPhysicsObject()->AddForce({ 0, force, 0 });
 		}
 		lastInput.jump = false;
 		jumpCooldown -= dt;
 
 		// Reset the player if they fall off the map
-		if (GetTransform().GetPosition().y < -10) {
+		if (GetTransform().GetPosition().y < -100) {
 			Reset();
 		}
 	}

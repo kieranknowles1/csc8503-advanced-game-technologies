@@ -41,5 +41,13 @@ namespace NCL {
 			float range = max - min;
 			return min + (range * floatValue);
 		}
+
+		float boxVolume(const Vector3& v) {
+			return std::fabs(v.x * v.y * v.z);
+		}
+
+		float impulseToForce(float impulse, float dt) {
+			return impulse / dt;
+		}
 	}
 }
