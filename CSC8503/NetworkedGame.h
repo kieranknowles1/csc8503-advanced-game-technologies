@@ -108,6 +108,10 @@ namespace NCL {
 			void SpawnMissingPlayers();
 
 			void ClearWorld() override;
+
+			GameObject* AddNetworkCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass = 10.0f, bool axisAligned = false);
+			void AddBridgeToWorld();
+
 			void StartLevel();
 
 			void ReceivePacket(GamePacket::Type type, GamePacket* payload, int source) override;

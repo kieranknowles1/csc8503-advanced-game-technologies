@@ -92,16 +92,16 @@ namespace NCL::Maths {
             };
         };
 
-        VectorTemplate<T, 3>() : x(0), y(0), z(0) {
+        constexpr VectorTemplate<T, 3>() : x(0), y(0), z(0) {
         }
 
-        VectorTemplate<T, 3>(T inX, T inY, T inZ) : x(inX), y(inY), z(inZ) {
+        constexpr VectorTemplate<T, 3>(T inX, T inY, T inZ) : x(inX), y(inY), z(inZ) {
         }
 
-        VectorTemplate<T, 3>(VectorTemplate<T, 2> v, T inZ) : x(v.array[0]), y(v.array[1]), z(inZ) {
+        constexpr VectorTemplate<T, 3>(VectorTemplate<T, 2> v, T inZ) : x(v.array[0]), y(v.array[1]), z(inZ) {
         }
 
-        VectorTemplate<T, 3>(VectorTemplate<T, 4> v) : x(v[0]), y(v[1]), z(v[2]) {
+        constexpr VectorTemplate<T, 3>(VectorTemplate<T, 4> v) : x(v[0]), y(v[1]), z(v[2]) {
         }
 
         T operator[](int i) const {

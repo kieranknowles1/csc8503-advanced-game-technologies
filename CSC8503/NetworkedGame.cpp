@@ -4,6 +4,9 @@
 #include <string>
 #include <algorithm>
 
+#include "PositionConstraint.h"
+#include "OrientationConstraint.h"
+
 #include "NetworkPlayer.h"
 #include "NetworkObject.h"
 #include "GameServer.h"
@@ -253,6 +256,42 @@ void NetworkedGame::ClearWorld() {
 	delete maze; maze = nullptr;
 }
 
+GameObject* NCL::CSC8503::NetworkedGame::AddNetworkCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass, bool axisAligned)
+{
+	auto cube = AddCubeToWorld(position, dimensions, inverseMass, axisAligned);
+	networkWorld->trackObject(cube);
+	return cube;
+}
+
+void NetworkedGame::AddBridgeToWorld() {
+	Vector3 cubeSize{ 6, 6, 6 };
+	// 1kg/m^3 density
+	float inverseCubeMass = 1.0f / boxVolume(cubeSize);
+	int numLinks = 10;
+	float maxDistance = 16;
+	float cubeDistance = 15;
+
+	Vector3 startPos{ 200, -5, -50 };
+
+	GameObject* start = AddNetworkCubeToWorld(startPos, cubeSize, 0.0f);
+	GameObject* end = AddNetworkCubeToWorld(startPos + Vector3((numLinks + 1) * cubeDistance, 0, 0), cubeSize, 0.0f);
+
+	GameObject* previous = start;
+	for (int i = 0; i < numLinks; i++) {
+		GameObject* block = AddNetworkCubeToWorld(startPos + Vector3((i + 1) * cubeDistance, 0, 0), cubeSize, inverseCubeMass);
+		block->GetPhysicsObject()->SetElasticity(0.01);
+		PositionConstraint* constraint = new PositionConstraint(previous, block, maxDistance, PositionConstraint::Type::Rope);
+		world->AddConstraint(constraint);
+		OrientationConstraint* oConstraint = new OrientationConstraint(previous, block, Quaternion(), Vector3(-10, -10, -10), Vector3(10, 10, 10));
+		world->AddConstraint(oConstraint);
+		previous = block;
+	}
+	PositionConstraint* constraint = new PositionConstraint(previous, end, cubeDistance, PositionConstraint::Type::Rope);
+	world->AddConstraint(constraint);
+	OrientationConstraint* oConstraint = new OrientationConstraint(previous, end, Quaternion(), Vector3(-10, -10, -10), Vector3(10, 10, 10));
+	world->AddConstraint(oConstraint);
+}
+
 void NetworkedGame::StartLevel() {
 	ClearWorld();
 
@@ -263,6 +302,8 @@ void NetworkedGame::StartLevel() {
 
 	auto bonus = AddBonusToWorld(Vector3(10, 2.5, 0));
 	networkWorld->trackObject(bonus);
+
+	AddBridgeToWorld();
 
 	maze = new NavigationGrid("maze.txt", Vector3(32, 0, 32));
 	int nodeSize = maze->getNodeSize();

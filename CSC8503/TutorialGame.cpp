@@ -296,7 +296,7 @@ void TutorialGame::InitWorld() {
 	AddCubeToWorld(Vector3(0, 20, 0), Vector3(1, 1, 5), 0.5f);
 
 	InitGameExamples();
-	AddBridgeToWorld();
+	//AddBridgeToWorld();
 	// Floor, 20m below the origin
 	InitDefaultFloor();
 
@@ -462,34 +462,6 @@ GameObject* TutorialGame::AddBonusToWorld(const Vector3& position) {
 	world->AddGameObject(apple);
 
 	return apple;
-}
-
-void TutorialGame::AddBridgeToWorld() {
-	Vector3 cubeSize{ 8, 8, 8 };
-	float inverseCubeMass = 5.0f;
-	int numLinks = 10;
-	float maxDistance = 30;
-	float cubeDistance = 20;
-
-	Vector3 startPos{ 20, 100, 50 };
-
-	GameObject* start = AddCubeToWorld(startPos, cubeSize, 0.0f);
-	GameObject* end = AddCubeToWorld(startPos + Vector3((numLinks + 1) * cubeDistance, 0, 0), cubeSize, 0.0f);
-
-	GameObject* previous = start;
-	for (int i = 0; i < numLinks; i++) {
-		GameObject* block = AddCubeToWorld(startPos + Vector3((i + 1) * cubeDistance, 0 ,0), cubeSize, inverseCubeMass);
-		block->GetPhysicsObject()->SetElasticity(0.01);
-		PositionConstraint* constraint = new PositionConstraint(previous, block, maxDistance, PositionConstraint::Type::Rope);
-		world->AddConstraint(constraint);
-		OrientationConstraint* oConstraint = new OrientationConstraint(previous, block, Quaternion(), Vector3(-10, -10, -10), Vector3(10, 10, 10));
-		world->AddConstraint(oConstraint);
-		previous = block;
-	}
-	PositionConstraint* constraint = new PositionConstraint(previous, end, cubeDistance, PositionConstraint::Type::Rope);
-	world->AddConstraint(constraint);
-	OrientationConstraint* oConstraint = new OrientationConstraint(previous, end, Quaternion(), Vector3(-10, -10, -10), Vector3(10, 10, 10));
-	world->AddConstraint(oConstraint);
 }
 
 void TutorialGame::InitDefaultFloor() {

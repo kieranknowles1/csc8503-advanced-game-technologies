@@ -58,8 +58,6 @@ namespace NCL {
 			GameObject* AddEnemyToWorld(const Vector3& position);
 			GameObject* AddBonusToWorld(const Vector3& position);
 
-			void AddBridgeToWorld();
-
 			Vector4 generateCatColor();
 
 #ifdef USEVULKAN
