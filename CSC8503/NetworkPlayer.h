@@ -6,12 +6,12 @@ namespace NCL::CSC8503 {
 	class NetworkedGame;
 
 	struct PlayerInput {
-		bool forward;
-		bool backward;
-		bool left;
-		bool right;
-		bool jump;
-		bool action;
+		bool forward = false;
+		bool backward = false;
+		bool left = false;
+		bool right = false;
+		bool jump = false;
+		bool action = false;
 	};
 
 	struct ClientPacket : public GamePacket {
