@@ -13,6 +13,7 @@
 #include "GameClient.h"
 #include "RenderObject.h"
 #include "Trapper.h"
+#include "Bonus.h"
 
 #define COLLISION_MSG 30
 
@@ -247,7 +248,7 @@ GameObject* NCL::CSC8503::NetworkedGame::AddNetworkCubeToWorld(const Vector3& po
 	return cube;
 }
 
-void NetworkedGame::AddBridgeToWorld() {
+GameObject* NetworkedGame::AddBridgeToWorld() {
 	Vector3 cubeSize{ 4, 4, 4 };
 	// 1kg/m^3 density
 	float inverseCubeMass = 1.0f / boxVolume(cubeSize);
@@ -274,6 +275,8 @@ void NetworkedGame::AddBridgeToWorld() {
 	world->AddConstraint(constraint);
 	OrientationConstraint* oConstraint = new OrientationConstraint(previous, end, Quaternion(), Vector3(-10, -10, -10), Vector3(10, 10, 10));
 	world->AddConstraint(oConstraint);
+
+	return end;
 }
 
 void NetworkedGame::StartLevel() {
@@ -287,7 +290,13 @@ void NetworkedGame::StartLevel() {
 	auto bonus = AddBonusToWorld(Vector3(10, 2.5, 0));
 	networkWorld->trackObject(bonus);
 
-	AddBridgeToWorld();
+	GameObject* bridgeEnd = AddBridgeToWorld();
+	auto bridgeBonus = AddBonusToWorld(
+		bridgeEnd->GetTransform().GetPosition()
+		+ bridgeEnd->GetTransform().GetScale() * Vector3(0, 0.75, 0)
+	);
+	bridgeBonus->setValue(300); // Quite difficult to get to
+	networkWorld->trackObject(bridgeBonus);
 
 	maze = new NavigationGrid("maze.txt", Vector3(32, 0, 32));
 	int nodeSize = maze->getNodeSize();

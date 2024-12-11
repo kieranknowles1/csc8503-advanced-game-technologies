@@ -13,6 +13,7 @@
 
 namespace NCL {
 	namespace CSC8503 {
+		class Bonus;
 		class TutorialGame		{
 		public:
 			TutorialGame();
@@ -56,7 +57,7 @@ namespace NCL {
 
 			NetworkPlayer* AddPlayerToWorld(const Vector3& position, int id);
 			GameObject* AddEnemyToWorld(const Vector3& position);
-			GameObject* AddBonusToWorld(const Vector3& position);
+			Bonus* AddBonusToWorld(const Vector3& position);
 
 			Vector4 generateCatColor();
 

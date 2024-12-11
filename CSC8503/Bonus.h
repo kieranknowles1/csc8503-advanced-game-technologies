@@ -13,6 +13,13 @@ namespace NCL::CSC8503 {
         }
 
         void OnCollisionBegin(GameObject* other) override;
+
+        int getValue() const {
+			return value;
+		}
+        void setValue(int value) {
+            this->value = value;
+        }
     private:
         NetworkedGame* game;
         int value;

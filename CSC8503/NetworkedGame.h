@@ -137,7 +137,8 @@ namespace NCL {
 			void ClearWorld() override;
 
 			GameObject* AddNetworkCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass = 10.0f, bool axisAligned = false);
-			void AddBridgeToWorld();
+			// Returns the end point of the bridge
+			GameObject* AddBridgeToWorld();
 
 			void StartLevel();
 
