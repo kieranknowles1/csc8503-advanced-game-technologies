@@ -225,39 +225,24 @@ namespace NCL::CSC8503 {
         Vector3 direction = nextWaypoint - owner->GetTransform().GetPosition();
         direction.y = 0;
         direction = Vector::Normalise(direction);
-        Vector3 facing = owner->GetTransform().GetOrientation() * Vector3(0, 0, 1);
-        Vector3 deltaAngle = Vector::Cross(facing, direction);
 
-        // TODO: CMake option for this
-//#define AI_USE_FORCES
-#ifdef AI_USE_FORCES
-        // Apply a force to turn us towards the next waypoint
-        // Stay upright
+        owner->GetPhysicsObject()->pushTowardsVelocity(direction * speed, 500.0f * dt);
 
-        if (Vector::Length(deltaAngle) > 0.1f) {
-            owner->GetPhysicsObject()->AddTorque(-deltaAngle * 100 * dt);
+        // Directly set the orientation, smoothed out over a few frames
+        // Less realistic, but more visually appealing
+        if (Vector::Length(direction) > 0.1f) {
+            // FIXME: When passing counter-clockwise, the actor spins around instead
+            // of turning the short way. Don't like quaternions, so not bothering to fix
+            float yaw = RadiansToDegrees(atan2(direction.x, direction.z)) + 180;
+            Quaternion target = Quaternion::EulerAnglesToQuaternion(0, yaw, 0);
+            owner->GetTransform().SetOrientation(
+				Quaternion::Slerp(
+					owner->GetTransform().GetOrientation(),
+					target,
+					0.1f
+				)
+			);
         }
-
-        // Move towards the waypoint
-        // desiredVelocity = vector towards waypoint * speed
-        Vector3 desiredVelocity = direction * speed;
-        Vector3 actualVelocity = owner->GetPhysicsObject()->GetLinearVelocity();
-
-        // What angle will get us closer to the desired velocity?
-        Vector3 deltaVelocity = desiredVelocity - actualVelocity;
-        // Apply a force that will reduce the delta between the desired and actual velocity
-        Vector3 forceDirection = Vector::Normalise(deltaVelocity);
-
-        owner->GetPhysicsObject()->AddForce(forceDirection * 100 * dt);
-#else
-        // Directly set the velocity
-        // Quaternions are nasty, so only use the yaw angle. We don't want our actors to be drunk anyway
-        // C++ works in radians, convert to degrees as required for Rich's code
-        float yaw = RadiansToDegrees(atan2(direction.x, direction.z)) + 180;
-        Quaternion q = Quaternion::EulerAnglesToQuaternion(0, yaw, 0);
-        owner->GetTransform().SetOrientation(q);
-        owner->GetTransform().SetPosition(owner->GetTransform().GetPosition() + direction * speed * dt);
-#endif
 
         Debug::DrawLine(owner->GetTransform().GetPosition(), nextWaypoint, Vector4(0, 1, 0, 1));
     }

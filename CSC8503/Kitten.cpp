@@ -7,32 +7,12 @@
 #include "RenderObject.h"
 
 namespace NCL::CSC8503 {
-    // Apply an impulse to push an object towards a target velocity
-    // Ignores the y axis
-    // Force should be scaled by dt
-    static void pushTowardsVelocity(GameObject* obj, Vector3 targetVelocity, float force) {
-        Vector3 delta = targetVelocity - obj->GetPhysicsObject()->GetLinearVelocity();
-        delta.y = 0;
-
-        if (delta != Vector3()) {
-            Vector3 forceDir = Vector::Normalise(delta);
-            obj->GetPhysicsObject()->AddForce(forceDir * force);
-
-            // Delta from target
-            Debug::DrawLine(obj->GetTransform().GetPosition(), obj->GetTransform().GetPosition() + delta, Debug::GREEN);
-            // Target velocity vector
-            Debug::DrawLine(obj->GetTransform().GetPosition(), obj->GetTransform().GetPosition() + targetVelocity, Debug::RED);
-            // Current velocity vector
-            Debug::DrawLine(obj->GetTransform().GetPosition(), obj->GetTransform().GetPosition() + obj->GetPhysicsObject()->GetLinearVelocity(), Debug::MAGENTA);
-        }
-    }
-
     static StateMachine* createStateMachine(Kitten* kitten) {
         StateMachine* sm = new StateMachine();
         // TODO: Encapsulate this properly
         GameObject** followedPlayer = new GameObject*;
         auto idle = new FunctionState(sm, [=](float dt) {
-            pushTowardsVelocity(kitten, Vector3(), kitten->getForce() * dt);
+            kitten->GetPhysicsObject()->pushTowardsVelocity(Vector3(), kitten->getForce() * dt);
         });
 
         auto follow = new FunctionState(sm, [=](float dt) {
@@ -55,7 +35,7 @@ namespace NCL::CSC8503 {
 
             // Apply acceleration to reduce delta velocity, sort of a constraint
             if (deltaVelocity != Vector3()) {
-                pushTowardsVelocity(kitten, targetVelocity, kitten->getForce() * dt * forceScaling);
+                kitten->GetPhysicsObject()->pushTowardsVelocity(targetVelocity, kitten->getForce() * dt * forceScaling);
             }
 
             // atan2 doesn't need a normalised vector

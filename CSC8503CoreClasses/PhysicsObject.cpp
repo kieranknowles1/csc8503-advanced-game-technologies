@@ -73,3 +73,21 @@ void PhysicsObject::UpdateInertiaTensor() {
 
 	inverseInteriaTensor = orientation * Matrix::Scale3x3(inverseInertia) *invOrientation;
 }
+
+void PhysicsObject::pushTowardsVelocity(Vector3 targetVelocity, float force)
+{
+	Vector3 delta = targetVelocity - GetLinearVelocity();
+	delta.y = 0;
+
+	if (delta != Vector3()) {
+		Vector3 forceDir = Vector::Normalise(delta);
+		AddForce(forceDir * force);
+
+		// Delta from target
+		Debug::DrawLine(transform->GetPosition(), transform->GetPosition() + delta, Debug::GREEN);
+		// Target velocity vector
+		Debug::DrawLine(transform->GetPosition(), transform->GetPosition() + targetVelocity, Debug::RED);
+		// Current velocity vector
+		Debug::DrawLine(transform->GetPosition(), transform->GetPosition() + GetLinearVelocity(), Debug::MAGENTA);
+	}
+}

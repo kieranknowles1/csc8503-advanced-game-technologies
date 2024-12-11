@@ -3,7 +3,7 @@ using namespace NCL::Maths;
 
 namespace NCL {
 	class CollisionVolume;
-	
+
 	namespace CSC8503 {
 		class Transform;
 
@@ -38,7 +38,7 @@ namespace NCL {
 
 			void ApplyAngularImpulse(const Vector3& force);
 			void ApplyLinearImpulse(const Vector3& force);
-			
+
 			void AddForce(const Vector3& force);
 
 			void AddForceAtPosition(const Vector3& force, const Vector3& position);
@@ -86,6 +86,11 @@ namespace NCL {
 				linearDamping = d;
 			}
 
+			// Apply an impulse to push an object towards a target velocity
+			// Ignores the y axis
+			// Force should be scaled by dt
+			void pushTowardsVelocity(Vector3 targetVelocity, float force);
+
 		protected:
 			const CollisionVolume* volume;
 			Transform*		transform;
@@ -101,7 +106,7 @@ namespace NCL {
 			//linear stuff
 			Vector3 linearVelocity;
 			Vector3 force;
-			
+
 			//angular stuff
 			Vector3 angularVelocity;
 			Vector3 torque;
