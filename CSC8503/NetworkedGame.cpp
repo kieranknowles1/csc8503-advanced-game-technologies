@@ -16,22 +16,6 @@
 
 #define COLLISION_MSG 30
 
-std::string_view PlayerState::getName() const {
-	if (nameLength > MaxNameLength) { // Malformed packet
-		throw std::runtime_error("Player name too long");
-	}
-	return std::string_view(name, nameLength);
-}
-
-void PlayerState::setName(std::string_view name) {
-	if (name.length() > MaxNameLength) {
-		throw std::runtime_error("Player name too long");
-	}
-	nameLength = (char)name.length();
-	memset(this->name, 0, MaxNameLength);
-	std::copy(name.begin(), name.end(), this->name);
-}
-
 struct MessagePacket : public GamePacket {
 	short playerID;
 	short messageID;
@@ -97,7 +81,7 @@ void NetworkedGame::UpdateGame(float dt) {
 		float yPos = 20;
 		for (auto& [id, player] : allPlayers) {
 			// string_view doesn't support concatenation :(
-			std::string name(player.netState.getName());
+			std::string name(player.netState.name.get());
 			std::string score = std::to_string(player.netState.score);
 			Vector4 color = id == localPlayerId ? Vector4(1, 1, 1, 1) : Vector4(0.5, 0.5, 0.5, 1);
 			Debug::Print(name + ": " + score, Vector2(10, yPos), color);
@@ -131,7 +115,7 @@ PlayerState NetworkedGame::generateNetworkState(int clientId)
 	PlayerState state;
 	state.colour = generateCatColor();
 	state.id = clientId;
-	state.setName("Player " + std::to_string(clientId));
+	state.name.set("Player " + std::to_string(clientId));
 	state.netObjectID = clientId + PlayerIdStart;
 	state.score = 0;
 	return state;
@@ -226,7 +210,7 @@ void NetworkedGame::UpdateMinimumState() {
 NetworkPlayer* NetworkedGame::SpawnPlayer(PlayerState state) {
 	auto obj = AddPlayerToWorld(Vector3(0, 5, 0), state.id);
 	obj->GetRenderObject()->SetColour(state.colour);
-	obj->SetName(state.getName());
+	obj->SetName(state.name.get());
 	networkWorld->trackObjectManual(obj, state.netObjectID);
 
 	return obj;
@@ -341,12 +325,12 @@ void NetworkedGame::ProcessPacket(PlayerListPacket* payload) {
 		std::cout << "Player " << state.id << " has object ID " << state.netObjectID << "\n";
 		auto it = allPlayers.find(state.id);
 		if (it == allPlayers.end()) {
-			std::cout << "Spawning player " << state.getName() << "\n";
+			std::cout << "Spawning player " << state.name.get() << "\n";
 			std::cout << "Player has colour " << state.colour << "\n";
 			allPlayers.emplace(state.id, LocalPlayerState(state));
 		}
 		else {
-			std::cout << "Updating player state for " << state.getName() << "\n";
+			std::cout << "Updating player state for " << state.name.get() << "\n";
 			it->second.netState = state;
 		}
 	}

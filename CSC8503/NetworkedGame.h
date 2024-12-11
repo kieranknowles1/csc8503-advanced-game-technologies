@@ -17,17 +17,37 @@ namespace NCL {
 		static const constexpr int MaxPlayers = 64;
 		static const constexpr int MaxNameLength = 32;
 
+		// TODO: Move this to NetworkBase.h
+		// A fixed size, length prefixed string. Suitable for network packets
+		template <int MaxLength>
+		struct SizedString {
+			using SizeType = unsigned char;
+			static_assert(MaxLength < std::numeric_limits<SizeType>::max(), "Max length too large for size type");
+			SizeType length;
+			char data[MaxLength];
+
+			std::string_view get() const {
+				if (length > MaxLength) {
+					throw std::runtime_error("String too long for packet data!");
+				}
+				return std::string_view(data, length);
+			};
+			void set(std::string_view str) {
+				if (str.length() > MaxLength) {
+					throw std::runtime_error("String too long for packet data!");
+				}
+				length = (SizeType)str.length();
+				memset(data, 0, MaxLength);
+				memcpy(data, str.data(), str.length());
+			}
+		};
+
 		struct PlayerState {
 			int id; // From enet_peer->peerId
 			int score = 0;
 			NetworkObject::Id netObjectID;
 			Vector4 colour;
-			unsigned char nameLength;
-			char name[MaxNameLength]; // Length prefixed string
-
-			// Bounds checked getter for name
-			std::string_view getName() const;
-			void setName(std::string_view name);
+			SizedString<MaxNameLength> name;
 		};
 		struct LocalPlayerState {
 			PlayerState netState;
