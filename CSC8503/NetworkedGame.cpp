@@ -248,12 +248,12 @@ GameObject* NCL::CSC8503::NetworkedGame::AddNetworkCubeToWorld(const Vector3& po
 }
 
 void NetworkedGame::AddBridgeToWorld() {
-	Vector3 cubeSize{ 6, 6, 6 };
+	Vector3 cubeSize{ 4, 4, 4 };
 	// 1kg/m^3 density
 	float inverseCubeMass = 1.0f / boxVolume(cubeSize);
-	int numLinks = 10;
-	float maxDistance = 16;
-	float cubeDistance = 15;
+	int numLinks = 20;
+	float maxDistance = 12;
+	float cubeDistance = 10;
 
 	Vector3 startPos{ 200, -5, -50 };
 
