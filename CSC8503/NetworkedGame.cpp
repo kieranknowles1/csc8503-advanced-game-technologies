@@ -214,12 +214,8 @@ void NetworkedGame::UpdateMinimumState() {
 	}
 	//every client has acknowledged reaching at least state minID
 	//so we can get rid of any old states!
-	std::vector<GameObject*>::const_iterator first;
-	std::vector<GameObject*>::const_iterator last;
-	world->GetObjectIterators(first, last);
-
-	for (auto i = first; i != last; ++i) {
-		NetworkObject* o = (*i)->GetNetworkObject();
+	for (auto i : world->objects()) {
+		NetworkObject* o = i->GetNetworkObject();
 		if (!o) {
 			continue;
 		}

@@ -181,11 +181,9 @@ void PhysicsSystem::UpdateCollisionList() {
 }
 
 void PhysicsSystem::UpdateObjectAABBs() {
-	gameWorld.OperateOnContents(
-		[](GameObject* g) {
-			g->UpdateBroadphaseAABB();
-		}
-	);
+	for (auto g : gameWorld.objects()) {
+		g->UpdateBroadphaseAABB();
+	}
 }
 
 void PhysicsSystem::removeObject(GameObject* object)
@@ -208,6 +206,8 @@ a particular pair will only be added once, so objects colliding for
 multiple frames won't flood the set with duplicates.
 */
 void PhysicsSystem::BasicCollisionDetection() {
+	// Can't use range-based for loop here, as we want
+	// iterators to avoid duplicate work
 	std::vector<GameObject*>::const_iterator first;
 	std::vector<GameObject*>::const_iterator last;
 	gameWorld.GetObjectIterators(first, last);
@@ -301,13 +301,8 @@ void PhysicsSystem::ImpulseResolveCollision(GameObject& a, GameObject& b, Collis
 }
 
 void PhysicsSystem::rebuildStaticsTree() {
-	std::vector<GameObject*>::const_iterator first;
-	std::vector<GameObject*>::const_iterator last;
-	gameWorld.GetObjectIterators(first, last);
-
 	staticsTree = std::make_unique<QuadTree<GameObject*>>(Vector2(1024, 1024), 7, 6);
-	for (auto i = first; i != last; i++) {
-		GameObject* object = *i;
+	for (auto object : gameWorld.objects()) {
 		if (object->getPhysicsType() != GameObject::PhysicsType::Static) {
 			continue;
 		}
@@ -333,11 +328,7 @@ void PhysicsSystem::BroadPhase() {
 	}
 	QuadTree<GameObject*> tree(Vector2(1024, 1024), 7, 6);
 
-	std::vector<GameObject*>::const_iterator first;
-	std::vector<GameObject*>::const_iterator last;
-	gameWorld.GetObjectIterators(first, last);
-	for (auto i = first; i != last; i++) {
-		GameObject* object = *i;
+	for (auto object : gameWorld.objects()) {
 		if (object->getPhysicsType() != GameObject::PhysicsType::Dynamic) {
 			continue;
 		}
@@ -400,11 +391,8 @@ based on any forces that have been accumulated in the objects during
 the course of the previous game frame.
 */
 void PhysicsSystem::IntegrateAccel(float dt) {
-	std::vector<GameObject*>::const_iterator first;
-	std::vector<GameObject*>::const_iterator last;
-	gameWorld.GetObjectIterators(first, last);
-	for (auto i = first; i != last; i++) {
-		PhysicsObject* object = (*i)->GetPhysicsObject();
+	for (auto i : gameWorld.objects()) {
+		PhysicsObject* object = i->GetPhysicsObject();
 		if (object != nullptr) {
 			integrateObjectAccel(*object, dt);
 		}
@@ -444,19 +432,16 @@ throughout a physics update, to slowly move the objects through
 the world, looking for collisions.
 */
 void PhysicsSystem::IntegrateVelocity(float dt) {
-	std::vector<GameObject*>::const_iterator first;
-	std::vector<GameObject*>::const_iterator last;
-	gameWorld.GetObjectIterators(first, last);
 	// Global dampening represents the fraction of velocity that remains after 1 second
 	// Taking globalDamping^dt gives the fraction that remains after dt seconds, which converges to 0 at dt=inf and 1 at dt=0
 	// https://www.desmos.com/calculator/a3sz0jbhpo
 	// Using 1-(d*x) was a poor choice, as it doesn't converge to 0, is heavily dependent on framerate, and if dt > (1/d), the object will move backwards
 	float dampening = pow(globalDamping, dt);
 
-	for (auto i = first; i != last; i++) {
-		PhysicsObject* object = (*i)->GetPhysicsObject();
+	for (auto i : gameWorld.objects()) {
+		PhysicsObject* object = i->GetPhysicsObject();
 		if (object != nullptr) {
-			integrateObjectVelocity((*i)->GetTransform(), *object, dt, dampening);
+			integrateObjectVelocity(i->GetTransform(), *object, dt, dampening);
 		}
 	}
 }
@@ -494,11 +479,9 @@ clear out any accumulated forces, ready to receive new
 ones in the next 'game' frame.
 */
 void PhysicsSystem::ClearForces() {
-	gameWorld.OperateOnContents(
-		[](GameObject* o) {
-			o->GetPhysicsObject()->ClearForces();
-		}
-	);
+	for (auto o : gameWorld.objects()) {
+		o->GetPhysicsObject()->ClearForces();
+	}
 }
 
 

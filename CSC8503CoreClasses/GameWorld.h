@@ -25,6 +25,14 @@ namespace NCL {
 
 		class GameWorld	{
 		public:
+			// View of GameWorld for for-each loops
+			struct ObjectsView {
+				GameWorld* world;
+				GameObjectIterator begin() { return world->gameObjects.begin(); }
+				GameObjectIterator end() { return world->gameObjects.end(); }
+			};
+			ObjectsView objects() { return { this }; }
+
 			GameWorld();
 			~GameWorld();
 
@@ -55,8 +63,6 @@ namespace NCL {
 			bool hasLineOfSight(GameObject* from, GameObject* to) const;
 
 			virtual void UpdateWorld(float dt);
-
-			void OperateOnContents(GameObjectFunc f);
 
 			GameObject* getObject(int id) const {
 				for (auto& i : gameObjects) {

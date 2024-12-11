@@ -82,12 +82,8 @@ namespace NCL::CSC8503 {
     }
     void Server::broadcastDeltas()
     {
-        std::vector<GameObject*>::const_iterator first;
-        std::vector<GameObject*>::const_iterator last;
-
-        game->getWorld()->GetObjectIterators(first, last);
-        for (auto i = first; i != last; ++i) {
-            NetworkObject* o = (*i)->GetNetworkObject();
+        for (auto i : game->getWorld()->objects()) {
+            NetworkObject* o = i->GetNetworkObject();
             if (!o) {
                 continue;
             }
