@@ -73,6 +73,7 @@ namespace NCL {
 			std::set<CollisionDetection::CollisionInfo> broadphaseCollisions;
 			std::vector<CollisionDetection::CollisionInfo> broadphaseCollisionsVec;
 			bool useBroadPhase		= true;
+			bool debugDraw			= false;
 			int numCollisionFrames	= 5;
 		};
 	}

@@ -313,6 +313,9 @@ Mesh* GameTechRenderer::LoadMesh(const std::string& name) {
 }
 
 void GameTechRenderer::NewRenderLines() {
+	if (!Debug::getLinesEnabled()) {
+		return;
+	}
 	const std::vector<Debug::DebugLineEntry>& lines = Debug::GetDebugLines();
 	if (lines.empty()) {
 		return;

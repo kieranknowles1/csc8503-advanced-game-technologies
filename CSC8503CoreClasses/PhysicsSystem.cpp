@@ -363,6 +363,9 @@ void PhysicsSystem::BroadPhase() {
 				staticsLeaf.OperateOnContents(func);
 			}
 		});
+
+	tree.DebugDraw(Debug::RED);
+	staticsTree->DebugDraw(Debug::GREEN);
 }
 
 /*

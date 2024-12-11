@@ -154,6 +154,9 @@ void NetworkedGame::ProcessInput(float dt) {
 	if (Window::GetKeyboard()->KeyPressed(KeyCodes::F2)) {
 		freeCam = !freeCam;
 	}
+	if (Window::GetKeyboard()->KeyPressed(KeyCodes::F3)) {
+		Debug::setLinesEnabled(!Debug::getLinesEnabled());
+	}
 
 	// Track the player with the camera
 	lockedObject = freeCam ? nullptr : playerObject;

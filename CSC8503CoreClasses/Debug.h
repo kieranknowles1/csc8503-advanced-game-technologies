@@ -58,10 +58,18 @@ namespace NCL {
 		static const Vector4 MAGENTA;
 		static const Vector4 CYAN;
 
+		static void setLinesEnabled(bool enabled) {
+			linesEnabled = enabled;
+		}
+		static bool getLinesEnabled() {
+			return linesEnabled;
+		}
+
 	protected:
 		Debug() {}
 		~Debug() {}
 
+		static bool linesEnabled;
 		static std::vector<DebugStringEntry>	stringEntries;
 		static std::vector<DebugLineEntry>		lineEntries;
 		static std::vector<DebugTexEntry>		texEntries;

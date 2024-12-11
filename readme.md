@@ -12,6 +12,7 @@ As any player:
 - `Mouse` - Look
 - `Scroll` - Zoom
 - `F2` - Toggle free camera
+- `F3` - Toggle debug drawing
 
 As the server:
 - `F11` - Restart the game

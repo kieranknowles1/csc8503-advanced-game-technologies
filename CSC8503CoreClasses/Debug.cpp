@@ -6,6 +6,7 @@ std::vector<Debug::DebugLineEntry>		Debug::lineEntries;
 std::vector<Debug::DebugTexEntry>		Debug::texEntries;
 
 SimpleFont* Debug::debugFont = nullptr;
+bool Debug::linesEnabled = false;
 
 const Vector4 Debug::RED		= Vector4(1, 0, 0, 1);
 const Vector4 Debug::GREEN		= Vector4(0, 1, 0, 1);
