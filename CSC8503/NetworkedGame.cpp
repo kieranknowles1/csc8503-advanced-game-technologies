@@ -248,30 +248,23 @@ GameObject* NCL::CSC8503::NetworkedGame::AddNetworkCubeToWorld(const Vector3& po
 	return cube;
 }
 
-GameObject* NetworkedGame::AddBridgeToWorld() {
-	Vector3 cubeSize{ 4, 4, 4 };
-	// 1kg/m^3 density
-	float inverseCubeMass = 1.0f / boxVolume(cubeSize);
-	int numLinks = 20;
-	float maxDistance = 12;
-	float cubeDistance = 10;
-
-	Vector3 startPos{ 200, -5, -50 };
-
-	GameObject* start = AddNetworkCubeToWorld(startPos, cubeSize, 0.0f);
-	GameObject* end = AddNetworkCubeToWorld(startPos + Vector3((numLinks + 1) * cubeDistance, 0, 0), cubeSize, 0.0f);
+GameObject* NetworkedGame::AddBridgeToWorld(const BridgeSettings& settings) {
+	GameObject* start = AddNetworkCubeToWorld(settings.start, settings.nodeSize, 0.0f);
+	GameObject* end = AddNetworkCubeToWorld(settings.end, settings.nodeSize, 0.0f);
+	Vector3 spacing = (settings.end - settings.start) / (settings.linkCount + 1);
 
 	GameObject* previous = start;
-	for (int i = 0; i < numLinks; i++) {
-		GameObject* block = AddNetworkCubeToWorld(startPos + Vector3((i + 1) * cubeDistance, 0, 0), cubeSize, inverseCubeMass);
+	for (int i = 0; i < settings.linkCount; i++) {
+		Vector3 thisPos = settings.start + spacing * (i + 1);
+		GameObject* block = AddNetworkCubeToWorld(thisPos, settings.nodeSize, settings.nodeInverseMass);
 		block->GetPhysicsObject()->SetElasticity(0.01);
-		PositionConstraint* constraint = new PositionConstraint(previous, block, maxDistance, PositionConstraint::Type::Rope);
+		PositionConstraint* constraint = new PositionConstraint(previous, block, settings.nodeMaxDistance, PositionConstraint::Type::Rope);
 		world->AddConstraint(constraint);
 		OrientationConstraint* oConstraint = new OrientationConstraint(previous, block, Quaternion(), Vector3(-10, -10, -10), Vector3(10, 10, 10));
 		world->AddConstraint(oConstraint);
 		previous = block;
 	}
-	PositionConstraint* constraint = new PositionConstraint(previous, end, cubeDistance, PositionConstraint::Type::Rope);
+	PositionConstraint* constraint = new PositionConstraint(previous, end, settings.nodeMaxDistance, PositionConstraint::Type::Rope);
 	world->AddConstraint(constraint);
 	OrientationConstraint* oConstraint = new OrientationConstraint(previous, end, Quaternion(), Vector3(-10, -10, -10), Vector3(10, 10, 10));
 	world->AddConstraint(oConstraint);
@@ -290,7 +283,18 @@ void NetworkedGame::StartLevel() {
 	auto bonus = AddBonusToWorld(Vector3(10, 2.5, 0));
 	networkWorld->trackObject(bonus);
 
-	GameObject* bridgeEnd = AddBridgeToWorld();
+	BridgeSettings bridgeSettings;
+	bridgeSettings.start = Vector3(200, -5, -50);
+	bridgeSettings.end = Vector3(400, -5, -100);
+	bridgeSettings.nodeSize = Vector3(4, 1.5, 4);
+	// 1kg/m^3 density
+	bridgeSettings.nodeInverseMass = 1.0f / boxVolume(bridgeSettings.nodeSize);
+	bridgeSettings.linkCount = 20;
+	bridgeSettings.nodeMaxDistance = 12;
+
+	GameObject* bridgeEnd = AddBridgeToWorld(bridgeSettings);
+	bridgeSettings.start.z = bridgeSettings.end.z + (bridgeSettings.end.z - bridgeSettings.start.z);
+	AddBridgeToWorld(bridgeSettings);
 	auto bridgeBonus = AddBonusToWorld(
 		bridgeEnd->GetTransform().GetPosition()
 		+ bridgeEnd->GetTransform().GetScale() * Vector3(0, 0.75, 0)
