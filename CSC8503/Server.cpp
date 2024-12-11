@@ -69,6 +69,7 @@ namespace NCL::CSC8503 {
 
         game->GetAllPlayers().emplace(source, LocalPlayerState{netState});
         game->SpawnMissingPlayers();
+        forceFullSync();
     }
 
     void Server::processPlayerDisconnect(int source)
@@ -111,15 +112,18 @@ namespace NCL::CSC8503 {
             int fromLastFull = o->getDeltaError(o->GetLastFullState());
 
             // If we've moved too far from the last full, send a new full
-            bool sendFull = fromLastFull > SendFullThreshold;
-            // Don't send anything if the delta is still good enough
-            if (fromLastDelta > SendDeltaThreshold || sendFull) {
+            bool wantFull = fromLastFull > SendFullThreshold || forceFullBroadcast;
+            // If there's only a small change, send a delta
+            bool wantDelta = fromLastDelta > SendDeltaThreshold;
+
+            if (wantFull || wantDelta) {
                 GamePacket* newPacket = nullptr;
-                if (o->WritePacket(&newPacket, !sendFull, playerState)) {
+                if (o->WritePacket(&newPacket, !wantFull, playerState)) {
                     server->SendGlobalPacket(*newPacket);
                     delete newPacket;
                 }
             }
         }
+        forceFullBroadcast = false;
     }
 }

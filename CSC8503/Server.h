@@ -24,7 +24,14 @@ namespace NCL::CSC8503 {
         void sendPlayerList();
 
         void broadcastObjectDestroy(NetworkObject::Id id);
+
+        // Force a full sync of all objects next frame
+        // This is useful when a new player joins
+        void forceFullSync() {
+			forceFullBroadcast = true;
+		}
     private:
+        bool forceFullBroadcast = false;
         NetworkedGame* game;
         GameServer* server;
 
