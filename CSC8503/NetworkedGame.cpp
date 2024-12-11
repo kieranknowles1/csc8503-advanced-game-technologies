@@ -35,7 +35,7 @@ NetworkedGame::NetworkedGame(const Cli& cli) {
 	timeToNextPacket  = 0.0f;
 
 	if (cli.isClient()) {
-		StartAsClient(cli.getIp());
+		StartAsClient(cli.getIp(), cli.getName());
 	} else {
 		server = new Server(this, MaxPlayers);
 	}
@@ -44,7 +44,7 @@ NetworkedGame::NetworkedGame(const Cli& cli) {
 
 	if (server) {
 		localPlayerId = HostPlayerId;
-		auto state = generateNetworkState(localPlayerId);
+		auto state = generateNetworkState(localPlayerId, cli.getName());
 		allPlayers.emplace(localPlayerId, LocalPlayerState(state));
 	}
 
@@ -58,15 +58,19 @@ NetworkedGame::~NetworkedGame()	{
 	delete thisClient;
 }
 
-void NetworkedGame::StartAsClient(uint32_t addr) {
+void NetworkedGame::StartAsClient(uint32_t addr, std::string_view name) {
 	connectionLength = 0.0f;
 	thisClient = new GameClient();
 	thisClient->Connect(addr, NetworkBase::GetDefaultPort());
 
+	ClientHelloPacket packet;
+	packet.name.set(name);
+	thisClient->SendPacket(packet);
+
 	thisClient->RegisterPacketHandler(GamePacket::Type::Reset, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerDisconnected, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerList, this);
-	thisClient->RegisterPacketHandler(GamePacket::Type::Hello, this);
+	thisClient->RegisterPacketHandler(GamePacket::Type::ServerHello, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::ObjectDestroy, this);
 }
 
@@ -110,12 +114,12 @@ void NetworkedGame::removeObject(GameObject* obj)
 	graveyard.push_back(obj);
 }
 
-PlayerState NetworkedGame::generateNetworkState(int clientId)
+PlayerState NetworkedGame::generateNetworkState(int clientId, std::string_view name)
 {
 	PlayerState state;
 	state.colour = generateCatColor();
 	state.id = clientId;
-	state.name.set("Player " + std::to_string(clientId));
+	state.name.set(name);
 	state.netObjectID = clientId + PlayerIdStart;
 	state.score = 0;
 	return state;
@@ -337,7 +341,7 @@ void NetworkedGame::ProcessPacket(PlayerListPacket* payload) {
 	SpawnMissingPlayers();
 }
 
-void NetworkedGame::ProcessPacket(HelloPacket* payload) {
+void NetworkedGame::ProcessPacket(ServerHelloPacket* payload) {
 	std::cout << "Received hello packet. We are player " << payload->whoAmI.id << "\n";
 	std::cout << "Our colour is " << payload->whoAmI.colour << "\n";
 	localPlayerId = payload->whoAmI.id;
@@ -356,8 +360,8 @@ void NetworkedGame::ReceivePacket(GamePacket::Type type, GamePacket* payload, in
 		return ProcessPacket((PlayerDisconnectedPacket*)payload);
 	case GamePacket::Type::PlayerList:
 		return ProcessPacket((PlayerListPacket*)payload);
-	case GamePacket::Type::Hello:
-		return ProcessPacket((HelloPacket*)payload);
+	case GamePacket::Type::ServerHello:
+		return ProcessPacket((ServerHelloPacket*)payload);
 	case GamePacket::Type::ObjectDestroy:
 		return ProcessPacket((DestroyPacket*)payload);
 	case GamePacket::Type::Reset:

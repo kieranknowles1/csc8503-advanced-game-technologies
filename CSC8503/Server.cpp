@@ -9,6 +9,7 @@ namespace NCL::CSC8503 {
         server = new GameServer(NetworkBase::GetDefaultPort(), maxPlayers);
 
         server->RegisterPacketHandler(GamePacket::Type::Server_ClientConnect, this);
+        server->RegisterPacketHandler(GamePacket::Type::ClientHello, this);
         server->RegisterPacketHandler(GamePacket::Type::Server_ClientDisconnect, this);
         server->RegisterPacketHandler(GamePacket::Type::ClientState, this);
     }
@@ -31,7 +32,10 @@ namespace NCL::CSC8503 {
     {
         switch (type) {
             case GamePacket::Type::Server_ClientConnect:
-                return processPlayerConnect(source);
+                std::cout << "Client connected. Waiting for hello packet" << std::endl;
+                return;
+            case GamePacket::Type::ClientHello:
+                return processPacket((ClientHelloPacket*)payload, source);
             case GamePacket::Type::Server_ClientDisconnect:
                 return processPlayerDisconnect(source);
             case GamePacket::Type::ClientState:
@@ -51,14 +55,14 @@ namespace NCL::CSC8503 {
 		server->SendGlobalPacket(destroyPacket);
     }
 
-    void Server::processPlayerConnect(int source)
+    void Server::processPacket(ClientHelloPacket* packet, int source)
     {
-        std::cout << "Player " << source << " has connected!" << std::endl;
-        auto netState = game->generateNetworkState(source);
+        std::cout << packet->name.get() << " says hello" << std::endl;
+        auto netState = game->generateNetworkState(source, packet->name.get());
 
         sendPlayerList();
 
-        HelloPacket helloPacket{
+        ServerHelloPacket helloPacket{
             netState
         };
         server->SendClientPacket(source, helloPacket);

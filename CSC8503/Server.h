@@ -7,6 +7,7 @@
 
 namespace NCL::CSC8503 {
     class NetworkedGame;
+    struct ClientHelloPacket;
 
     class Server : PacketReceiver {
     public:
@@ -27,9 +28,9 @@ namespace NCL::CSC8503 {
         NetworkedGame* game;
         GameServer* server;
 
-        void processPlayerConnect(int source);
         void processPlayerDisconnect(int source);
         void processPacket(ClientPacket* packet, int source);
+        void processPacket(ClientHelloPacket* packet, int source);
 
         void broadcastDeltas();
     };

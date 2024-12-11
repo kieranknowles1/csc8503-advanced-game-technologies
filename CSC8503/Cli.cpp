@@ -56,6 +56,8 @@ Cli::Cli(int argc, char** argv) {
                 throw std::runtime_error("Invalid window position: " + xStr + " " + yStr);
             }
             windowPos = NCL::Maths::Vector2i(x, y);
+        } else if (arg == "-n" || arg == "--name") {
+            consumeRequiredArg(name);
         } else {
             throw std::runtime_error("Unknown argument: " + arg + " (try -h for help)");
         }
@@ -72,5 +74,6 @@ void Cli::printUsage(char* programName) const {
         "  -c, --client                  Run the program as a client\n"
         "  -C, --no-capture              Don't capture the mouse\n"
         "  -f, --fullscreen              Run the program in fullscreen\n"
-        "  -w, --window [x=0] [y=0]      Set the window position\n";
+        "  -w, --window [x=0] [y=0]      Set the window position\n"
+        "  -n, --name [name=User]        Set the user name\n";
 }

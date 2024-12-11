@@ -86,11 +86,18 @@ namespace NCL {
 		// Separate from PlayerConnectedPacket as the client doesn't know who they
 		// are. Relying on the first PlayerConnectedPacket would introduce a race condition
 		// where if two clients connect at the same time, they could both think they are the same player
-		struct HelloPacket : public GamePacket {
+		struct ServerHelloPacket : public GamePacket {
 			PlayerState whoAmI;
-			HelloPacket(PlayerState state) : GamePacket(Type::Hello) {
-				size = sizeof(HelloPacket) - sizeof(GamePacket);
+			ServerHelloPacket(PlayerState state) : GamePacket(Type::ServerHello) {
+				size = sizeof(ServerHelloPacket) - sizeof(GamePacket);
 				whoAmI = state;
+			}
+		};
+
+		struct ClientHelloPacket : public GamePacket {
+			SizedString<MaxNameLength> name;
+			ClientHelloPacket() : GamePacket(Type::ClientHello) {
+				size = sizeof(ClientHelloPacket) - sizeof(GamePacket);
 			}
 		};
 
@@ -117,7 +124,7 @@ namespace NCL {
 			Server* getServer() { return server; }
 			Client* getClient() { return client; }
 
-			void StartAsClient(uint32_t addr);
+			void StartAsClient(uint32_t addr, std::string_view name);
 
 			void UpdateGame(float dt) override;
 
@@ -160,14 +167,14 @@ namespace NCL {
 			// Delayed until the end of the frame
 			void removeObject(GameObject* obj);
 
-			PlayerState generateNetworkState(int clientId);
+			PlayerState generateNetworkState(int clientId, std::string_view name);
 		protected:
 			void ProcessInput(float dt);
 
 			//void ProcessPacket(PlayerConnectedPacket* payload);
 			void ProcessPacket(PlayerDisconnectedPacket* payload);
 			void ProcessPacket(PlayerListPacket* payload);
-			void ProcessPacket(HelloPacket* payload);
+			void ProcessPacket(ServerHelloPacket* payload);
 			void ProcessPacket(DestroyPacket* payload);
 
 			void UpdateAsClient(float dt);

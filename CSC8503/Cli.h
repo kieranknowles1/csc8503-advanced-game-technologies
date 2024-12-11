@@ -29,6 +29,10 @@ public:
 	NCL::Maths::Vector2i getWindowPos() const {
 		return windowPos;
 	}
+
+	std::string_view getName() const {
+		return name;
+	}
 private:
 	bool client = false;
 	bool captureMouse = true;
@@ -36,6 +40,8 @@ private:
 	uint32_t ip = NetworkBase::ipv4(127, 0, 0, 1); // Default to localhost
 
 	NCL::Maths::Vector2i windowPos = NCL::Maths::Vector2i(0, 0);
+
+	std::string name = "User McUserface";
 
     void printUsage(char* programName) const;
 };
