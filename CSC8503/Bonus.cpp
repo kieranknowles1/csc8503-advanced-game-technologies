@@ -17,4 +17,12 @@ namespace NCL::CSC8503 {
             game->removeObject(this);
         }
     }
+    void Bonus::OnUpdate(float dt)
+    {
+        float deltaYaw = spinSpeed * dt;
+        GetTransform().SetOrientation(
+			GetTransform().GetOrientation() *
+			Quaternion::EulerAnglesToQuaternion(0, deltaYaw, 0)
+		);
+    }
 };
