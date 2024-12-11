@@ -32,3 +32,17 @@ launching.
 ## Tools Used
 
 [keesiemeijer/maze-generator](https://keesiemeijer.github.io/maze-generator/) - Maze generation
+
+## Building
+
+The project uses CMake to build. As always, an out-of-source build is recommended.
+Windows builds will use the Windows API for input and windowing, so SDL2 is not
+required.
+
+### Linux Support
+
+Linux is supported via SDL2, a `flake.nix` is included for NixOS users. Building has
+only been tested using Clang, and issues may arise due to its differences from MSVC.
+
+Please consult `flake.nix` for a list of dependencies that must be installed on other
+distributions.
