@@ -444,7 +444,7 @@ GameObject* TutorialGame::AddEnemyToWorld(const Vector3& position) {
 }
 
 Bonus* TutorialGame::AddBonusToWorld(const Vector3& position) {
-	Bonus* apple = new Bonus((NetworkedGame*)this, 100);
+	Bonus* apple = new Bonus((NetworkedGame*)this, 100, rng);
 	apple->SetTrigger(true);
 
 	SphereVolume* volume = new SphereVolume(1.5f);

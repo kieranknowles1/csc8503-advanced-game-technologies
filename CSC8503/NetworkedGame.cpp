@@ -251,6 +251,7 @@ GameObject* NCL::CSC8503::NetworkedGame::AddKittenToWorld(const Vector3& positio
 	kitten->GetTransform()
 		.SetPosition(position)
 		.SetScale(Vector3(0.5, 0.5, 0.5));
+	kitten->GetRenderObject()->SetColour(generateCatColor());
 	world->AddGameObject(kitten);
 	networkWorld->trackObject(kitten);
 
