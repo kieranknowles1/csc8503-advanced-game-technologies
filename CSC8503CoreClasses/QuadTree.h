@@ -124,24 +124,7 @@ namespace NCL {
 					}
 				}
 				else {
-					// TODO: Debug::DrawBox?
-					// Bottom
-					Debug::DrawLine(Vector3(position.x, 0, position.y), Vector3(position.x + size.x, 0, position.y), color);
-					Debug::DrawLine(Vector3(position.x + size.x, 0, position.y), Vector3(position.x + size.x, 0, position.y + size.y), color);
-					Debug::DrawLine(Vector3(position.x + size.x, 0, position.y + size.y), Vector3(position.x, 0, position.y + size.y), color);
-					Debug::DrawLine(Vector3(position.x, 0, position.y + size.y), Vector3(position.x, 0, position.y), color);
-
-					// Top
-					Debug::DrawLine(Vector3(position.x, 1000, position.y), Vector3(position.x + size.x, 1000, position.y), color);
-					Debug::DrawLine(Vector3(position.x + size.x, 1000, position.y), Vector3(position.x + size.x, 1000, position.y + size.y), color);
-					Debug::DrawLine(Vector3(position.x + size.x, 1000, position.y + size.y), Vector3(position.x, 1000, position.y + size.y), color);
-					Debug::DrawLine(Vector3(position.x, 1000, position.y + size.y), Vector3(position.x, 1000, position.y), color);
-
-					// Sides
-					Debug::DrawLine(Vector3(position.x, 0, position.y), Vector3(position.x, 1000, position.y), color);
-					Debug::DrawLine(Vector3(position.x + size.x, 0, position.y), Vector3(position.x + size.x, 1000, position.y), color);
-					Debug::DrawLine(Vector3(position.x + size.x, 0, position.y + size.y), Vector3(position.x + size.x, 1000, position.y + size.y), color);
-					Debug::DrawLine(Vector3(position.x, 0, position.y + size.y), Vector3(position.x, 1000, position.y + size.y), color);
+					Debug::DrawAABB(Vector3(position.x, 500, position.y), Vector3(size.x, 500, size.y), color);
 				}
 			}
 

@@ -41,6 +41,29 @@ void Debug::DrawLine(const Vector3& startpoint, const Vector3& endpoint, const V
 	lineEntries.emplace_back(newEntry);
 }
 
+void Debug::DrawAABB(const Vector3& position, const Vector3& halfSize, const Vector4& colour, float time) {
+	Vector3 min = position - halfSize;
+	Vector3 max = position + halfSize;
+
+	// Bottom
+	DrawLine(Vector3(min.x, min.y, min.z), Vector3(max.x, min.y, min.z), colour, time);
+	DrawLine(Vector3(min.x, min.y, min.z), Vector3(min.x, max.y, min.z), colour, time);
+	DrawLine(Vector3(max.x, min.y, min.z), Vector3(max.x, max.y, min.z), colour, time);
+	DrawLine(Vector3(min.x, max.y, min.z), Vector3(max.x, max.y, min.z), colour, time);
+
+	// Top
+	DrawLine(Vector3(min.x, min.y, max.z), Vector3(max.x, min.y, max.z), colour, time);
+	DrawLine(Vector3(min.x, min.y, max.z), Vector3(min.x, max.y, max.z), colour, time);
+	DrawLine(Vector3(max.x, min.y, max.z), Vector3(max.x, max.y, max.z), colour, time);
+	DrawLine(Vector3(min.x, max.y, max.z), Vector3(max.x, max.y, max.z), colour, time);
+
+	// Sides
+	DrawLine(Vector3(min.x, min.y, min.z), Vector3(min.x, min.y, max.z), colour, time);
+	DrawLine(Vector3(max.x, min.y, min.z), Vector3(max.x, min.y, max.z), colour, time);
+	DrawLine(Vector3(min.x, max.y, min.z), Vector3(min.x, max.y, max.z), colour, time);
+	DrawLine(Vector3(max.x, max.y, min.z), Vector3(max.x, max.y, max.z), colour, time);
+}
+
 void Debug::DrawTex(const Texture& t, const Vector2& pos, const Vector2& scale, const Vector4& colour) {
 	DebugTexEntry newEntry;
 
