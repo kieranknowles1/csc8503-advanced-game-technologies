@@ -25,6 +25,29 @@ namespace NCL::CSC8503 {
 		return input;
 	}
 
+	void NetworkPlayer::handleJumpInput(float dt) {
+		auto [canJump, collision] = this->canJump();
+		if (!canJump) {
+			return;
+		}
+
+		jumpCooldown = JumpCooldown;
+		// Nudge us to avoid an immediate collision
+		GetTransform().SetPosition(GetTransform().GetPosition() + JumpNudge);
+
+		// All forces last one tick, so apply a large force for one tick to simulate an impulse
+		float force = impulseToForce(JumpImpulse, dt);
+		
+		GetPhysicsObject()->AddForce({ 0, force, 0 });
+		// Newton's third law: for every action there is an equal and opposite reaction
+		// Apply an impulse to the object we jumped off of
+		GameObject* other = (GameObject*)collision.node;
+		PhysicsObject* otherPhysics = other ? other->GetPhysicsObject() : nullptr;
+		if (otherPhysics) {
+			otherPhysics->AddForceAtPosition({ 0, -force, 0 }, collision.collidedAt);
+		}
+	}
+
 	void NetworkPlayer::OnUpdate(float dt) {
 		float force = 1000 * dt;
 		Vector3 forwardsForce = GetTransform().GetOrientation() * Vector3(0, 0, force);
@@ -42,18 +65,8 @@ namespace NCL::CSC8503 {
 			GetPhysicsObject()->AddTorque({ 0, -force, 0 });
 		}
 
-		if (lastInput.jump && canJump()) {
-			jumpTicksRemaining = JumpTicks;
-			jumpCooldown = JumpCooldown;
-			GetTransform().SetPosition(GetTransform().GetPosition() + JumpNudge);
-		}
-		if (jumpTicksRemaining > 0) {
-			jumpTicksRemaining--;
-			// How many kg/seconds to apply
-			float thisTickImpulse = JumpImpulse / JumpTicks;
-
-			float force = impulseToForce(thisTickImpulse, dt);
-			GetPhysicsObject()->AddForce({ 0, force, 0 });
+		if (lastInput.jump) {
+			handleJumpInput(dt);
 		}
 		lastInput.jump = false;
 		jumpCooldown -= dt;
@@ -71,9 +84,9 @@ namespace NCL::CSC8503 {
 		}
 	}
 
-	bool NetworkPlayer::canJump() {
+	std::pair<bool, RayCollision> NetworkPlayer::canJump() {
 		if (jumpCooldown > 0) {
-			return false;
+			return { false, {} };
 		}
 		auto world = GetWorld();
 		Ray ray(GetTransform().GetPosition(), Vector3(0, -1, 0));
@@ -87,6 +100,6 @@ namespace NCL::CSC8503 {
 			closeEnough ? Debug::GREEN : Debug::RED,
 			5.0f
 		);
-		return closeEnough;
+		return { closeEnough, closestCollision };
 	}
 }

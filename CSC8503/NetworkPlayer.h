@@ -1,6 +1,7 @@
 #pragma once
 #include "GameObject.h"
 #include "GameClient.h"
+#include "Ray.h"
 
 namespace NCL::CSC8503 {
 	class NetworkedGame;
@@ -45,6 +46,8 @@ namespace NCL::CSC8503 {
 			return clientId;
 		}
 	private:
+		void handleJumpInput(float dt);
+
 		int clientId;
 		PlayerInput lastInput;
 
@@ -52,14 +55,11 @@ namespace NCL::CSC8503 {
 		const constexpr static float JumpRayLength = 3.0f;
 		// Impulse in kg seconds
 		const constexpr static float JumpImpulse = 50.0f;
-		// Apply the force over this many ticks
-		const constexpr static int JumpTicks = 5;
 		// Nudge our position by this at the start of a jump
 		// Applied to keep us from immediately colliding, cancelling out the jump
 		const constexpr static Vector3 JumpNudge = Vector3(0, 0.25, 0);
 
-		bool canJump();
-		int jumpTicksRemaining = 0;
+		std::pair<bool, RayCollision> canJump();
 		// Time until the player can jump again
 		float jumpCooldown = 0;
 	};
