@@ -91,7 +91,6 @@ bool GameWorld::Raycast(Ray& r, RayCollision& closestCollision, bool closestObje
 	//The simplest raycast just goes through each object and sees if there's a collision
 	RayCollision collision;
 
-	Debug::DrawLine(r.GetPosition(), r.GetPosition() + (r.GetDirection() * 20));
 
 	for (auto& i : gameObjects) {
 		if (!i->GetBoundingVolume()) { //objects might not be collideable etc...
@@ -128,8 +127,15 @@ bool GameWorld::Raycast(Ray& r, RayCollision& closestCollision, bool closestObje
 	return false;
 }
 
-bool GameWorld::hasLineOfSight(GameObject* from, GameObject* to) const
+bool GameWorld::hasLineOfSight(GameObject* from, GameObject* to, float maxDistance) const
 {
+	// Ray casts are fairly expensive. If we're too far then it's impossible
+	// to have line of sight
+	float distance = Vector::Length(to->GetTransform().GetPosition() - from->GetTransform().GetPosition());
+	if (distance > maxDistance) {
+		return false;
+	}
+
 	Vector3 direction = Vector::Normalise(
 		to->GetTransform().GetPosition() - from->GetTransform().GetPosition()
 	);

@@ -339,6 +339,17 @@ namespace NCL::Maths {
             return v;
         }
 
+        // Element-wise maximum
+        template <typename T, uint32_t n>
+        constexpr VectorTemplate<T, n> AbsElementMax(const VectorTemplate<T, n>& a, const VectorTemplate<T, n>& b) {
+            VectorTemplate<T, n> result;
+            for (int i = 0; i < n; i++) {
+                result[i] =
+                    fabs(a[i]) > fabs(b[i]) ? a[i] : b[i];
+            }
+            return result;
+        }
+
         template <typename T, uint32_t n>
         constexpr T		GetAbsMaxElement(const VectorTemplate<T, n>& a) {
             float v = std::abs(a.array[0]);

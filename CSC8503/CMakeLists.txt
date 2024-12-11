@@ -8,6 +8,7 @@ set(Header_Files
     "Cli.h"
     Client.h
     "GameTechRenderer.h"
+    Kitten.h
     "NetworkedGame.h"
     "NetworkPlayer.h"
     "NetworkWorld.h"
@@ -26,6 +27,7 @@ set(Source_Files
     "Cli.cpp"
     Client.cpp
     "GameTechRenderer.cpp"
+    Kitten.cpp
     "Main.cpp"
     "NetworkedGame.cpp"
     "NetworkPlayer.cpp"

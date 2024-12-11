@@ -1,4 +1,6 @@
 #pragma once
+
+#include <limits>
 #include <random>
 #include <vector>
 #include <map>
@@ -60,7 +62,7 @@ namespace NCL {
 			bool Raycast(Ray& r, RayCollision& closestCollision, bool closestObject = false, GameObject* ignore = nullptr) const;
 
 			// Is there an unobstructed line of sight between two objects?
-			bool hasLineOfSight(GameObject* from, GameObject* to) const;
+			bool hasLineOfSight(GameObject* from, GameObject* to, float maxDistance = std::numeric_limits<float>::infinity()) const;
 
 			virtual void UpdateWorld(float dt);
 

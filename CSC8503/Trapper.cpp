@@ -253,9 +253,8 @@ namespace NCL::CSC8503 {
         // Directly set the velocity
         // Quaternions are nasty, so only use the yaw angle. We don't want our actors to be drunk anyway
         // C++ works in radians, convert to degrees as required for Rich's code
-        float yawAngleDegrees = atan2(direction.x, direction.z) * 180 / PI;
-        yawAngleDegrees += 180;
-        Quaternion q = Quaternion::EulerAnglesToQuaternion(0, yawAngleDegrees, 0);
+        float yaw = RadiansToDegrees(atan2(direction.x, direction.z)) + 180;
+        Quaternion q = Quaternion::EulerAnglesToQuaternion(0, yaw, 0);
         owner->GetTransform().SetOrientation(q);
         owner->GetTransform().SetPosition(owner->GetTransform().GetPosition() + direction * speed * dt);
 #endif

@@ -13,6 +13,7 @@
 #include "GameClient.h"
 #include "RenderObject.h"
 #include "Trapper.h"
+#include "Kitten.h"
 #include "Bonus.h"
 
 #define COLLISION_MSG 30
@@ -244,6 +245,18 @@ void NetworkedGame::ClearWorld() {
 	delete maze; maze = nullptr;
 }
 
+GameObject* NCL::CSC8503::NetworkedGame::AddKittenToWorld(const Vector3& position)
+{
+	Kitten* kitten = new Kitten(kittenMesh, basicShader, basicTex, world);
+	kitten->GetTransform()
+		.SetPosition(position)
+		.SetScale(Vector3(0.5, 0.5, 0.5));
+	world->AddGameObject(kitten);
+	networkWorld->trackObject(kitten);
+
+	return kitten;
+}
+
 GameObject* NCL::CSC8503::NetworkedGame::AddNetworkCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass, bool axisAligned)
 {
 	auto cube = AddCubeToWorld(position, dimensions, inverseMass, axisAligned);
@@ -285,6 +298,8 @@ void NetworkedGame::StartLevel() {
 
 	auto bonus = AddBonusToWorld(Vector3(10, 2.5, 0));
 	networkWorld->trackObject(bonus);
+
+	AddKittenToWorld(Vector3(0, 5, 5));
 
 	BridgeSettings bridgeSettings;
 	bridgeSettings.start = Vector3(200, -5, -50);
