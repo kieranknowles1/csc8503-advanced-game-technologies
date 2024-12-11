@@ -49,13 +49,23 @@ SimpleFont::~SimpleFont()	{
 }
 
 int SimpleFont::GetVertexCountForString(const std::string& text) {
-	return 6 * text.size();
+	int i = 0;
+	int endChar = startChar + numChars;
+	for (auto c : text) {
+		if (c < startChar)
+			continue;
+		if (c > endChar)
+			continue;
+		i += 6;
+	}
+	return i;
 }
 
 void SimpleFont::BuildVerticesForString(const std::string& text, const Vector2& startPos, const Vector4& colour, float size, std::vector<Vector3>& positions, std::vector<Vector2>& texCoords, std::vector<Vector4>& colours) {
 	int endChar = startChar + numChars;
 
 	float currentX = 0.0f;
+	float currentY = startPos.y;
 
 	positions.reserve(positions.size() + (text.length() * 6));
 	colours.reserve(colours.size() + (text.length() * 6));
@@ -63,6 +73,11 @@ void SimpleFont::BuildVerticesForString(const std::string& text, const Vector2& 
 
 	for (size_t i = 0; i < text.length(); ++i) {
 		int charIndex = (int)text[i];
+
+		if (charIndex == '\n') {
+			currentX = 0.0f;
+			currentY += 4;
+		}
 
 		if (charIndex < startChar) {
 			continue;
@@ -79,7 +94,7 @@ void SimpleFont::BuildVerticesForString(const std::string& text, const Vector2& 
 		float charHeight = (float)(charData.y1 - charData.y0);
 
 		float xStart = ((charData.xOff + currentX) * texWidthRecip) * scale;
-		float yStart = startPos.y;
+		float yStart = currentY;
 		float yHeight = (charHeight * texHeightRecip) * scale;
 		float yOff = ((charHeight + charData.yOff) * texHeightRecip) * scale;
 
