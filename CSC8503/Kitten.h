@@ -13,6 +13,10 @@ namespace NCL::CSC8503 {
     public:
         Kitten(Mesh* mesh, Shader* shader, Texture* texture, GameWorld* world);
 
+        Tag getTag() const override {
+			return Tag::Kitten;
+		}
+
         void OnUpdate(float dt) override {
             stateMachine->Update(dt);
         }

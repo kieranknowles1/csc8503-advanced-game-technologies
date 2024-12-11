@@ -126,6 +126,8 @@ namespace NCL {
 
 			void StartAsClient(uint32_t addr, std::string_view name);
 
+			void drawScoreboard();
+
 			void UpdateGame(float dt) override;
 
 			const static constexpr int PlayerIdStart = NetworkWorld::ManualIdStart + 1000;
@@ -150,6 +152,7 @@ namespace NCL {
 
 			// Returns the end point of the bridge
 			GameObject* AddBridgeToWorld(const BridgeSettings& settings);
+			Bonus* AddBonusToWorld(const Vector3& position);
 
 			void StartLevel();
 
@@ -218,6 +221,9 @@ namespace NCL {
 			int localPlayerId = InvalidPlayerId;
 
 			bool freeCam = false;
+
+			int totalBonusCount = 0;
+			int totalKittenCount = 0;
 
 			// World stuff
 			NavigationGrid* maze;

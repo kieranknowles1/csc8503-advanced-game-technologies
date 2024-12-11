@@ -17,6 +17,8 @@ namespace NCL::CSC8503 {
 		enum class Tag {
 			None,
 			Player,
+			Bonus,
+			Kitten
 		};
 
 		enum class PhysicsType {

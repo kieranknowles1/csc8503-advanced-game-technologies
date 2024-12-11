@@ -21,6 +21,10 @@ namespace NCL::CSC8503 {
         void OnCollisionBegin(GameObject* other) override;
         void OnUpdate(float dt) override;
 
+        Tag getTag() const override {
+            return Tag::Bonus;
+        }
+
         int getValue() const {
 			return value;
 		}

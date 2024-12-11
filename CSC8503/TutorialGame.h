@@ -57,7 +57,6 @@ namespace NCL {
 
 			NetworkPlayer* AddPlayerToWorld(const Vector3& position, int id);
 			GameObject* AddEnemyToWorld(const Vector3& position);
-			Bonus* AddBonusToWorld(const Vector3& position);
 
 			Vector4 generateCatColor();
 

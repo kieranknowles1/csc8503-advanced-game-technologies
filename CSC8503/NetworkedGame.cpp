@@ -76,24 +76,40 @@ void NetworkedGame::StartAsClient(uint32_t addr, std::string_view name) {
 	thisClient->RegisterPacketHandler(GamePacket::Type::ObjectDestroy, this);
 }
 
+void NetworkedGame::drawScoreboard() {
+	float yPos = 20;
+	for (auto& [id, player] : allPlayers) {
+		// string_view doesn't support concatenation :(
+		std::string name(player.netState.name.get());
+		std::string score = std::to_string(player.netState.score);
+		Vector4 color = id == localPlayerId ? Vector4(1, 1, 1, 1) : Vector4(0.5, 0.5, 0.5, 1);
+		Debug::Print(name + ": " + score, Vector2(10, yPos), color);
+		yPos += 5;
+	}
+	yPos += 5;
+
+	TaggedObjects::iterator first; TaggedObjects::iterator last;
+	world->getTaggedObjects(GameObject::Tag::Bonus, first, last);
+	int bonusesRemaining = std::distance(first, last);
+
+	Debug::Print("Bonuses collected: " + std::to_string(totalBonusCount - bonusesRemaining) + "/" + std::to_string(totalBonusCount), Vector2(10, yPos));
+	yPos += 5;
+
+	// TODO: Count kittens
+	int kittensCollected = 0;
+	Debug::Print("Kittens safe: " + std::to_string(kittensCollected) + "/" + std::to_string(totalKittenCount), Vector2(10, yPos));
+	yPos += 5;
+}
+
 void NetworkedGame::UpdateGame(float dt) {
 	timeToNextPacket -= dt;
 	if (server)
-		Debug::Print("This is a server with " + std::to_string(server->getServer()->getClientCount()) + " clients\n", Vector2(10, 10));
+		Debug::Print("This is a server with " + std::to_string(server->getServer()->getClientCount()) + " clients", Vector2(10, 10));
 	if (thisClient)
-		Debug::Print("This is a client\n", Vector2(10, 10));
+		Debug::Print("This is a client", Vector2(10, 10));
 
-	if (Window::GetKeyboard()->KeyDown(KeyCodes::TAB)) {
-		float yPos = 20;
-		for (auto& [id, player] : allPlayers) {
-			// string_view doesn't support concatenation :(
-			std::string name(player.netState.name.get());
-			std::string score = std::to_string(player.netState.score);
-			Vector4 color = id == localPlayerId ? Vector4(1, 1, 1, 1) : Vector4(0.5, 0.5, 0.5, 1);
-			Debug::Print(name + ": " + score, Vector2(10, yPos), color);
-			yPos += 5;
-		}
-	}
+	if (Window::GetKeyboard()->KeyDown(KeyCodes::TAB))
+		drawScoreboard();
 
 	if (timeToNextPacket < 0) {
 		if (server) {
@@ -243,6 +259,8 @@ void NetworkedGame::ClearWorld() {
 		player.second.player = nullptr;
 	}
 	delete maze; maze = nullptr;
+	totalBonusCount = 0;
+	totalKittenCount = 0;
 }
 
 GameObject* NCL::CSC8503::NetworkedGame::AddKittenToWorld(const Vector3& position)
@@ -255,6 +273,7 @@ GameObject* NCL::CSC8503::NetworkedGame::AddKittenToWorld(const Vector3& positio
 	world->AddGameObject(kitten);
 	networkWorld->trackObject(kitten);
 
+	totalKittenCount++;
 	return kitten;
 }
 
@@ -287,6 +306,28 @@ GameObject* NetworkedGame::AddBridgeToWorld(const BridgeSettings& settings) {
 	world->AddConstraint(oConstraint);
 
 	return end;
+}
+
+Bonus* NetworkedGame::AddBonusToWorld(const Vector3& position) {
+	Bonus* apple = new Bonus(this, 100, rng);
+	apple->SetTrigger(true);
+
+	SphereVolume* volume = new SphereVolume(1.5f);
+	apple->SetBoundingVolume((CollisionVolume*)volume);
+	apple->GetTransform()
+		.SetScale(Vector3(2, 2, 2))
+		.SetPosition(position);
+
+	apple->SetRenderObject(new RenderObject(&apple->GetTransform(), bonusMesh, nullptr, basicShader));
+	apple->SetPhysicsObject(new PhysicsObject(&apple->GetTransform(), apple->GetBoundingVolume()));
+
+	apple->GetPhysicsObject()->SetInverseMass(0.0f);
+	apple->GetPhysicsObject()->InitSphereInertia();
+
+	world->AddGameObject(apple);
+
+	totalBonusCount++;
+	return apple;
 }
 
 void NetworkedGame::StartLevel() {
