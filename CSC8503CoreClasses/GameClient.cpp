@@ -24,7 +24,23 @@ bool GameClient::Connect(uint32_t addr, int portNum) {
 		std::cerr << "Connection to server failed!" << std::endl;
 		return false;
 	}
-	return true;
+
+	// TODO: Timeout parameter
+	ENetEvent event;
+	if (enet_host_service(netHandle, &event, 1000) > 0) {
+		if (event.type == ENET_EVENT_TYPE_CONNECT) {
+			std::cout << "Server connection succeeded!" << std::endl;
+			connected = true;
+			GamePacket p(GamePacket::Type::Client_ClientConnect);
+			ProcessPacket(&p);
+			return true;
+		}
+		else {
+			std::cerr << "Unexpected connection status: " << event.type << std::endl;
+		}
+	}
+
+	return false;
 }
 
 void GameClient::UpdateClient() {
@@ -38,13 +54,7 @@ void GameClient::UpdateClient() {
 	while (enet_host_service(netHandle, &event, 0) > 0) {
 		switch (event.type)
 		{
-		case ENET_EVENT_TYPE_CONNECT: {
-			std::cout << "Server connection succeeded!" << std::endl;
-			connected = true;
-			GamePacket p(GamePacket::Type::Client_ClientConnect);
-			ProcessPacket(&p);
-			break;
-		} case ENET_EVENT_TYPE_DISCONNECT: {
+		case ENET_EVENT_TYPE_DISCONNECT: {
 			std::cout << "Server disconnected!" << std::endl;
 			connected = false;
 			GamePacket p(GamePacket::Type::Client_ClientDisconnect);
