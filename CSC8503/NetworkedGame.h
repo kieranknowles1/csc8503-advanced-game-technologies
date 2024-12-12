@@ -14,6 +14,8 @@
 
 namespace NCL {
 	namespace CSC8503 {
+		class Kitten;
+
 		static const constexpr int MaxPlayers = 64;
 		static const constexpr int MaxNameLength = 32;
 
@@ -120,6 +122,8 @@ namespace NCL {
 			NetworkedGame(const Cli& cli);
 			~NetworkedGame();
 
+			void decrementRemainingKittens(Kitten* kitten, NetworkPlayer* player);
+
 			bool isServer() { return server != nullptr; }
 			Server* getServer() { return server; }
 			Client* getClient() { return client; }
@@ -224,6 +228,7 @@ namespace NCL {
 			bool freeCam = false;
 
 			int totalBonusCount = 0;
+			int kittensSaved = 0;
 			int totalKittenCount = 0;
 
 			// World stuff

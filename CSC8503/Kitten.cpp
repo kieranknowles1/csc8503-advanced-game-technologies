@@ -4,6 +4,7 @@
 #include "State.h"
 #include "StateTransition.h"
 
+#include "NetworkedGame.h"
 #include "RenderObject.h"
 
 namespace NCL::CSC8503 {
@@ -36,7 +37,7 @@ namespace NCL::CSC8503 {
         kitten->GetTransform().SetOrientation(Quaternion::EulerAnglesToQuaternion(0, yaw, 0));
     }
 
-    static StateMachine* createStateMachine(Kitten* kitten) {
+    static StateMachine* createStateMachine(Kitten* kitten, NetworkedGame* game) {
         StateMachine* sm = new StateMachine();
         // TODO: Encapsulate this properly
         NetworkPlayer** followedPlayer = new NetworkPlayer*;
@@ -86,15 +87,16 @@ namespace NCL::CSC8503 {
             if (!inHome) return false;
 
             *sleepPosition = (*followedPlayer)->GetTransform().GetPosition();
+            game->decrementRemainingKittens(kitten, *followedPlayer);
             return true;
         }));
 
         return sm;
     }
 
-    Kitten::Kitten(Mesh* mesh, Shader* shader, Texture* texture, GameWorld* world) {
-        stateMachine = createStateMachine(this);
-        this->world = world;
+    Kitten::Kitten(Mesh* mesh, Shader* shader, Texture* texture, NetworkedGame* game) {
+        stateMachine = createStateMachine(this, game);
+        this->world = game->getWorld();
 
         SetRenderObject(new RenderObject(&transform, mesh, texture, shader));
         SetBoundingVolume(new SphereVolume(1.0f));

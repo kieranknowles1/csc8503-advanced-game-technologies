@@ -9,6 +9,7 @@ namespace NCL {
 				None = 0,
 				Wall = 'x',
 				Bonus = 'b',
+				Kitten = 'k',
 				Enemy = 'e',
 				Floor = '.',
 			};

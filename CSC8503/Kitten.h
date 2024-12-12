@@ -11,7 +11,7 @@
 namespace NCL::CSC8503 {
     class Kitten : public GameObject {
     public:
-        Kitten(Mesh* mesh, Shader* shader, Texture* texture, GameWorld* world);
+        Kitten(Mesh* mesh, Shader* shader, Texture* texture, NetworkedGame* game);
 
         Tag getTag() const override {
 			return Tag::Kitten;

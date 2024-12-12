@@ -8,7 +8,7 @@ x.....x.....x...x
 x.x.xxx.xxx.xxx.x
 x.x.......x.....x
 x.xxx.xxx.x.xxx.x
-x...x.x....e....x
+x...x.x....e...kx
 xxx.x.x.x.xxxxxxx
 xbx.....x...xb..x
 x.x.xxx.xxx.xxx.x
@@ -16,5 +16,5 @@ x....e....x.....x
 x.xxxxxxxxxxxxx.x
 x...x...x.....x.x
 x.x.x.x.x.xxx.x.x
-x.x...x.....x....
+xkx...x.....x.k..
 xxxxxxxxxxxxxxxxx

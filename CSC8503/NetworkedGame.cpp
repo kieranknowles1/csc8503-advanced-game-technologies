@@ -61,6 +61,17 @@ NetworkedGame::~NetworkedGame()	{
 	delete thisClient;
 }
 
+void NCL::CSC8503::NetworkedGame::decrementRemainingKittens(Kitten* kitten, NetworkPlayer* player)
+{
+	kittensSaved++;
+	// Award points to the player
+	int id = player->getClientID();
+	setPlayerScore(id, getPlayerScore(id) + 300);
+	if (server) {
+		server->sendPlayerList();
+	}
+}
+
 void NetworkedGame::StartAsClient(uint32_t addr, std::string_view name) {
 	connectionLength = 0.0f;
 	thisClient = new GameClient();
@@ -96,9 +107,7 @@ void NetworkedGame::drawScoreboard() {
 	Debug::Print("Bonuses collected: " + std::to_string(totalBonusCount - bonusesRemaining) + "/" + std::to_string(totalBonusCount), Vector2(10, yPos));
 	yPos += 5;
 
-	// TODO: Count kittens
-	int kittensCollected = 0;
-	Debug::Print("Kittens safe: " + std::to_string(kittensCollected) + "/" + std::to_string(totalKittenCount), Vector2(10, yPos));
+	Debug::Print("Kittens safe: " + std::to_string(kittensSaved) + "/" + std::to_string(totalKittenCount), Vector2(10, yPos));
 	yPos += 5;
 }
 
@@ -262,11 +271,12 @@ void NetworkedGame::ClearWorld() {
 	delete maze; maze = nullptr;
 	totalBonusCount = 0;
 	totalKittenCount = 0;
+	kittensSaved = 0;
 }
 
 GameObject* NCL::CSC8503::NetworkedGame::AddKittenToWorld(const Vector3& position)
 {
-	Kitten* kitten = new Kitten(kittenMesh, basicShader, basicTex, world);
+	Kitten* kitten = new Kitten(kittenMesh, basicShader, basicTex, this);
 	kitten->GetTransform()
 		.SetPosition(position)
 		.SetScale(Vector3(0.5, 0.5, 0.5));
@@ -293,9 +303,11 @@ void NetworkedGame::AddHomeToWorld(const Vector3& position, const Vector3& dimen
 	floor->SetRenderObject(new RenderObject(&floor->GetTransform(), cubeMesh, nullptr, basicShader));
 	world->AddGameObject(floor);
 
+	// Higher order function to track when we're in the trigger
 	auto triggerFunc = [&](bool state) {
 		return [=](GameObject* other) {
 			if (auto player = dynamic_cast<NetworkPlayer*>(other)) {
+				// The kitten uses this to check if it's safe
 				player->setInHome(state);
 			}
 		};
@@ -410,6 +422,9 @@ void NetworkedGame::StartLevel() {
 			enemy->SetDefaultTransform(enemy->GetTransform());
 			world->AddGameObject(enemy);
 			networkWorld->trackObject(enemy);
+			break;
+		} case GridNode::Type::Kitten: {
+			AddKittenToWorld(node->position + Vector3(0, 5, 0));
 			break;
 		} default:
 			break;
