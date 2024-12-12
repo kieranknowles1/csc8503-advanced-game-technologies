@@ -8,10 +8,16 @@
 // Exits the program if the help flag is found
 class Cli {
 public:
+	enum class ClientType {
+		Auto, // Prompt the user
+		Client,
+		Server,
+	};
+
 	Cli(int argc, char** argv);
 
-	bool isClient() const {
-		return client;
+	ClientType getClientType() const {
+		return clientType;
 	}
 
 	bool shouldCaptureMouse() const {
@@ -34,7 +40,7 @@ public:
 		return name;
 	}
 private:
-	bool client = false;
+	ClientType clientType = ClientType::Auto;
 	bool captureMouse = true;
 	bool fullscreen = false;
 	uint32_t ip = NetworkBase::ipv4(127, 0, 0, 1); // Default to localhost

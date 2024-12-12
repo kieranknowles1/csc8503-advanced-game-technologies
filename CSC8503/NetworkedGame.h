@@ -128,9 +128,11 @@ namespace NCL {
 			Server* getServer() { return server; }
 			Client* getClient() { return client; }
 
+			void StartAsServer();
 			void StartAsClient(uint32_t addr, std::string_view name);
 
 			void drawScoreboard();
+			void drawMainMenu();
 
 			void UpdateGame(float dt) override;
 
@@ -202,6 +204,8 @@ namespace NCL {
 			void UpdateMinimumState();
 			std::map<int, int> stateIDs;
 
+			Cli cli;
+
 			Client* client;
 			Server* server;
 			NetworkWorld* networkWorld;
@@ -215,6 +219,8 @@ namespace NCL {
 			GameClient* thisClient;
 			// How long since we first tried to connect
 			float connectionLength;
+			// Did we try to connect, but fail?
+			bool connectionFailed = false;
 
 			float timeToNextPacket;
 

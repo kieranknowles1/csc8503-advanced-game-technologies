@@ -42,7 +42,9 @@ Cli::Cli(int argc, char** argv) {
             ip = NetworkBase::ipv4(a, b, c, d);
         }
         else if (arg == "-c" || arg == "--client") {
-            client = true;
+            clientType = ClientType::Client;
+        } else if (arg == "-s" || arg == "--server") {
+            clientType = ClientType::Server;
         } else if (arg == "-C" || arg == "--no-capture") {
             captureMouse = false;
         } else if (arg == "-f" || arg == "--fullscreen") {
@@ -72,6 +74,7 @@ void Cli::printUsage(char* programName) const {
         "  -h, --help                    Display this help message\n"
         "  -i, --ip [address=127.0.0.1]  Set the IP address to connect to\n"
         "  -c, --client                  Run the program as a client\n"
+        "  -s, --server                  Run the program as a server\n"
         "  -C, --no-capture              Don't capture the mouse\n"
         "  -f, --fullscreen              Run the program in fullscreen\n"
         "  -w, --window [x=0] [y=0]      Set the window position\n"

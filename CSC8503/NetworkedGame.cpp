@@ -28,30 +28,31 @@ struct MessagePacket : public GamePacket {
 	}
 };
 
-NetworkedGame::NetworkedGame(const Cli& cli) {
+NetworkedGame::NetworkedGame(const Cli& cli)
+	: cli(cli) {
 	server = nullptr;
 	client = nullptr;
 	thisClient = nullptr;
 	maze = nullptr;
+	// Dummy net world, will be replaced by the server or client
+	networkWorld = new NetworkWorld(nullptr, nullptr);
 
 	NetworkBase::Initialise();
 	timeToNextPacket  = 0.0f;
 
-	if (cli.isClient()) {
-		StartAsClient(cli.getIp(), cli.getName());
-	} else {
-		server = new Server(this, MaxPlayers);
+	auto type = cli.getClientType();
+	switch (type) {
+		case Cli::ClientType::Server:
+			StartAsServer();
+			break;
+		case Cli::ClientType::Client:
+			StartAsClient(cli.getIp(), cli.getName());
+			break;
+		default:
+			// Something to look at before connecting
+			StartLevel();
+			break;
 	}
-
-	networkWorld = new NetworkWorld(thisClient, server ? server->getServer() : nullptr);
-
-	if (server) {
-		localPlayerId = HostPlayerId;
-		auto state = generateNetworkState(localPlayerId, cli.getName());
-		allPlayers.emplace(localPlayerId, LocalPlayerState(state));
-	}
-
-	StartLevel();
 }
 
 NetworkedGame::~NetworkedGame()	{
@@ -72,10 +73,33 @@ void NCL::CSC8503::NetworkedGame::decrementRemainingKittens(Kitten* kitten, Netw
 	}
 }
 
+void NetworkedGame::StartAsServer() {
+	server = new Server(this, MaxPlayers);
+	delete networkWorld;
+	networkWorld = new NetworkWorld(thisClient, server->getServer());
+
+	localPlayerId = HostPlayerId;
+	auto state = generateNetworkState(localPlayerId, cli.getName());
+	allPlayers.emplace(localPlayerId, LocalPlayerState(state));
+
+	StartLevel();
+}
+
 void NetworkedGame::StartAsClient(uint32_t addr, std::string_view name) {
+	connectionFailed = false;
 	connectionLength = 0.0f;
 	thisClient = new GameClient();
 	thisClient->Connect(addr, NetworkBase::GetDefaultPort());
+
+	if (!thisClient->isConnected()) {
+		connectionFailed = true;
+		delete thisClient;
+		thisClient = nullptr;
+		return;
+	}
+
+	delete networkWorld;
+	networkWorld = new NetworkWorld(thisClient, nullptr);
 
 	ClientHelloPacket packet;
 	packet.name.set(name);
@@ -86,6 +110,8 @@ void NetworkedGame::StartAsClient(uint32_t addr, std::string_view name) {
 	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerList, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::ServerHello, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::ObjectDestroy, this);
+
+	StartLevel();
 }
 
 void NetworkedGame::drawScoreboard() {
@@ -111,7 +137,33 @@ void NetworkedGame::drawScoreboard() {
 	yPos += 5;
 }
 
+void NetworkedGame::drawMainMenu() {
+	Debug::Print(
+		"Small Feline Big Deadline\n"
+		"\n"
+		"Press F4 to start a server\n"
+		"Or F5 to connect to a server\n",
+		Vector2(10, 10)
+	);
+
+	if (connectionFailed) {
+		Debug::Print("Failed to connect to server", Vector2(10, 30), Vector4(1, 0, 0, 1));
+	}
+
+	if (Window::GetKeyboard()->KeyPressed(KeyCodes::F4)) {
+		StartAsServer();
+	} else if (Window::GetKeyboard()->KeyPressed(KeyCodes::F5)) {
+		StartAsClient(cli.getIp(), cli.getName());
+	}
+}
+
 void NetworkedGame::UpdateGame(float dt) {
+	if (server == nullptr && thisClient == nullptr) {
+		drawMainMenu();
+		// Run the rest of the loop to get rendering and a basic menu background
+		//return;
+	}
+
 	timeToNextPacket -= dt;
 	if (server)
 		Debug::Print("This is a server with " + std::to_string(server->getServer()->getClientCount()) + " clients", Vector2(10, 10));
