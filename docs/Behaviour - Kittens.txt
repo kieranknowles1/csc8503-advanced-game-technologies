@@ -1,0 +1,8 @@
+stateDiagram-v2
+	Wander : Wander the immediate area
+    Follow : Follow the player
+    Sleep : Stay in place at home
+    
+    Wander-->Follow : Line of sight, distance < 20
+    Follow-->Wander : No line of sight, range 25 (3 seconds)
+    Follow-->Sleep : Player in home

@@ -45,11 +45,20 @@ namespace NCL::CSC8503 {
 		int getClientID() const {
 			return clientId;
 		}
+
+		bool isInHome() const {
+			return inHome;
+		}
+		void setInHome(bool value) {
+			inHome = value;
+		}
 	private:
 		void handleJumpInput(float dt);
 
 		int clientId;
 		PlayerInput lastInput;
+
+		bool inHome = false;
 
 		const constexpr static float JumpCooldown = 0.2f;
 		const constexpr static float JumpRayLength = 3.0f;

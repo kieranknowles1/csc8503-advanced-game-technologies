@@ -293,10 +293,15 @@ void NetworkedGame::AddHomeToWorld(const Vector3& position, const Vector3& dimen
 	floor->SetRenderObject(new RenderObject(&floor->GetTransform(), cubeMesh, nullptr, basicShader));
 	world->AddGameObject(floor);
 
-	auto trigger = new Trigger([&](GameObject* other) {
-		// TODO: Implement
-		std::cout << "Object entered home\n";
-	});
+	auto triggerFunc = [&](bool state) {
+		return [=](GameObject* other) {
+			if (auto player = dynamic_cast<NetworkPlayer*>(other)) {
+				player->setInHome(state);
+			}
+		};
+	};
+
+	auto trigger = new Trigger(triggerFunc(true), triggerFunc(false));
 	trigger->SetBoundingVolume(new AABBVolume(dimensions / 2.0f));
 	trigger->GetTransform()
 		.SetPosition(position + (dimensions * Vector3(0, 0.5, 0)))
