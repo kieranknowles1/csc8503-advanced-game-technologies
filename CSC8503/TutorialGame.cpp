@@ -110,7 +110,7 @@ void TutorialGame::UpdateGame(float dt) {
 		// If an object would be in the way of the camera, move the camera forwards
 		Vector3 direction = Vector::Normalise(camPos - objPos);
 		Ray ray = Ray(objPos, direction);
-		ray.setMask(~LayerMask({ LayerMask::Index::Item, LayerMask::Index::Actor }));
+		ray.setMask(CameraMask);
 		RayCollision closestCollision;
 		bool hit = world->Raycast(ray, closestCollision, true, lockedObject);
 		if (hit && Vector::Distance(closestCollision.collidedAt, objPos) < Vector::Distance(camPos, objPos)) {

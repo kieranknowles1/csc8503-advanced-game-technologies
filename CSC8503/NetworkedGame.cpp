@@ -15,6 +15,7 @@
 #include "Trapper.h"
 #include "Kitten.h"
 #include "Bonus.h"
+#include "Trigger.h"
 
 #define COLLISION_MSG 30
 
@@ -284,6 +285,27 @@ GameObject* NCL::CSC8503::NetworkedGame::AddNetworkCubeToWorld(const Vector3& po
 	return cube;
 }
 
+void NetworkedGame::AddHomeToWorld(const Vector3& position, const Vector3& dimensions) {
+	auto floor = new GameObject();
+	floor->GetTransform()
+		.SetPosition(position - Vector3(0, 2.95, 0))
+		.SetScale(dimensions);
+	floor->SetRenderObject(new RenderObject(&floor->GetTransform(), cubeMesh, nullptr, basicShader));
+	world->AddGameObject(floor);
+
+	auto trigger = new Trigger([&](GameObject* other) {
+		// TODO: Implement
+		std::cout << "Object entered home\n";
+	});
+	trigger->SetBoundingVolume(new AABBVolume(dimensions / 2.0f));
+	trigger->GetTransform()
+		.SetPosition(position + (dimensions * Vector3(0, 0.5, 0)))
+		.SetScale(dimensions);
+	trigger->SetPhysicsObject(new PhysicsObject(&trigger->GetTransform(), trigger->GetBoundingVolume()));
+	trigger->GetPhysicsObject()->SetInverseMass(0.0f);
+	world->AddGameObject(trigger);
+}
+
 GameObject* NetworkedGame::AddBridgeToWorld(const BridgeSettings& settings) {
 	GameObject* start = AddNetworkCubeToWorld(settings.start, settings.nodeSize, 0.0f);
 	GameObject* end = AddNetworkCubeToWorld(settings.end, settings.nodeSize, 0.0f);
@@ -334,6 +356,8 @@ void NetworkedGame::StartLevel() {
 	ClearWorld();
 
 	AddFloorToWorld(Vector3(0, 0, 0));
+
+	AddHomeToWorld(Vector3(-20, 0, 0), Vector3(10, 10, 10));
 
 	auto netCube = AddCubeToWorld(Vector3(-10, 20, 0), Vector3(1, 1, 5), 0.5f);
 	networkWorld->trackObject(netCube);

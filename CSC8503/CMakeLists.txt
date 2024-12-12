@@ -16,6 +16,7 @@ set(Header_Files
     Server.h
     "StateGameObject.h"
     Trapper.h
+    Trigger.h
     "TutorialGame.h"
 )
 source_group("Header Files" FILES ${Header_Files})
@@ -36,6 +37,7 @@ set(Source_Files
     Server.cpp
     "StateGameObject.cpp"
     Trapper.cpp
+    Trigger.cpp
     "TutorialGame.cpp"
 )
 

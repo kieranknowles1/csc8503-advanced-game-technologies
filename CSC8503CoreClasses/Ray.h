@@ -12,7 +12,7 @@ namespace NCL {
 			float		rayDistance;
 
 			// Match all layers by default
-			RayCollision(void*node, Vector3 collidedAt, CSC8503::LayerMask mask = CSC8503::LayerMask()) {
+			RayCollision(void*node, Vector3 collidedAt) {
 				this->node			= node;
 				this->collidedAt	= collidedAt;
 				this->rayDistance	= 0.0f;
@@ -43,7 +43,7 @@ namespace NCL {
 			Vector3 position;	//World space position
 			Vector3 direction;	//Normalised world space direction
 			// Only collide with objects on these layers
-			CSC8503::LayerMask mask;
+			CSC8503::LayerMask mask = CSC8503::DefaultMask;
 		};
 	}
 }

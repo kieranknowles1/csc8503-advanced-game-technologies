@@ -150,6 +150,7 @@ namespace NCL {
 				float nodeMaxDistance;
 			};
 
+			void AddHomeToWorld(const Vector3& position, const Vector3& dimensions);
 			// Returns the end point of the bridge
 			GameObject* AddBridgeToWorld(const BridgeSettings& settings);
 			Bonus* AddBonusToWorld(const Vector3& position);

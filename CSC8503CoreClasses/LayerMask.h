@@ -12,6 +12,7 @@ namespace NCL::CSC8503 {
 		// Abstracts away bit manipulation
 		enum class Index {
 			Default,
+			Trigger,
 			// An item that can be picked up by the player
 			Item,
 			// An actor, either player or AI that moves on its own
@@ -42,4 +43,15 @@ namespace NCL::CSC8503 {
 
 		uint32_t mask;
 	};
+
+	// Default mask, ignores triggers
+	const static constexpr LayerMask DefaultMask = ~LayerMask({
+		LayerMask::Index::Trigger
+	});
+
+	const static constexpr LayerMask CameraMask = ~LayerMask({
+		LayerMask::Index::Trigger,
+		LayerMask::Index::Actor,
+		LayerMask::Index::Item,
+	});
 }
