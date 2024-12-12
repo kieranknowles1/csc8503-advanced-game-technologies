@@ -106,12 +106,30 @@ void NetworkedGame::StartAsClient(uint32_t addr, std::string_view name) {
 	thisClient->SendPacket(packet);
 
 	thisClient->RegisterPacketHandler(GamePacket::Type::Reset, this);
+	thisClient->RegisterPacketHandler(GamePacket::Type::GameEnd, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerDisconnected, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::PlayerList, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::ServerHello, this);
 	thisClient->RegisterPacketHandler(GamePacket::Type::ObjectDestroy, this);
 
 	StartLevel();
+}
+
+void NetworkedGame::drawEndScreen() {
+	Debug::Print(server
+		? "Game Over! Press F11 to restart"
+		: "Game Over! Waiting for server to restart",
+		Vector2(10, 10)
+	);
+
+	LocalPlayerState* winner = nullptr;
+	for (auto& player : allPlayers) {
+		if (winner == nullptr || player.second.netState.score > winner->netState.score) {
+			winner = &player.second;
+		}
+	}
+	Debug::Print(winner->player->GetName() + " wins", Vector2(10, 15));
+	drawScoreboard();
 }
 
 void NetworkedGame::drawScoreboard() {
@@ -164,11 +182,18 @@ void NetworkedGame::UpdateGame(float dt) {
 		//return;
 	}
 
+	if (server && !gameEnded) {
+		gameEnded = totalKittenCount == kittensSaved || Window::GetKeyboard()->KeyPressed(KeyCodes::F10);
+		if (gameEnded) {
+			server->getServer()->SendGlobalPacket(GamePacket::Type::GameEnd);
+		}
+	}
+
+	if (gameEnded) {
+		drawEndScreen();
+	}
+
 	timeToNextPacket -= dt;
-	if (server)
-		Debug::Print("This is a server with " + std::to_string(server->getServer()->getClientCount()) + " clients", Vector2(10, 10));
-	if (thisClient)
-		Debug::Print("This is a client", Vector2(10, 10));
 
 	if (Window::GetKeyboard()->KeyDown(KeyCodes::TAB))
 		drawScoreboard();
@@ -324,6 +349,7 @@ void NetworkedGame::ClearWorld() {
 	totalBonusCount = 0;
 	totalKittenCount = 0;
 	kittensSaved = 0;
+	gameEnded = false;
 }
 
 GameObject* NCL::CSC8503::NetworkedGame::AddKittenToWorld(const Vector3& position)
@@ -514,6 +540,7 @@ void NetworkedGame::ProcessPacket(ServerHelloPacket* payload) {
 	std::cout << "Received hello packet. We are player " << payload->whoAmI.id << "\n";
 	std::cout << "Our colour is " << payload->whoAmI.colour << "\n";
 	localPlayerId = payload->whoAmI.id;
+	gameEnded = payload->gameEnded;
 	allPlayers.emplace(localPlayerId, LocalPlayerState(payload->whoAmI));
 }
 
@@ -535,6 +562,9 @@ void NetworkedGame::ReceivePacket(GamePacket::Type type, GamePacket* payload, in
 		return ProcessPacket((DestroyPacket*)payload);
 	case GamePacket::Type::Reset:
 		StartLevel();
+		break;
+	case GamePacket::Type::GameEnd:
+		gameEnded = true;
 		break;
 	default:
 		break;

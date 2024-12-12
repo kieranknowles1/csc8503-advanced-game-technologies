@@ -66,6 +66,8 @@ struct GamePacket {
 		Shutdown,
 		// Level reset
 		Reset,
+		// End of game
+		GameEnd,
 
 		// Hello,
 		// Message,

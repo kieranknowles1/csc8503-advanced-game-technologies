@@ -90,9 +90,11 @@ namespace NCL {
 		// where if two clients connect at the same time, they could both think they are the same player
 		struct ServerHelloPacket : public GamePacket {
 			PlayerState whoAmI;
-			ServerHelloPacket(PlayerState state) : GamePacket(Type::ServerHello) {
+			bool gameEnded;
+			ServerHelloPacket(PlayerState state, bool gameEnded) : GamePacket(Type::ServerHello) {
 				size = sizeof(ServerHelloPacket) - sizeof(GamePacket);
 				whoAmI = state;
+				this->gameEnded = gameEnded;
 			}
 		};
 
@@ -131,6 +133,7 @@ namespace NCL {
 			void StartAsServer();
 			void StartAsClient(uint32_t addr, std::string_view name);
 
+			void drawEndScreen();
 			void drawScoreboard();
 			void drawMainMenu();
 
@@ -179,6 +182,8 @@ namespace NCL {
 				return 0;
 			}
 			void setPlayerScore(int id, int score) {
+				// Lock scores once someone wins
+				if (gameEnded) return;
 				auto player = allPlayers.find(id);
 				if (player != allPlayers.end()) {
 					player->second.netState.score = score;
@@ -190,6 +195,10 @@ namespace NCL {
 			void removeObject(GameObject* obj);
 
 			PlayerState generateNetworkState(int clientId, std::string_view name);
+
+			bool hasGameEnded() {
+				return gameEnded;
+			}
 		protected:
 			void ProcessInput(float dt);
 
@@ -221,6 +230,8 @@ namespace NCL {
 			float connectionLength;
 			// Did we try to connect, but fail?
 			bool connectionFailed = false;
+
+			bool gameEnded = false;
 
 			float timeToNextPacket;
 

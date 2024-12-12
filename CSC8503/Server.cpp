@@ -63,7 +63,8 @@ namespace NCL::CSC8503 {
         sendPlayerList();
 
         ServerHelloPacket helloPacket{
-            netState
+            netState,
+            game->hasGameEnded()
         };
         server->SendClientPacket(source, helloPacket);
 
