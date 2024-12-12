@@ -483,7 +483,9 @@ ones in the next 'game' frame.
 */
 void PhysicsSystem::ClearForces() {
 	for (auto o : gameWorld.objects()) {
-		o->GetPhysicsObject()->ClearForces();
+		auto phys = o->GetPhysicsObject();
+		if (phys != nullptr)
+			phys->ClearForces();
 	}
 }
 
