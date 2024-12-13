@@ -2,6 +2,8 @@
 
 My coursework for the Advanced Game Technologies module at Newcastle University.
 
+[Demo Video](https://www.youtube.com/watch?v=0JzQBoRjsA0)
+
 ## Usage
 
 ### Controls
