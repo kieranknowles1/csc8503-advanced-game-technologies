@@ -18,3 +18,8 @@ Generated using [Mermaid](https://mermaid.js.org/) and edited using
 
 ## Kittens
 ![Kittens](./Behaviour%20-%20Kittens_mermai.svg)
+
+## Networking
+![Networking](./Network%20Sequence_mermaid-e.svg)
+
+Covers client connection and the update loop.

@@ -1,0 +1,19 @@
+sequenceDiagram
+	participant Server
+    actor AllClients
+    actor NewClient
+    
+    NewClient->>Server : enet_host_connect
+    activate Server
+    NewClient->>Server : ClientHello
+    Server->>NewClient : ServerHello
+    Server->>AllClients : PlayerList
+    deactivate Server
+    
+    note over Server,NewClient : A new player connects
+    
+    loop Update game
+    	Server->>AllClients : Delta & full states
+        AllClients->>Server : Player inputs
+    end
+    note over Server, AllClient : Main update loop
