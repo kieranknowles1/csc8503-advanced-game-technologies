@@ -357,6 +357,7 @@ void NetworkedGame::ClearWorld() {
 
 	for (auto& player : allPlayers) {
 		player.second.player = nullptr;
+		player.second.netState.score = 0;
 	}
 	delete maze; maze = nullptr;
 	totalBonusCount = 0;

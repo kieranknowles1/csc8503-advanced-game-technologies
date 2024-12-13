@@ -12,6 +12,7 @@ make --directory build -j$THREADS
 # Display both outputs through tmux
 # Position windows on separate monitors
 tmux new-session -d -s "server" $EXE_PATH --server --no-capture --name "J'zargo"
+sleep 0.5
 tmux split-window -h $EXE_PATH --client --window 2000 0 --name "M'aiq the Liar"
 
 # Display outputs of both instances
