@@ -17,12 +17,14 @@ As any player:
 - `F3` - Toggle debug drawing
 
 As the server:
+- `F10` - End the current game
 - `F11` - Restart the game
 
 ### Command Line Arguments
 
-The game will launch as a server by default. To launch as a client, pass the
-`--client` argument. For a complete list of arguments, run with `--help`.
+The game will prompt for running as a server or client if no arguments are passed.
+To force a specific mode, pass `--server` or `--client`. For a complete list of
+arguments, run with `--help`.
 
 ## Included Scripts
 
