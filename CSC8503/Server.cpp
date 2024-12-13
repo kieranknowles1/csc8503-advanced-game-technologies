@@ -64,7 +64,9 @@ namespace NCL::CSC8503 {
 
         ServerHelloPacket helloPacket{
             netState,
-            game->hasGameEnded()
+            game->hasGameEnded(),
+            game->getTimeElapsed(),
+            game->getTimeLimit()
         };
         server->SendClientPacket(source, helloPacket);
 

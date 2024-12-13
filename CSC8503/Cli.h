@@ -39,11 +39,17 @@ public:
 	std::string_view getName() const {
 		return name;
 	}
+
+	float getMaxGameLength() const {
+		return maxGameLength;
+	}
 private:
 	ClientType clientType = ClientType::Auto;
 	bool captureMouse = true;
 	bool fullscreen = false;
 	uint32_t ip = NetworkBase::ipv4(127, 0, 0, 1); // Default to localhost
+
+	float maxGameLength = 300.0f;
 
 	NCL::Maths::Vector2i windowPos = NCL::Maths::Vector2i(0, 0);
 

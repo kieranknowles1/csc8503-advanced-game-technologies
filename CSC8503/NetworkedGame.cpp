@@ -82,6 +82,7 @@ void NetworkedGame::StartAsServer() {
 	auto state = generateNetworkState(localPlayerId, cli.getName());
 	allPlayers.emplace(localPlayerId, LocalPlayerState(state));
 
+	timeLimit = cli.getMaxGameLength();
 	StartLevel();
 }
 
@@ -134,25 +135,35 @@ void NetworkedGame::drawEndScreen() {
 
 void NetworkedGame::drawScoreboard() {
 	float yPos = 20;
+	float lineHeight = 5;
 	for (auto& [id, player] : allPlayers) {
 		// string_view doesn't support concatenation :(
 		std::string name(player.netState.name.get());
 		std::string score = std::to_string(player.netState.score);
 		Vector4 color = id == localPlayerId ? Vector4(1, 1, 1, 1) : Vector4(0.5, 0.5, 0.5, 1);
 		Debug::Print(name + ": " + score, Vector2(10, yPos), color);
-		yPos += 5;
+		yPos += lineHeight;
 	}
-	yPos += 5;
+	yPos += lineHeight;
 
 	TaggedObjects::iterator first; TaggedObjects::iterator last;
 	world->getTaggedObjects(GameObject::Tag::Bonus, first, last);
 	int bonusesRemaining = std::distance(first, last);
 
 	Debug::Print("Bonuses collected: " + std::to_string(totalBonusCount - bonusesRemaining) + "/" + std::to_string(totalBonusCount), Vector2(10, yPos));
-	yPos += 5;
+	yPos += lineHeight;
 
 	Debug::Print("Kittens safe: " + std::to_string(kittensSaved) + "/" + std::to_string(totalKittenCount), Vector2(10, yPos));
-	yPos += 5;
+	yPos += lineHeight;
+
+	int seconds = (int)timeLimit - (int)timeElapsed;
+	int minutes = seconds / 60;
+	seconds %= 60;
+
+	std::stringstream ss;
+	ss << "Time remaining: " << minutes << ":" << std::setw(2) << std::setfill('0') << seconds;
+	Debug::Print(ss.str(), Vector2(10, yPos));
+	yPos += lineHeight;
 }
 
 void NetworkedGame::drawMainMenu() {
@@ -182,8 +193,10 @@ void NetworkedGame::UpdateGame(float dt) {
 		//return;
 	}
 
+	timeElapsed = std::min(timeElapsed + dt, timeLimit);
+
 	if (server && !gameEnded) {
-		gameEnded = totalKittenCount == kittensSaved || Window::GetKeyboard()->KeyPressed(KeyCodes::F10);
+		gameEnded = totalKittenCount == kittensSaved || Window::GetKeyboard()->KeyPressed(KeyCodes::F10) || timeElapsed >= timeLimit;
 		if (gameEnded) {
 			server->getServer()->SendGlobalPacket(GamePacket::Type::GameEnd);
 		}
@@ -541,6 +554,8 @@ void NetworkedGame::ProcessPacket(ServerHelloPacket* payload) {
 	std::cout << "Our colour is " << payload->whoAmI.colour << "\n";
 	localPlayerId = payload->whoAmI.id;
 	gameEnded = payload->gameEnded;
+	timeElapsed = payload->timeElapsed;
+	timeLimit = payload->timeLimit;
 	allPlayers.emplace(localPlayerId, LocalPlayerState(payload->whoAmI));
 }
 

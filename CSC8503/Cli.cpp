@@ -58,8 +58,15 @@ Cli::Cli(int argc, char** argv) {
                 throw std::runtime_error("Invalid window position: " + xStr + " " + yStr);
             }
             windowPos = NCL::Maths::Vector2i(x, y);
-        } else if (arg == "-n" || arg == "--name") {
+        }
+        else if (arg == "-n" || arg == "--name") {
             consumeRequiredArg(name);
+        } else if (arg == "-t" || arg == "--time-limit") {
+            std::string timeStr;
+			consumeRequiredArg(timeStr);
+			if (sscanf_s(timeStr.c_str(), "%f", &maxGameLength) != 1) {
+				throw std::runtime_error("Invalid time limit: " + timeStr);
+			}
         } else {
             throw std::runtime_error("Unknown argument: " + arg + " (try -h for help)");
         }
@@ -78,5 +85,6 @@ void Cli::printUsage(char* programName) const {
         "  -C, --no-capture              Don't capture the mouse\n"
         "  -f, --fullscreen              Run the program in fullscreen\n"
         "  -w, --window [x=0] [y=0]      Set the window position\n"
+        "  -t, --time-limit              Set the maximum game length\n"
         "  -n, --name [name=User]        Set the user name\n";
 }

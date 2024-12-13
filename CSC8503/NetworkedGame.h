@@ -91,10 +91,14 @@ namespace NCL {
 		struct ServerHelloPacket : public GamePacket {
 			PlayerState whoAmI;
 			bool gameEnded;
-			ServerHelloPacket(PlayerState state, bool gameEnded) : GamePacket(Type::ServerHello) {
+			float timeElapsed;
+			float timeLimit;
+			ServerHelloPacket(PlayerState state, bool gameEnded, float timeElapsed, float timeLimit) : GamePacket(Type::ServerHello) {
 				size = sizeof(ServerHelloPacket) - sizeof(GamePacket);
 				whoAmI = state;
 				this->gameEnded = gameEnded;
+				this->timeElapsed = timeElapsed;
+				this->timeLimit = timeLimit;
 			}
 		};
 
@@ -196,8 +200,14 @@ namespace NCL {
 
 			PlayerState generateNetworkState(int clientId, std::string_view name);
 
-			bool hasGameEnded() {
+			bool hasGameEnded() const {
 				return gameEnded;
+			}
+			float getTimeElapsed() const {
+				return timeElapsed;
+			}
+			float getTimeLimit() const {
+				return timeLimit;
 			}
 		protected:
 			void ProcessInput(float dt);
@@ -247,6 +257,9 @@ namespace NCL {
 			int totalBonusCount = 0;
 			int kittensSaved = 0;
 			int totalKittenCount = 0;
+
+			float timeElapsed = 0.0f;
+			float timeLimit = 0.0f;
 
 			// World stuff
 			NavigationGrid* maze;
